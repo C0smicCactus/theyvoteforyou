@@ -1,13 +1,15 @@
 # Bills Digest integration: current state and open questions
 
-Status as at 20 September 2026. Nothing is decided yet. This records what the
-`{{digest_section}}` placeholder does today, what was found when we looked into filling it, and
-what someone picking this up needs to know before writing any code. Once a decision is made it
-should become an ADR in `docs/adr/` and this file should shrink to a pointer.
+Status as at 20 September 2026, updated 13 October 2026. The first step is decided: point the
+person reviewing a draft to the bill's page on aph.gov.au, which links its Bills Digest (see "Next
+step: link reviewers to the bill's page" below). Fetching or quoting digests is not decided. This
+records what the `{{digest_section}}` placeholder does today, what was found when we looked into
+filling it, and what someone picking this up needs to know before writing any code. Once a
+decision is made it should become an ADR in `docs/adr/` and this file should shrink to a pointer.
 
-Drafted with AI assistance (Claude Opus 5) from a working session, then reviewed by hand. The
-verification status of each claim is marked below, because some of it could not be checked
-directly.
+Drafted with AI assistance (Claude Opus 5) from a working session, then reviewed by hand. The 13
+October update was drafted with AI assistance (Claude Code, claude-opus-5-5). The verification
+status of each claim is marked below, because some of it could not be checked directly.
 
 ## What happens today
 
@@ -160,6 +162,83 @@ Changing the fallback also means updating the fallback spec in
 `template_compiler_spec.rb`, and the golden fixture
 `spec/fixtures/division_summaries/test_1/expected_output.md`. The fixture is the one people forget.
 
+## Next step: link reviewers to the bill's page
+
+Decided on 12 October 2026: for now, point the person reviewing a draft to the bill's page on
+aph.gov.au, where they can open its Bills Digest themselves. Nothing is fetched from APH, and no
+digest text is copied into the draft.
+
+*Inferred, not checked with APH:* a link avoids all three obstacles above. Nothing in this app
+requests anything from aph.gov.au, nothing licensed is republished, and the bill's own page does
+the bill-to-digest lookup that the feed can't.
+
+Putting a digest's key points into the draft is a separate, later step, and still needs the
+sign-offs below.
+
+### What a check on 12 October 2026 found
+
+*From a check on 12 October 2026. Task 1 below confirms the aph.gov.au pages in a browser.*
+
+- Each bill in the `bills` table has its id (`official_id`, such as `r7339`) and its ParlInfo
+  "billhome" page (`url`). In a development database holding 190 divisions from August and
+  September 2026, all 28 bills linked to them had an id.
+- The aph.gov.au bill page links straight to the bill's digest when there is one. r7339 had one;
+  r7300 and r7180 had none. So no title matching is needed:
+  `https://www.aph.gov.au/Parliamentary_Business/Bills_Legislation/Bills_Search_Results/Result?bId=<official_id>`
+- Not checked yet: whether the ParlInfo billhome page links the digest too.
+- A digest page doesn't name its bill's id, so the RSS feed can't be matched back to divisions
+  without guessing. The feed still returned 403 to automated clients.
+
+Also worth knowing:
+
+- A division can have more than one bill, but `DivisionFacts#bill_link` keeps only the first
+  bill's link (`context/division_facts.rb`). The link for reviewers should cover every bill.
+- The division page on the site already links each bill's billhome page
+  (`app/views/divisions/_external_links.html.haml`).
+
+### Tasks
+
+Tick each off as it's done.
+
+- [ ] **1.** In a browser (APH blocks automated requests), open the aph.gov.au page for r7339
+      (has a digest), r7300 (has none) and a Senate bill such as s1496. Note what the digest link
+      says and where it sits, and whether the billhome page shows the same link. That decides
+      which page reviewers are sent to.
+- [ ] **2.** Decide where the link goes:
+    - **A. Reviewer Only.** A row for each bill in the Source table: its title and page, saying
+      to check there for a Bills Digest. The published part of the draft doesn't change, so
+      there's no published wording to agree and no fixture to update. The smaller first step. Log
+      the "No Bill Digest found." fallback as a Pipeline entry in `KNOWN_ISSUES.md`, so it isn't
+      forgotten.
+    - **B. A, and also replace "> No Bill Digest found."** with the editor note suggested under
+      "Recommendation from the working session", linking the bill's page. Fixes a line that
+      claims a search that never happened, but changes the draft's published text, so it touches
+      `template_compiler_spec.rb`, the golden fixture and `ARCHITECTURE.md`.
+
+      Either way, a division with no bill record gets no link, never a search for a bill name the
+      model guessed (`docs/adr/0005-ai-summaries-select-never-author.md`).
+- [ ] **3.** Decide what happens to local drafts made before the change. `ai:replay_reply`
+      rebuilds one division from its saved reply and prints it; it doesn't write to `local_runs/`.
+      Options:
+    - **Leave them.** Reviewers can get to the bill from the division page.
+    - **Redraft them** with `FORCE=1`: hours or days of model time for a change the model has no
+      part in.
+    - **Add a task that rebuilds every draft from its saved reply.** Minutes to run, and useful
+      again whenever only the compiled output changes, but it's more code to write and review.
+- [ ] **4.** Make the change on a new branch from `feature/1716-ai-division-summaries`, such as
+      `feature/1716-bills-digest-link`. Each bill's id, title and link go in `DivisionFacts`, and
+      the rows in `ReviewerReport` (plus the template change if B), tested in
+      `division_facts_spec.rb` and `reviewer_report_spec.rb`. `bin/rspec
+      spec/services/division_summary_pipeline` and `bin/rubocop` should pass. Don't switch branch
+      in a folder where `ai:draft_local` is running: it reads templates and code from disk as it
+      goes.
+- [ ] **5.** Update this document with what was built, and "Placeholders waiting for an
+      integration" in `ARCHITECTURE.md`.
+- [ ] **6.** Open a draft pull request into `feature/1716-ai-division-summaries` using the
+      organisation's pull request template, with the AI disclosure it asks for.
+- [ ] **7.** Once it's merged, make sure the branch local drafting runs use has it before the next
+      run, and deal with drafts made before it as decided in task 3.
+
 ## Needs sign-off before anything ships
 
 Both are outward-facing and are not developer calls:
@@ -175,6 +254,8 @@ Both are outward-facing and are not developer calls:
   reliably finds a digest from a bill title.
 - Whether APH would extend the existing user agent arrangement to this use, and who at OAF holds
   that contact.
+- Whether the ParlInfo billhome page (`bills.url`) links the digest, as the aph.gov.au bill page
+  does.
 
 ## Where the code seams are
 
@@ -184,3 +265,5 @@ Both are outward-facing and are not developer calls:
   `digest_section` / `digest_key_points` / `digest_link` into markdown.
 - `app/services/division_summary_pipeline/ARCHITECTURE.md`, "Placeholders waiting for an
   integration", which describes the same seam from the code's point of view.
+- `app/services/division_summary_pipeline/context/division_facts.rb` and
+  `compilation/reviewer_report.rb`, where a link for reviewers would go (see "Next step").
