@@ -294,8 +294,9 @@ for human review.
   putting a question, and fact references that do not resolve or are too thin for what the
   template names.
 - Settled by the amendment's own words where they settle it: whether a second reading amendment
-  declines the bill (KI-11). And a warning when the model cannot find what a template settled by
-  the question is about, since then the route is in doubt (KI-59).
+  declines the bill (KI-11), with a warning where they leave it to the model (KI-87). And a warning
+  when the model cannot find what a template settled by the question is about, since then the route
+  is in doubt (KI-59).
 - What it proves: the quoted words were said, where, when and by whom. What it cannot prove: that
   the model chose the most representative sentences. That is why every draft is reviewed by a person.
 

@@ -120,7 +120,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-8 | Rules | Medium | Fixed | House quorum hardcoded against a 2019 date | `template_compiler_spec.rb` "constitutional and parliamentary procedures". Chamber size comes from the member records on the day; the dated constant is only the fallback. |
 | KI-9 | Rules | Medium | Fixed | Template 2 overstated what carrying a reasoned amendment does | Template 2's explainer (no spec). |
 | KI-10 | Rules | Medium | Fixed | Template 17 asserted a purpose the question usually does not support | `template_compiler_spec.rb` "Template 17, the purpose a suspension states for itself". |
-| KI-11 | Rules | Medium | Fixed | `declines_second_reading` was left to the model when the guides give a closed list of forms | `provenance_validator_spec.rb` "declines_second_reading against the motion text". Extended in September 2026 (`provenance_validator_spec.rb` "with the forms whose words settle it"): the words also settle it as declining when the amendment rejects the bill (the Senate's usual form) or would finally dispose of it (House S.O. 146, "now" to "not"; Senate S.O. 114(2), "this day 6 months"), and as not declining when a Senate amendment only adds words expressing an opinion. An addition that refers or delays the bill is left to the model (Senate Guide No. 16), and a House amendment that adds words, which S.O. 145(a)(iii) does not allow, is a warning. The House's "disapproves of ... charges" form is no longer listed as not declining: the guide does not classify it. The pattern for a referral or delay matches those words anywhere in the added words, so an amendment that only mentions a delay or a committee is left to the model too (KI-87). |
+| KI-11 | Rules | Medium | Fixed | `declines_second_reading` was left to the model when the guides give a closed list of forms | `provenance_validator_spec.rb` "declines_second_reading against the motion text". Extended in September 2026 (`provenance_validator_spec.rb` "with the forms whose words settle it"): the words also settle it as declining when the amendment rejects the bill (the Senate's usual form) or would finally dispose of it (House S.O. 146, "now" to "not"; Senate S.O. 114(2), "this day 6 months"), and as not declining when a Senate amendment only adds words expressing an opinion. An addition that refers or delays the bill is left to the model (Senate Guide No. 16), and a House amendment that adds words, which S.O. 145(a)(iii) does not allow, is a warning. The House's "disapproves of ... charges" form is no longer listed as not declining: the guide does not classify it. Since KI-87 an addition is left to the model only when it refers, delays or defeats the bill in an operative form, not when it only mentions a committee or a delay, and the editor is warned whenever the words leave the flag to the model. |
 | KI-12 | Rules | Low | Fixed | Template copy the guides sharpen (1, 3, 4, 5, 8, 9, 10, 14, 16, 18, 20, 22, 25, 26, 27, 28) | Template text (no spec). Template 23 was checked and is right: the Senate has no gag. Checked against the House Guide (2017), which the House standing orders have since overtaken: Template 18's House half was out of date until KI-47. |
 | KI-13 | Rules | Low | Partly fixed | Template 2 described one of the four things a stage amendment can do | See the open entry below. |
 | KI-14 | Pipeline | Low | Fixed | `ARCHITECTURE.md` drift: template count, adjournment, Senate quorum | Documentation. |
@@ -195,7 +195,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-84 | Pipeline | High | Open | A deferred second reading was credited to the mover of a second reading amendment negatived before it, and the amendment was printed as its motion | See the open entry below. |
 | KI-85 | Rules | Medium-High | Open | A House division with six or fewer on a side (S.O. 127) may be reported as decided by no one, or the wrong way round | See the open entry below. |
 | KI-86 | Pipeline | Low | Open | A unanimous division would read "a large majority" where the division page says "unanimously" | See the open entry below. |
-| KI-87 | Pipeline | Medium-High | Open | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switches off the validator's check of `declines_second_reading`, so whether the draft says the amendment opposed the bill rests on the model alone | See the open entry below. |
+| KI-87 | Pipeline | Medium-High | Fixed | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switched off the validator's check of `declines_second_reading`, so whether the draft said the amendment opposed the bill rested on the model alone | `provenance_validator_spec.rb` "settles as not declining an addition that only mentions a delay or a committee, or has no opinion word" and "leaves an addition that refers or delays the bill to the model, and says so". `ProvenanceValidator::OPERATIVE_ADDITION` looks for the operative forms of a referral, a delay or a defeat ("the provisions of the bill be referred", "further consideration of the bill be made an order of the day"), and a Senate addition with none of them is settled as not declining, opinion word or not (Senate Guide No. 16, p. 47). Where the words leave the flag to the model, a warning says so. Of the 135 Template 2 drafts of 2026, 7 Senate ones are now settled by rule instead, each as the model had answered, and 78 carry the warning. Still worth knowing: an operative form the pattern doesn't list is settled as not declining, so a model that rightly answered `true` for it would fail validation. |
 | KI-88 | Pipeline | Low | Open | For a second reading amendment, the quoted reasons can be about the bill rather than the amendment's own terms | See the open entry below. |
 | KI-89 | Pipeline | Low | Open | Question Put gives the chair's question the time of the speech before it | See the open entry below. |
 | KI-90 | Pipeline | Medium | Open | A mover's reasons given before an earlier division in the same debate never reach the model, so "About the Amendment" says "No explanatory claims recorded." | See the open entry below. |
@@ -1142,53 +1142,6 @@ House a unanimous division is most likely at the third reading of a constitution
 where the bells are rung "even when this question is carried on the voices" (House Guide p. 77). A
 fix would return the page's word, and the vote sentence would need a form without "a ... majority".
 Test in `division_facts_spec.rb` ".majority_strength".
-
-### KI-87
-
-**A word such as "delayed", "Committee" or "refer" anywhere in a Senate second reading amendment's
-added words switches off the validator's check of `declines_second_reading`.** Severity:
-Medium-High. Status: Open. **Confirmed** by running `ProvenanceValidator`'s own patterns on the
-terms of Senate 14 September 2026 #7 on 15 October 2026. That a draft would then be wrong is
-**Inferred**: no 2026 draft has been found wrong this way.
-
-At Senate 14 September 2026 #7 the Greens' amendment (`uk.org.publicwhip/lords/2026-09-14.30.1`)
-adds words that only note and call on the Government: "At the end of the motion, add ', but the
-Senate: (a) notes the uncertainty ... caused by the delayed confirmation of continued funding for
-the worker retention payment; and (b) calls on the Government to ...". `#declining_by_rule` settles
-an opinion-only Senate addition as not declining (KI-11), but `REFERRAL_OR_DELAY` matches the stem
-"delay" in "delayed", so it returns nil and the flag is left to the model, with no warning. The
-model answered `false`, rightly. Had it answered `true`, the draft would have said "Because the
-amendment sought to refuse the bill a second reading, a vote for it was in effect a vote against the
-bill proceeding", the reverse of what the mover said ("The Australian Greens support this
-legislation", 30.1). Of the 50 Senate second reading amendment drafts of 2026 whose amendment adds
-words at the end of the motion, 19 have the check switched off this way. About ten of them do refer
-the bill to a committee; the rest only mention a delay, a committee, a referral or a rejection
-("by delaying taking action", "refused to refer the bill", a House committee named in an opinion,
-"condemns and rejects legislation"). The model answered `false` in all 19; whether that was right
-for each was not checked.
-
-Senate Guide No. 16, p. 47, lists what such amendments may do: "express an opinion about the bill
-or the government's handling of the related policy issues; reverse the effect of the motion so that
-the bill is defeated at that point; refer the bill to a committee; and delay further consideration
-of the bill". What decides the flag is whether the added words do one of the last three, not whether
-they mention a committee or a delay. A fix belongs in `ProvenanceValidator::REFERRAL_OR_DELAY`,
-which should match operative forms ("the bill be referred", "consideration of the bill be
-postponed", "not be proceeded with", "this day 6 months") rather than stems anywhere, and a warning
-that the flag was left unchecked would tell the editor when it still is. Test in
-`provenance_validator_spec.rb` "declines_second_reading against the motion text": an opinion-only
-addition mentioning "the delayed confirmation" and "the Committee's report" is settled as `false`,
-and a real referral is still left to the model.
-
-The opinion-only test also fails the other way. `OPINION_PATTERN` (notes, calls on, is of the
-opinion, condemns, regrets, expresses, acknowledges, recognises, urges) has no "welcomes",
-"supports" or "reaffirms", so added words that only welcome or support leave the flag to the
-model too, with no warning. At Senate 14 September 2026 #8 the check settled `false` by rule only
-because part (b) of the amendment says "notes"; part (a) alone ("welcomes the certainty ...")
-matches neither pattern (run on 15 October 2026). No 2026 draft is harmed: of the 50 Senate drafts
-adding words at the end of the motion, 10 have no opinion word, nine of them referrals and one
-(Senate 31 March 2026 #15) already left to the model by `REFERRAL_OR_DELAY`. A fix could settle as
-`false` any addition with no operative referral, delay or declining form, rather than require an
-opinion word. Test: an addition that only "welcomes" is settled `false`.
 
 ### KI-88
 
