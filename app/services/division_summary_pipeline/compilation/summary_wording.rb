@@ -171,6 +171,25 @@ module DivisionSummaryPipeline
       outcome.passing_variant == :remaining_stages ? "through all its remaining stages" : "through its third reading"
     end
 
+    # Template 30. Agreeing to the bill at the end of its detail stage does not pass it. In the House
+    # the third reading can follow (S.O. 155(a)); in the Senate the bill is first reported and the
+    # report adopted (S.O. 120 and 122(1)). Neither chamber's standing orders or guides say what
+    # follows a defeat (House of Representatives Practice and Odgers' were not checked), so the
+    # sentence then says only what was not agreed to.
+    def whole_bill_effect_clause
+      return "" unless template_id == 30
+      return "" if outcome.want_of_quorum? || (outcome.tied? && !senate?)
+      return "The #{chamber} did not agree to the bill's text at this stage." unless outcome.successful?
+
+      form = { as_amended: ", with the amendments made to it", as_printed: " as printed" }[outcome.whole_bill_form]
+      next_step = if senate?
+                    "The bill still has to be reported to the Senate, and the report adopted, before its third reading"
+                  else
+                    "The bill can now go on to its third reading"
+                  end
+      "The #{chamber} has now agreed to the bill's text#{form}. #{next_step}, the final vote on it in this chamber."
+    end
+
     # Template 6's sentence already ends "which means it was successful", so this starts afresh
     # rather than with a second "This means" (KI-48).
     def third_reading_clause

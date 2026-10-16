@@ -212,6 +212,20 @@ describe DivisionSummaryPipeline::ProvenanceValidator do
       expect(validate.evidence.put_without_mover).to be(false)
     end
 
+    # KNOWN_ISSUES.md KI-4: the chair proposes the question on the whole bill (House S.O. 149(c);
+    # Senate S.O. 116), even straight after an amendment was moved.
+    it "records the question on the whole bill as put with nobody moving it, whatever was moved before it" do
+      whole_bill = "The question now is that the bill, as amended, be agreed to."
+      settled = DivisionSummaryPipeline::ProceduralRouter.route(speaker_question: whole_bill, chamber: "senate")
+      chair = summary_speech("<p>#{whole_bill}</p>", id: "s3", name: "Robin Castellan", gid: "uk.org.publicwhip/lord/900002",
+                                                     time: "13:30")
+      result = validate(extraction(template_id: 30, explanation: []),
+                        packet(speeches: [mover_speech, chair], question: whole_bill, routing: settled))
+
+      expect(result).to be_valid
+      expect(result.evidence).to have_attributes(put_without_mover: true, introduction: nil, motion: nil)
+    end
+
     it "can come from the model's paragraph IDs when Stage 1 found no move, as one unbroken passage" do
       record = DivisionSummaryPipeline::Transcript.from_record(heading: "Motions", text: "Debate on the scheme.\nThat the Senate notes the scheme.")
       context = packet.with(transcript: record, mover: nil)

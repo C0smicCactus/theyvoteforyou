@@ -560,6 +560,59 @@ describe DivisionSummaryPipeline::TemplateCompiler do
       end
     end
 
+    # KNOWN_ISSUES.md KI-4: with no template for this question, drafts of 2026 said an amendment had
+    # been agreed to and changed the bill (KI-79), or that the bill was a general motion moved by
+    # whoever moved the last amendment.
+    describe "Template 30, the question on the whole bill at the end of its detail stage" do
+      let(:bill) { { bill_name: "Example Bill 2026", bill_link: "https://example.com/bills/example-bill-2026" } }
+
+      # Nobody moves this question, so Stage 4 records it as put with nobody moving it.
+      def compile_whole_bill(data, question)
+        interpretation, evidence = summary_inputs(template_id: 30, question_text: question)
+        described_class.compile(bill.merge(time: "05:33 PM", amount: "large majority").merge(data), interpretation,
+                                evidence.with(put_without_mover: true))
+      end
+
+      it "says the House agreed to the bill as amended and that its third reading is next, crediting no mover" do
+        rendered = compile_whole_bill({ result: "passed", house: "representatives" },
+                                      "The question is that the bill, as amended, be agreed to.")
+
+        expect(rendered).to start_with("**Bill Timeline:**")
+        expect(rendered).to include("a large majority voted for a question to agree to the " \
+                                    "[Example Bill 2026](https://example.com/bills/example-bill-2026) at the end of its " \
+                                    "detailed consideration, which means it was successful. The House of Representatives " \
+                                    "has now agreed to the bill's text, with the amendments made to it. The bill can now " \
+                                    "go on to its third reading, the final vote on it in this chamber.")
+        expect(rendered).to include("### Question Put", "> The question is that the bill, as amended, be agreed to.")
+        expect(rendered).not_to include("introduced by", "### Motion Introduction", "### Motion Text", "### About the Motion")
+      end
+
+      it "says the Senate agreed to the bill as printed, and what still comes before its third reading" do
+        rendered = compile_whole_bill({ result: "passed", house: "senate" }, "The question is that the bill stand as printed.")
+
+        expect(rendered).to include("which means it was successful. The Senate has now agreed to the bill's text as printed. " \
+                                    "The bill still has to be reported to the Senate, and the report adopted, before its " \
+                                    "third reading, the final vote on it in this chamber.")
+      end
+
+      it "says only that the chamber did not agree to the bill when the question is defeated" do
+        rendered = compile_whole_bill({ result: "negatived", house: "senate" },
+                                      "The question is that the bill, as amended, be agreed to.")
+
+        expect(rendered).to include("a large majority voted against a question to agree to the")
+        expect(rendered).to include("which means it was unsuccessful. The Senate did not agree to the bill's text at this stage.")
+        expect(rendered).not_to include("has now agreed")
+      end
+
+      it "says nothing of the effect when the division figures do not decide it" do
+        rendered = compile_whole_bill({ result: "passed", house: "representatives", aye_votes: 70, no_votes: 70 },
+                                      "The question is that the bill be agreed to.")
+
+        expect(rendered).to include("which means it was not decided by the division figures, which were equal.")
+        expect(rendered).not_to include("has now agreed", "did not agree")
+      end
+    end
+
     describe "constitutional and parliamentary procedures" do
       def quorum_division_data(date:)
         {
@@ -1747,6 +1800,16 @@ describe DivisionSummaryPipeline::TemplateCompiler do
         expect(fallbacks_for(template_id: 15, motion_text: motion)).to include(:mover_unresolved)
         expect(fallbacks_for(template_id: 15, motion_text: motion, mover: treloar)).not_to include(:mover_unresolved)
         expect(fallbacks_for(supplied, template_id: 15, motion_text: motion)).not_to include(:mover_unresolved)
+      end
+
+      # Naming nobody is then the summary working as designed: the chair proposes the question on the
+      # whole bill (Template 30) itself.
+      it "records no unresolved mover when the chair put the question with nobody moving it" do
+        interpretation, evidence = summary_inputs(template_id: 30, question_text: "The question is that the bill be agreed to.")
+        compiler = described_class.new
+        compiler.compile(senate_data, interpretation, evidence.with(put_without_mover: true))
+
+        expect(compiler.fallbacks).not_to include(:mover_unresolved)
       end
 
       it "records no digest when a bill template has no Bills Digest to print" do

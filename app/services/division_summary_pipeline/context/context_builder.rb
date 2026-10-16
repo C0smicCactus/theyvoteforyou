@@ -58,7 +58,9 @@ module DivisionSummaryPipeline
 
     # Question wording that points at something moved earlier, so its terms should be in the
     # packet. Used only to decide whether to look for them. "Stand as printed" decides an
-    # amendment to omit part of a bill, which was moved or circulated earlier.
+    # amendment to omit part of a bill, which was moved or circulated earlier. The question on the
+    # whole bill refers to nothing moved, whatever words it shares with these
+    # (ProceduralRouter::WHOLE_BILL_QUESTION).
     REFERS_TO_MOVED_BUSINESS = /\bmoved\b|\bamendments?\b|\bmotion\b|\bread\s+a\s+(?:second|third)\s+time\b|
                                 \bstand\s+as\s+printed\b/xi
 
@@ -326,8 +328,8 @@ module DivisionSummaryPipeline
     def earlier_debate(division_xml, putting, speeches, deferred)
       empty = EarlierDebate::Result.new(speeches: [], dates: [])
       moved_here = speeches.any? { |s| s[:moved_text].present? }
-      wanted = context_level == :sitting_day || deferred ||
-               (!moved_here && putting.to_s.match?(REFERS_TO_MOVED_BUSINESS))
+      refers = putting.to_s.match?(REFERS_TO_MOVED_BUSINESS) && !ProceduralRouter.whole_bill_question?(putting)
+      wanted = context_level == :sitting_day || deferred || (!moved_here && refers)
       return empty unless wanted
 
       EarlierDebate.collect(division_xml: division_xml, house: facts.house, date: facts.date,

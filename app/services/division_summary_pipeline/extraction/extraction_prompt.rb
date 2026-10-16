@@ -173,7 +173,7 @@ module DivisionSummaryPipeline
              usual and expected answer for Template 17.
              Template 18 (limitation of debate): the time limit and the remaining stages, not the business.
              Template 9 (disallowance): what the regulation does and why it should stop having legal force.
-             Templates 22, 23, 24 and 26 print no explanation: return an empty list.
+             Templates #{silent_templates} print no explanation: return an empty list.
 
         6. NEUTRALITY IS NOT OPTIONAL:
            Never favour or disfavour any party, candidate or position in what you choose or report.
@@ -228,7 +228,7 @@ module DivisionSummaryPipeline
              Division, Part or Schedule is put as "That the [unit] stand as printed". A vote against it is
              what omits the unit. Use template_id 28 for these questions. "That the bill stand as printed" is
              not an omission: it is the final question in committee of the whole when no amendments were
-             agreed to, and is not template 28.
+             agreed to, and is template 30, not 28.
            - Adjourning a debate is template 19. Only "That the House (or Senate) do now adjourn" is 26.
 
         Respond ONLY with a JSON object in this shape. No markdown fences, no commentary:
@@ -250,6 +250,12 @@ module DivisionSummaryPipeline
     def catalogue_lines
       TemplateCatalogue.entries.map { |entry| format("   %<id>2d: %{prompt}", id: entry.id, prompt: entry.prompt) }
                        .join("\n")
+    end
+
+    # "22, 23, 24, 26 and 30", from the catalogue, so a new template that quotes no explanation is
+    # listed without anyone remembering to.
+    def silent_templates
+      TemplateCatalogue.entries.reject(&:explains).map(&:id).to_sentence(last_word_connector: " and ")
     end
 
     def fact_lines

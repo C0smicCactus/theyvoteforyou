@@ -199,7 +199,8 @@ for human review.
   capped at 25 speeches with the latest earlier move kept in front, Level C sitting day), and adds
   Level D, the moving speeches from earlier in the same debate (`EarlierDebate`), when the chair
   says the division was deferred, when nothing beside the division moved anything and the question
-  refers to something moved, and always on the sitting-day retry.
+  refers to something moved (the question on the whole bill never does, KI-4), and always on the
+  sitting-day retry.
 - A debate is matched by heading and by the bills listed under each heading, because a bill's
   stages sit under different headings: a guillotine's questions are put under "; Limitation of
   Debate" about amendments moved under "; Second Reading". A speech found under another heading
@@ -244,8 +245,10 @@ for human review.
 - `MoverFinder` finds the mover from the chair's "moved by ..." or the latest "I move", and records
   how (`found_by`). An unnamed move counts only when its terms could be what the question puts
   (amendments for a question on amendments, the same reading for a reading), and the chair putting
-  other questions in between does not push it out of the window. `MemberResolver` resolves members
-  from the database and owns the one name matcher (`same_speaker?`).
+  other questions in between does not push it out of the window. Nobody is credited with the
+  question on the whole bill at the end of its detail stage (Template 30), which the chair
+  proposes with nobody moving it (KI-4). `MemberResolver` resolves members from the database and
+  owns the one name matcher (`same_speaker?`).
 - Context warnings flag when the speeches beside a division may not be the debate about it:
   successive divisions (House S.O. 131), deferral read from the chair's words or the House's
   deferral windows (S.O. 133), speeches added from earlier in the debate, no speeches at all, or no
@@ -433,11 +436,12 @@ checked" means no rule has been checked against that template yet.
 | 27 | `27_taking_note.md` | Taking Note | Senate S.O. 72(4) |
 | 28 | `28_stand_as_printed.md` | Question That a Clause or Part Stand As Printed (inverted: defeating the question is what omits the part) | Senate S.O. 116; Senate Guide No. 16 p. 48; Senate Guide No. 18 p. 55 |
 | 29 | `29_second_reading.md` | Second Reading (numbered last so that no template already cited by number had to be renumbered when the second reading was split from Template 6) | Senate S.O. 114(1); House S.O. 142(a); Senate Guide No. 16 p. 45 |
+| 30 | `30_agreeing_to_the_bill.md` | Agreeing to the Bill at the End of the Detail Stage ("That the bill (as amended) be agreed to", or the Senate's "That the bill stand as printed": the chair's question on the whole bill, which nobody moves and which does not pass it) | House S.O. 149(b) and (c), p. 66, 150(c), p. 67, 153(a) and (b)(iv) and 155(a), p. 68; House Guide pp. 71 to 73; Senate S.O. 116, p. 73, 120 and 122(1), p. 74; Senate Guide No. 16 p. 48 |
 
-Templates 22, 23, 24 and 26 decide only procedure, so they print no explanation section. Every
-template has Motion Introduction, the terms moved and Question Put, and prints the mover through
-`{{mover_clause}}`, which is empty when nobody moved anything and says "circulated by ..." for
-amendments the chair put.
+Templates 22, 23, 24 and 26 decide only procedure, and nobody moves Template 30's question, so
+they print no explanation section. Every template has Motion Introduction, the terms moved and
+Question Put, and every one but 30 prints the mover through `{{mover_clause}}`, which is empty
+when nobody moved anything and says "circulated by ..." for amendments the chair put.
 
 ## 9. Where everything lives
 
@@ -628,7 +632,7 @@ These are deliberate gaps. Each has a stable seam in the code; none blocks the r
 pipeline, and the offline suites all run with them empty.
 
 1. **Bills Digest section (`digest_section`).** This is the `{{digest_section}}` placeholder in the
-   bill templates (1 to 7, 28 and 29, the ones with an "About the Bill" section). It is populated
+   bill templates (1 to 7 and 28 to 30, the ones with an "About the Bill" section). It is populated
    two ways, and `DivisionSummarizer` currently passes neither, so compiled summaries carry the
    fallback. The wording below comes from `TEMPLATES.md`, the original template design document,
    which is not in this repository; `TemplateCompiler#digest` and its specs in

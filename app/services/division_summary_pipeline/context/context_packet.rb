@@ -45,9 +45,10 @@ module DivisionSummaryPipeline
                              \bon\s+sheets?\s+[a-z]*\d/xi
 
     # Templates the router settles only on a fixed form of words that is the whole of what was
-    # decided: first reading, third reading or the bill being passed, closure, the gag, and the
-    # adjournment. However such a question is put, there are no separate terms to find.
-    QUESTION_IS_THE_MOTION = [1, 6, 22, 23, 26].freeze
+    # decided: first reading, third reading or the bill being passed, closure, the gag, the
+    # adjournment, and the question on the whole bill at the end of its detail stage. However such
+    # a question is put, there are no separate terms to find.
+    QUESTION_IS_THE_MOTION = [1, 6, 22, 23, 26, 30].freeze
 
     delegate :house, :date, :clock_time, to: :facts
 

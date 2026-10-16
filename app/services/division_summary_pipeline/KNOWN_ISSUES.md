@@ -113,7 +113,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-1 | Pipeline | High | Fixed | Template 6's closing sentence ignored the vote result, and named a destination chamber the data cannot support. The second reading, which Template 6 then also covered, is now Template 29 | `template_compiler_spec.rb` "Templates 29 and 6, reporting the result of the reading and not just the reading". The destination is stated only when `bill_originating_house` is supplied; nothing supplies it yet. |
 | KI-2 | Rules | High | Fixed | Template 7 read every message question as "agree to the other chamber's amendments" | `template_compiler_spec.rb` "Template 7, the forms a message question takes". Still open: insisting on an amendment that itself omitted a clause (Odgers', via Senate Guide No. 18) is not told apart from an ordinary insist. The same goes for a tie: on "does not insist", `SummaryWording#not_insist_effect_clause` says the amendments are not insisted on, but where the amendment was one to omit a clause, an equal vote means "the amendment to omit the clause is insisted on" (Senate Guide No. 18, p. 56). |
 | KI-3 | Pipeline | High | Fixed | Template 22 contradicted itself for "the business of the day be called on" | `template_compiler_spec.rb` "Template 22, the three questions that arrive as a closure". A template per closure form would be tidier; that is a catalogue decision. |
-| KI-4 | Rules | High | Partly fixed | Real question forms fall through to Template 15 | See the open entry below. |
+| KI-4 | Rules | High | Partly fixed | Real question forms fall through to Template 15 | See the open entry below. Template 30 now takes the question on the whole bill at the end of its detail stage (`procedural_router_spec.rb`, `template_compiler_spec.rb` "Template 30, the question on the whole bill at the end of its detail stage"). |
 | KI-5 | Rules | High | Fixed | Absolute-majority questions were reported on a simple-majority test | `template_compiler_spec.rb` "constitutional and parliamentary procedures" and "Template 17, the purpose a suspension states for itself". The pipeline flags the doubt rather than resolving it: the question alone does not say how a suspension was moved. Corrected in September 2026 against House S.O. 47 as at 23 July 2025: a House suspension without notice is also carried by a majority of those present if the Leader of the House and the Manager of Opposition Business agree, and "by leave" is said only of the House, where the House Guide (p. 2) supports it; neither Senate source mentions it ("gives each chamber's own ways to carry a suspension on a simple majority"). The House Guide (2019) predates S.O. 47's amendments of 23 March 2020 and 27 July 2022, and the current S.O. 47 (p. 33) does not mention leave: **Verify** that a House suspension moved by leave still needs only a majority. S.O. 47(c)(ii)'s alternative is "a majority of Members present", where the notice says "a majority of those voting". |
 | KI-6 | Rules | Medium | Fixed | Deferred and successive divisions defeated the context window | `context_builder_spec.rb` "context warnings". The S.O. 133 time windows are this code's own estimate, not a figure from either guide; they only raise a warning. Corrected in September 2026 against House S.O. 133 as at 23 July 2025: the Tuesday window after the matter of public importance was S.O. 133's own rule when the House Guide was written (p. 58) and is not in the current S.O. 133, so it is gone ("does not warn about a Tuesday afternoon"). S.O. 133(b) now defers evening divisions from Monday to Wednesday "until the first opportunity the next sitting day", which fixes no time; a window for it caught only programmed questions, so it rests on the chair's words, as a deferral on another day already did. The Senate's half is open: the chair's words are read both too narrowly and too widely there (KI-81). |
 | KI-7 | Rules | Medium | Partly fixed | Template 24 stated the wrong suspension period and the House wording in the Senate | See the open entry below: the House is fixed, the Senate is not. |
@@ -213,15 +213,15 @@ Every entry has one kind, so every issue has one place, and the open entries are
 **Real question forms fall through to Template 15.** Severity: High. Status: **Partly fixed**.
 **Confirmed** by running each form through `ProceduralRouter.route`.
 
-Template 15 is the fallback. "That the bill be considered urgent" now routes to Template 18, and
+Template 15 is the fallback. "That the bill be considered urgent" now routes to Template 18,
 Template 15 no longer claims every question it receives "records an opinion ... and has no legal
-effect". These forms still land there with no template that fits them:
+effect", and the question on the whole bill at the end of its detail stage has Template 30 (below).
+These forms still land there with no template that fits them:
 
 | Question form | Source | What it actually is |
 |---|---|---|
-| "That the bill stand as printed" | Senate Guide No. 16 | The final question in committee of the whole when no amendments were agreed to. |
-| "That the bill (as amended) be agreed to" | House S.O. 149(b) and (c), 150(c), 153(a) and (b)(iv); Guide pp. 71-73 | End of consideration in detail when the bill is taken as a whole, or the report stage for a bill from the Federation Chamber. |
-| "That the report of the committee be adopted" | Senate Guide No. 16 | Report from committee of the whole; amendments are moved to it. |
+| "That the bill (as amended) be reported" | Senate S.O. 120(1), p. 74 | The question that ends committee of the whole; reconsidering clauses may be moved as an amendment to it (S.O. 120(2)). One division in 2026: Senate 10 September #9. |
+| "That the report of the committee be adopted" | Senate S.O. 120(3) and 121, p. 74; Senate Guide No. 16, p. 47 | Report from committee of the whole; amendments are moved to it, and the bill may be recommitted on it. One division in 2026: Senate 10 September #10. |
 | "That the proposed expenditure(s) be agreed to" | House Guide p. 82 | The appropriation bill detail stage. |
 | "That the House approves the form of agreement ..." | House Guide p. 94-95 | Approval of a legislative instrument, the mirror of disallowance. |
 
@@ -240,8 +240,28 @@ label the prompt gives it, "Consideration in Detail (House of Representatives)",
 that Template 4 is for amendments. The draft then said an amendment had been agreed to and passed
 validation (KI-79). With no settled route, `ContextPacket#question_states_motion?` was false, so the
 prompt told the model to report the terms missing if it could not find them, it did, and the
-pipeline read the whole sitting day looking for terms this question does not have (KI-67). A
-template for this form would have settled the route and avoided both.
+pipeline read the whole sitting day looking for terms this question does not have (KI-67).
+
+**Template 30** (16 October 2026) is that question's template: "That the bill (as amended) be agreed
+to" in the House, after consideration in detail or a report from the Federation Chamber (House S.O.
+149(b) and (c), p. 66, 150(c), p. 67, 153(a) and (b)(iv), p. 68; House Guide pp. 71 to 73), and
+"That the bill, as amended, be agreed to" or "That the bill stand as printed" in the Senate's
+committee of the whole (Senate Guide No. 16, p. 48). It settles 11 of the 910 divisions of 2026, all
+of which had reached the fallback: House 20 January #5, 11 March #4, 4 June #15 and #20, 24 June #4,
+1 July #19, 18 August #10 and 16 September #6, and Senate 30 June #5, 7 September #13 and 10
+September #7; no other route or mover changes. Their drafts were all wrong: seven chose Template 4
+and said an amendment had changed the bill, House 1 July #19 chose Template 7, a message, and the
+three Senate drafts were general motions. **Confirmed** by replaying Stages 1 and 2 over the year
+before and after, and compiling three of them again with the model's answer fixed at Template 30.
+The chair proposes this question with nobody moving it (House S.O. 149(c); Senate S.O. 116, p. 73),
+so `MoverFinder` credits nobody, where House 20 January #5 and Senate 30 June #5 had credited
+whoever moved the last amendment. It is in `ContextPacket::QUESTION_IS_THE_MOTION`, so the retry no
+longer reads the whole day for terms it does not have, and Stage 1 no longer reads earlier debate
+for it. The prompt now labels Template 4 "Consideration in Detail Amendment", and says the bill's
+own question after a Federation Chamber report is Template 30, not Template 5. What a defeat of this
+question leads to is in neither chamber's standing orders or guides, so a draft then says only that
+the chamber did not agree to the bill's text. **Verify** in House of Representatives Practice and
+Odgers', which were not checked, before saying more.
 
 ### KI-7
 
@@ -963,6 +983,8 @@ The retry gave no answer, so this did not reach the draft.
 
 This is the fourth retry found reading the whole day when it could not help, after KI-32, KI-44
 and KI-59. Each of those was fixed by stopping one trigger, and nothing yet bounds the retry itself.
+This one's trigger is stopped too: the question now settles on Template 30, whose question is the
+whole motion, so reporting the terms missing no longer widens (KI-4).
 A fix could give the sitting-day tier a character budget, as `EarlierDebate::MAX_CHARS` does for
 earlier days, or skip the retry and tell the reviewer when the packet would exceed one. It would be
 tested in `context_builder_spec.rb` and `division_summarizer_spec.rb`.
@@ -1037,6 +1059,10 @@ Nothing compares the kind of template chosen with the evidence found. An amendme
 terms, no amendments circulated and no mover is the case to catch. A fix belongs in
 `ProvenanceValidator` and would be tested in `provenance_validator_spec.rb`. Whether it fails the
 draft or only warns the reviewer is a decision to agree first.
+
+That division's question now settles on Template 30 (KI-4), as do the six other House divisions of
+2026 whose drafts made the same mistake, so the model no longer chooses there. The gap stays open
+wherever the model still chooses an amendment template for itself.
 
 ### KI-80
 

@@ -10,7 +10,8 @@ module DivisionSummaryPipeline
   # - title: the procedure as a draft title names it (DraftTitle)
   # - moved: what the mover moved, for "Senator Example moved the following amendment:"
   # - explains: whether the summary quotes the mover's explanation. Closure, the gag, suspending a
-  #   member and adjournment decide only procedure, so there is nothing to explain.
+  #   member and adjournment decide only procedure, so there is nothing to explain, and nobody moves
+  #   the question on the whole bill (Template 30), so there is nobody to explain it.
   # - facts: the one or two things the summary names that only the motion's words can supply,
   #   each with the description the model is given
   # - requires: which of those facts must be found for the summary to be written at all; an
@@ -31,10 +32,12 @@ module DivisionSummaryPipeline
        "Second Reading Amendment (e.g. \"That all words after 'That' be omitted with a view to substituting...\")"],
       [3, "In Committee Amendment (Senate)", "In Committee Amendment", "amendment", true, {}, [],
        "In Committee Amendment (Senate)"],
+      # The prompt says "Amendment": labelled only with the stage, Template 4 was chosen for the
+      # question on the whole bill at the end of it (KNOWN_ISSUES.md KI-4), which is Template 30.
       [4, "Consideration in Detail (House of Representatives)", "Consideration in Detail Amendment", "amendment", true,
-       {}, [], "Consideration in Detail (House of Representatives)"],
+       {}, [], "Consideration in Detail Amendment (House of Representatives)"],
       [5, "Federation Chamber Report", "Federation Chamber Report", "motion", true, {}, [],
-       "Report from Federation Chamber"],
+       "Report from Federation Chamber (the question \"That the bill be agreed to\" after the report is Template 30)"],
       [6, "Third Reading", "Third Reading", "motion", true, {}, [],
        "Third Reading (the question that the bill be now read a third time, its final vote in this chamber)"],
       [7, "Consideration of a Message", "Consideration of a Message", "motion", true, {}, [],
@@ -93,7 +96,11 @@ module DivisionSummaryPipeline
       # number (in KNOWN_ISSUES.md, the specs and saved model replies) had to be renumbered.
       [29, "Second Reading", "Second Reading", "motion", true, {}, [],
        "Second Reading (the question that the bill be now read a second time, on its main idea; an amendment " \
-       "to that question is Template 2)"]
+       "to that question is Template 2)"],
+      [30, "Agreeing to the Bill at the End of the Detail Stage", "Agreeing to the Bill", "motion", false, {}, [],
+       "Agreeing to the Bill at the End of the Detail Stage (the chair's question on the whole bill once its " \
+       "amendments are dealt with: \"That the bill be agreed to\" or \"That the bill, as amended, be agreed to\", " \
+       "or in the Senate \"That the bill stand as printed\"; it does not pass the bill)"]
     ].to_h do |id, name, title, moved, explains, facts, requires, prompt|
       [id, Entry.new(id: id, name: name, title: title, moved: moved, explains: explains, facts: facts,
                      requires: requires, prompt: prompt)]

@@ -20,9 +20,9 @@ describe DivisionSummaryPipeline::TemplateCatalogue do
     text.match?(/\{\{\s*#{Regexp.escape(name)}\s*\}\}/)
   end
 
-  it "has an entry for each of the ids 1 to 29 and no others" do
-    expect(described_class::ENTRIES.keys).to eq((1..29).to_a)
-    expect(described_class::IDS).to eq(1..29)
+  it "has an entry for each of the ids 1 to 30 and no others" do
+    expect(described_class::ENTRIES.keys).to eq((1..30).to_a)
+    expect(described_class::IDS).to eq(1..30)
   end
 
   it "has exactly one template file for each id" do
