@@ -175,7 +175,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-60 | Pipeline | Medium | Fixed | Earlier speeches that moved something else were sent whole even when the chair had named a different mover, though only the mover's sentences can be quoted | `context_builder_spec.rb` "cuts another member's earlier speech to what it moved, once the chair has named the mover". Once the mover is known, another member's earlier speech keeps only its "I move" words and terms. House 18 August 2026 #3's user prompt fell from 33,582 characters to 18,033 with its route and mover unchanged, and no loaded division changed route. |
 | KI-61 | Pipeline | Low | Open (deferred) | Sentences left out between quoted ones are not marked | See the open entry below. |
 | KI-62 | Pipeline | High | Open | The mover of a closure was taken as the mover of the question it brought on, so a second reading draft quoted "That the question be now put" as its motion | See the open entry below. |
-| KI-63 | Pipeline | High | Open | A motion moved in an earlier section of the same debate was not found, so a suspension of standing orders was routed as a censure | See the open entry below. |
+| KI-63 | Pipeline | High | Fixed | A motion moved in an earlier section of the same debate was not found, so a suspension of standing orders was routed as a censure | `mover_finder_spec.rb` "when Hansard breaks the speeches after a move into pieces"; `context_builder_spec.rb` "finds the move behind a seconder and a reply that Hansard broke into pieces"; `speech_text_spec.rb` "carries whether Hansard records the speech as a new speech, an interjection or a continuation". The section was not the cause: at House 17 September 2026 #1 everything from the move (`uk.org.publicwhip/debate/2026-09-17.4.3`) to the division is under one heading and reached `MoverFinder`, but `UNNAMED_MOVE_WINDOW` counted Hansard's pieces, and the seconder's and the minister's speeches were 21 of them, broken at each interjection and point of order. The window now counts members' speeches: one starts at each piece Hansard marks `talktype="speech"`, or that has no talktype. Of the 910 divisions of 2026, 21 (8 House, 13 Senate) find a mover where they had none, and no other mover changes. Nine of them leave the fallback: four suspensions of standing orders reach Template 17 (House 3 March #1 and 17 September #1 settled, 14 September #5 and 15 September #2 offered), two references to committees settle 13 (Senate 31 March #8, 9 September #2) and two orders for documents settle 8 (Senate 13 August #5, 19 August #3). Senate 26 March #11 is offered Template 27 because its order mentions taking note of an explanation. Senate 9 September #2 was moved at another senator's request, which KI-65 covers. |
 | KI-64 | Pipeline | Medium | Open | The model rarely pointed at the mover's reasons, leaving "About the Motion" empty | See the open entry below. |
 | KI-65 | Pipeline | Low | Open | A motion moved at another senator's request is described as the mover's own | See the open entry below. |
 | KI-67 | Pipeline | Medium | Open | The sitting-day retry has no limit on its size | See the open entry below. |
@@ -893,27 +893,6 @@ KI-54 covers the closure's own division; this is the question the closure then b
 belongs in `MoverFinder`, so that a closure is passed over when the question put is not the closure
 itself, and would be tested in `mover_finder_spec.rb` and `context_builder_spec.rb` "with a
 closure". KI-84 is the same mechanism reached through a deferral, so a fix should cover both.
-
-### KI-63
-
-**A motion moved in an earlier section of the same debate was not found, so a suspension of
-standing orders was routed as a censure.** Severity: High. Status: Open. **Confirmed** by the
-failed draft and by listing the day's ParlParse XML.
-
-At House 17 September 2026 #1 the motion "That so much of the standing and sessional orders be
-suspended as would prevent the Member for Herbert from moving the following motion immediately"
-(moving no confidence in a minister) is in `2026-09-17.4.3`. The debate on it runs on through
-sections 5 and 6 with no new heading, and the division is `2026-09-17.7.1`. Stage 1 looks for the
-motion beside the division, so it found neither the motion nor its mover. The chair's question was
-only "that the motion be agreed to", so the router fell back to `GENERAL_MOTION_FALLBACK`, the model
-chose Template 10 (Censure Motion) from the motion the suspension would have allowed, and
-validation failed on the missing `target_name`. `EarlierDebate` then added speeches from 10 and 16
-September, warning that the motion "was not moved in the speeches beside it". Built from the
-Division record without Hansard, the same division routed by rule to Template 17, because the
-record's motion text holds the suspension wording. KI-16's rule is right once the motion's words
-reach the router; the gap is in finding them. A fix would look back through earlier sections of
-the same sitting day under the same heading before earlier days, and would be tested in
-`context_builder_spec.rb`.
 
 ### KI-64
 
