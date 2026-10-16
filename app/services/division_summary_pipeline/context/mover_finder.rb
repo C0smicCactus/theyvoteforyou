@@ -66,9 +66,14 @@ module DivisionSummaryPipeline
       new(question: question, putting: putting, speeches: speeches, house: house, date: date, circulated: circulated).find
     end
 
+    # The question is read with each bill's title as "bill", as the router reads it
+    # (ProceduralRouter::BILL_TITLE): a bill that amends an Act is commonly titled "... Amendment
+    # Bill", which says nothing about whether the question is on amendments. Read whole, it made a
+    # second reading question one on amendments, and a second reading amendment fitted it
+    # (KNOWN_ISSUES.md KI-84).
     def initialize(question:, putting:, speeches:, house:, date:, circulated:)
-      @question = question.to_s
-      @putting = putting.presence || @question
+      @question = question.to_s.gsub(ProceduralRouter::BILL_TITLE, "bill")
+      @putting = putting.presence || question.to_s
       @speeches = Array(speeches)
       @house = house
       @date = date

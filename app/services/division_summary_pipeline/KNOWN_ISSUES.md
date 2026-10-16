@@ -192,7 +192,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-81 | Pipeline | Low | Open | The deferral warning misses Senate wordings, and in both chambers fires on text that isn't the chair's | See the open entry below. |
 | KI-82 | Rules | Low | Open | A draft can't say that its division was deferred from an earlier day, or that it replaced an earlier decision | See the open entry below. |
 | KI-83 | Rules | Low | Open | The absolute majority is worked out from the members on the day, not the fixed figure the rules give: 38 in a Senate vacancy, and 75 in the House in March 2026 | See the open entry below. |
-| KI-84 | Pipeline | High | Open | A deferred second reading was credited to the mover of a second reading amendment negatived before it, and the amendment was printed as its motion | See the open entry below. |
+| KI-84 | Pipeline | High | Partly fixed | A deferred second reading was credited to the mover of a second reading amendment negatived before it, and the amendment was printed as its motion | See the open entry below: "Amendment" in the bill's title was the cause, and the amendment is no longer credited, but the second reading's own mover, on an earlier day, is still not found. |
 | KI-85 | Rules | Medium-High | Open | A House division with six or fewer on a side (S.O. 127) may be reported as decided by no one, or the wrong way round | See the open entry below. |
 | KI-86 | Pipeline | Low | Open | A unanimous division would read "a large majority" where the division page says "unanimously" | See the open entry below. |
 | KI-87 | Pipeline | Medium-High | Open | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switches off the validator's check of `declines_second_reading`, so whether the draft says the amendment opposed the bill rests on the model alone | See the open entry below. |
@@ -1102,9 +1102,9 @@ House deferrals of 2026 were all found, so KI-6's fix holds for finding them.
 ### KI-84
 
 **A deferred second reading was credited to the mover of a second reading amendment negatived
-before it, and the amendment was printed as its motion.** Severity: High. Status: Open.
+before it, and the amendment was printed as its motion.** Severity: High. Status: **Partly fixed**.
 **Confirmed** by replaying House 5 March 2026 #1 on 15 October 2026, the same as the draft, and by
-reading its prompt.
+reading its prompt; the cause **Confirmed** by replaying it again on 16 October 2026.
 
 On 4 March 2026 the Chair put the member for Goldstein's second reading amendment, which was
 negatived on the voices, and then the second reading itself, on which "in accordance with standing
@@ -1122,12 +1122,28 @@ his amendment as the Motion Text. It passed validation.
 
 House S.O. 133(d), p. 60: "The Speaker shall put all questions on which a division has been
 deferred", so the deferred question is the one the Chair names, which need not be the last thing
-moved. This is KI-62's mechanism, the latest move taken as the question's, reached through a
-deferral rather than a closure. A fix belongs in `MoverFinder`, so that a move whose question was
-already decided (here, "Question negatived" in the Chair's statement) or that doesn't match the
-question put is passed over, and in `EarlierDebate`, which should keep looking back when the move
-it finds isn't the question's. Test in `mover_finder_spec.rb` and `context_builder_spec.rb` with a
-deferred second reading after a negatived amendment.
+moved. `MoverFinder` already passed over an amendment for a reading, but it read the chair's
+statement whole, and the bill's title, "Treasury Laws Amendment (Building a Stronger and Fairer
+Super System) Bill 2026", says "Amendment", so the second reading question was taken for one on
+amendments, which an amendment's terms fit. The deferral was not the cause.
+
+Fixed: `MoverFinder` reads the question with each bill's title as "bill", as the router does
+(`ProceduralRouter::BILL_TITLE`, KI-29), so the amendment is no longer credited:
+`mover_finder_spec.rb` "with a bill whose title says "Amendment"", `context_builder_spec.rb` "does
+not credit a deferred second reading to the mover of an amendment moved before it". Of the 910
+divisions of 2026, replayed with earlier days from the cached XML, two change: House 5 March 2026 #1
+now has no mover, and Senate 12 March 2026 #16, the third reading of the Royal Commissions
+Legislation Amendment (Protections for Providing Information) Bill 2026, now finds the senator who
+moved "That this bill be now read a third time." just before it, where it found nobody.
+
+Still open: the second reading's own mover is not found, so the draft names nobody. `EarlierDebate`
+stops at the first move it finds, the 3 March amendment, so the Treasurer's move on 11 February
+never reaches the packet. A fix belongs in `EarlierDebate`, which should keep looking back when the
+move it finds can't be what the question puts, and could pass over a move whose question was
+already decided (here, "Question negatived" in the Chair's 4 March statement). KI-62's two second
+readings moved on an earlier day (Senate 1 July 2026 #1 and 17 September 2026 #1) are the same gap.
+Test in `context_builder_spec.rb` with the second reading moved on an earlier day than the
+amendment.
 
 ### KI-86
 

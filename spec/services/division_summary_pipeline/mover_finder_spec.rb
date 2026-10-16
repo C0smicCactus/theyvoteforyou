@@ -102,6 +102,34 @@ describe DivisionSummaryPipeline::MoverFinder do
                                 speeches: [message, chair]).member.name).to eq("Sam Okafor")
   end
 
+  # KNOWN_ISSUES.md KI-84: at House 5 March 2026 #1 the bill's title held "Amendment", so the
+  # second reading question was taken for a question on amendments and credited to the mover of
+  # a second reading amendment negatived the day before.
+  context "with a bill whose title says \"Amendment\"" do
+    let(:second_reading) { speech("Jo Marlowe", "I move:", moved_text: "That this bill be now read a second time.") }
+    let(:reasoned_amendment) do
+      speech("Robin Carrow", "I move:", moved_text: "That all words after \"That\" be omitted with a view to substituting " \
+                                                    "the following words: \"whilst not declining to give the bill a second reading, the House notes the cost\".")
+    end
+
+    it "does not take a second reading amendment for the second reading" do
+      question = "I shall now proceed to put the question on the motion moved on the second reading of the Example Laws " \
+                 "Amendment (Fairer Levy) Bill 2026. The question before the House is that this bill be now read a second time."
+
+      expect(described_class.find(question: question, speeches: [reasoned_amendment, chair])).to be_nil
+      expect(described_class.find(question: question, speeches: [second_reading, reasoned_amendment, chair]).member.name)
+        .to eq("Jo Marlowe")
+    end
+
+    it "still reads an amendment named outside the title" do
+      result = described_class.find(question: "The question is that the second reading amendment to the Example Laws " \
+                                              "Amendment Bill 2026 be agreed to.",
+                                    speeches: [second_reading, reasoned_amendment, chair])
+
+      expect(result.member.name).to eq("Robin Carrow")
+    end
+  end
+
   # Under a guillotine the chair puts each second reading amendment in turn before the second
   # reading itself, which is still the minister's motion.
   it "does not count the chair putting other questions against the window for an unnamed move" do

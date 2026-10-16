@@ -370,6 +370,28 @@ describe DivisionSummaryPipeline::ContextBuilder do
         expect(packet.mover.member.name).to eq("Robin Carrow")
       end
 
+      # KNOWN_ISSUES.md KI-84: as at House 5 March 2026 #1, a deferred second reading of a bill
+      # whose title says "Amendment", put after a second reading amendment was negatived.
+      it "does not credit a deferred second reading to the mover of an amendment moved before it" do
+        heading = "<minor-heading id=\"h2\" url=\"x\">Example Laws Amendment Bill 2026; Second Reading</minor-heading>"
+        earlier_day = debates("2026-03-03", <<~XML)
+          #{heading}
+          <speech id="s1" speakerid="uk.org.publicwhip/member/900301" speakername="Robin Carrow" time="12:33:00" url="x"><p>In addition to that, I move:</p><p class="italic">That all words after "That" be omitted with a view to substituting the following words: "whilst not declining to give the bill a second reading, the House notes the cost to small business".</p></speech>
+        XML
+        today = debates("2026-03-05", <<~XML)
+          #{heading}
+          <speech id="s2" speakerid="uk.org.publicwhip/member/900202" speakername="Casey Whitlow" time="09:30:00" url="x"><p>In accordance with standing order 133, I shall now proceed to put the question on the motion moved on the second reading of the Example Laws Amendment Bill 2026, on which a division was called for and deferred. The question before the House is that this bill be now read a second time.</p></speech>
+          #{division_element(1, '09:31:00')}
+        XML
+
+        packet = described_class.build({ id: 1, house: "representatives", date: "2026-03-05", number: 1, clock_time: "9:31 AM" },
+                                       xml_content: today, xml_fetcher: ->(_house, date) { Nokogiri::XML(earlier_day) if date == "2026-03-03" })
+
+        expect(packet.earlier_debate_dates).to eq(["2026-03-03"])
+        expect(packet.mover).to be_nil
+        expect(packet.routing.template_id).to eq(29)
+      end
+
       # KI-60: as at House 18 August 2026 #3, where the minister's whole second
       # reading speech was over a third of the prompt for a question on another member's amendment.
       it "cuts another member's earlier speech to what it moved, once the chair has named the mover" do
