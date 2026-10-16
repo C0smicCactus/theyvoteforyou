@@ -77,7 +77,7 @@ about 190 of the pipeline's procedural claims against the House standing orders 
 Every rule those entries cite, and the Hansard each one quotes, was checked again on 13 October
 2026.
 
-KI-80 onwards, and the changes to existing entries made with them, came from a review, begun on
+KI-80 to KI-94, and the changes to existing entries made with them, came from a review, begun on
 15 October 2026, of the drafts from `rake ai:draft_local`'s run over the 910 divisions from 19
 January to 17 September 2026 (712 Senate, 198 House). The drafts were made with Qwen3.6-35B-A3B
 (UD-Q4_K_M) through llama.cpp between 12 and 15 October 2026: 867 compiled, and the 43 that failed
@@ -87,10 +87,13 @@ orders of July 2025 and the June 2025 Senate guides, and then, for each division
 the day's ParlParse XML and those rules what a correct draft would say before comparing the draft,
 and the pipeline's route to it, with that.
 
+KI-95 came from checking, on 16 October 2026, every mover a change to `MoverFinder` would have
+altered across those 910 divisions.
+
 This register was compiled with AI assistance (Claude Code: claude-opus-5[1m] for KI-1 to KI-19,
 claude-opus-5-5 for KI-20 onwards and for condensing the fixed entries; the 1 October 2026 review
 behind KI-68 to KI-78 also used helper agents on claude-opus-5-5 and claude-sonnet-5, and the
-review behind KI-80 onwards used helper agents on claude-opus-5-5). The procedural citations should
+review behind KI-80 to KI-94 used helper agents on claude-opus-5-5). The procedural citations should
 be checked against the documents named above.
 
 ## How findings were verified
@@ -203,6 +206,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
 | KI-93 | Rules | Low | Open | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | See the open entry below. |
 | KI-94 | Pipeline | Low | Open | "No explanatory claims recorded." prints as a block quote, in the pipeline's own term, whatever the reason there is nothing to quote | See the open entry below. |
+| KI-95 | Pipeline | Medium | Fixed | A motion Hansard set in a plain paragraph after "I move:", instead of in italic, was not read as a move | `speech_text_spec.rb` "reads a motion Hansard set in a plain paragraph straight after "I move:"" and "takes only one whole motion from plain paragraphs". 8 of about 1,850 "I move:" paragraphs in the 2026 Hansard are followed by a plain paragraph. At House 2 July 2026 #6 the Leader of the House's "That the member be no longer heard." (`uk.org.publicwhip/debate/2026-07-02.108.1`) was missed, so the division had no mover; it now has. At Senate 5 March 2026 #3, #4 and #6, on amendments to the motion "That the report be adopted.", that motion is now read as one, and reaches the packets of #4 and #6 as earlier debate. A plain paragraph doesn't show where a motion ends, so only one is taken, and only when it starts "That" and doesn't end in a colon or dash introducing parts to follow. Still open: a motion whose parts follow in plain paragraphs is not read, such as the Senate's "Omit all words after "That", substitute:" and its paragraphs (a) to (c) (`uk.org.publicwhip/lords/2026-03-04.185.1`); the next division that day is under another heading. |
 
 ---
 

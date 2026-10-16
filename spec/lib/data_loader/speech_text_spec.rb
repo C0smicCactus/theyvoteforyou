@@ -90,6 +90,28 @@ describe DataLoader::SpeechText do
       expect(described_class.moved_text(tabling)).to eq("That this bill be now read a second time.")
     end
 
+    # KNOWN_ISSUES.md KI-95: at House 2 July 2026 #6 Hansard set the Leader of the House's "That
+    # the member be no longer heard." in a plain paragraph, so no move was read and the question was
+    # left to an earlier move.
+    it "reads a motion Hansard set in a plain paragraph straight after \"I move:\"" do
+      node = speech("<p>I move:</p><p>That the member be no longer heard.</p>")
+
+      expect(described_class.paragraphs(node).pluck(:kind)).to eq(%i[move motion])
+      expect(described_class.moved_text(node)).to eq("That the member be no longer heard.")
+    end
+
+    # A plain paragraph can't show where the motion ends, so only one is taken, and only when it
+    # is a whole motion: one that introduces parts to follow would be read cut short.
+    it "takes only one whole motion from plain paragraphs" do
+      followed = speech("<p>I move:</p><p>That the report be adopted.</p><p>I seek leave to incorporate my speech.</p>")
+      introducing = speech("<p>I move:</p><p>That the Senate&#x2014;</p><p>(a) notes the report.</p>")
+      not_a_motion = speech("<p>This is why I move:</p><p>Thanks go to the committee for its work.</p>")
+
+      expect(described_class.moved_text(followed)).to eq("That the report be adopted.")
+      expect(described_class.moved_text(introducing)).to be_nil
+      expect(described_class.moved_text(not_a_motion)).to be_nil
+    end
+
     it "is nil for a speech that moves nothing, including \"I move on to\"" do
       expect(described_class.moved_text(speech("<p>I move on to my second point about the bill.</p>"))).to be_nil
       expect(described_class.moved_text(speech("<p>The question is that the motion be agreed to.</p>"))).to be_nil

@@ -226,15 +226,17 @@ for human review.
 - `DataLoader::SpeechText.paragraphs` labels every block of a speech as `:move` (the "I move"
   words), `:motion` (the terms moved), `:quotation` or `:prose`. Current ParlParse XML has no
   `pwmotiontext`: the terms moved are `<p class="italic">` after "I move", which is why only
-  paragraphs after an "I move" count. Hansard also sets in italic whatever a member quotes or
-  reads out, and its own editorial notes, so any other italic paragraph is a `:quotation`, never
-  the member's own words (KI-38). The exception is a speech incorporated by leave, which is the
-  member's own words however it is set: everything after "The speech read as follows" (in any of
-  its spellings) up to the first plain paragraph is `:prose`, and is never searched for a move,
-  because a Senate minister's incorporated speech often opens with the House's own "I move"
-  (KI-39). Hansard's records of the chamber inside a speech ("Leave granted.", "(Time expired)",
-  "Senators interjecting—", "Question agreed to.") are `:record`, never the member's words (KI-57),
-  and an incorporated speech's blocks carry `incorporated: true` (KI-55).
+  paragraphs after an "I move" count. Now and then Hansard sets them in a plain paragraph after an
+  "I move:" that ends at its colon; one such paragraph is read as the motion when it starts "That"
+  and doesn't end by introducing parts to follow (KI-95). Hansard also sets in italic whatever a
+  member quotes or reads out, and its own editorial notes, so any other italic paragraph is a
+  `:quotation`, never the member's own words (KI-38). The exception is a speech incorporated by
+  leave, which is the member's own words however it is set: everything after "The speech read as
+  follows" (in any of its spellings) up to the first plain paragraph is `:prose`, and is never
+  searched for a move, because a Senate minister's incorporated speech often opens with the House's
+  own "I move" (KI-39). Hansard's records of the chamber inside a speech ("Leave granted.", "(Time
+  expired)", "Senators interjecting—", "Question agreed to.") are `:record`, never the member's
+  words (KI-57), and an incorporated speech's blocks carry `incorporated: true` (KI-55).
 - `Transcript` cuts the speeches into units with IDs: prose into sentences (conservatively, so
   "No. 3" and "Mr" never end one), an "I move" paragraph into sentences so reasons given before
   the move stay quotable, and motions, quotations and the chair's question into whole paragraphs.
