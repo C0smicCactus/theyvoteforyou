@@ -75,10 +75,13 @@ module DivisionSummaryPipeline
 
     # The division page's own words for how big the majority was, with its thresholds
     # (DivisionsHelper#majority_strength_in_words), so a draft never calls a majority "large"
-    # that the page beside it calls "modest". The helper builds HTML, so the thresholds are
-    # repeated here rather than called; if they change there they must change here.
+    # that the page beside it calls "modest", or a vote the page calls unanimous anything else
+    # (KI-86). The helper builds HTML, so the thresholds are repeated here rather than called; if
+    # they change there they must change here. DivisionInfo#majority_fraction is exactly 1 when
+    # Division#unanimous?, the page's test.
     def self.majority_strength(fraction)
       return "majority" if fraction.nil?
+      return "unanimously" if fraction >= 1
       return "large majority" if fraction > 2.0 / 3
       return "modest majority" if fraction > 1.0 / 3
       return "small majority" if fraction.positive?

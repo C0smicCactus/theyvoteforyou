@@ -194,7 +194,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-83 | Rules | Low | Open | The absolute majority is worked out from the members on the day, not the fixed figure the rules give: 38 in a Senate vacancy, and 75 in the House in March 2026 | See the open entry below. |
 | KI-84 | Pipeline | High | Open | A deferred second reading was credited to the mover of a second reading amendment negatived before it, and the amendment was printed as its motion | See the open entry below. |
 | KI-85 | Rules | Medium-High | Open | A House division with six or fewer on a side (S.O. 127) may be reported as decided by no one, or the wrong way round | See the open entry below. |
-| KI-86 | Pipeline | Low | Open | A unanimous division would read "a large majority" where the division page says "unanimously" | See the open entry below. |
+| KI-86 | Pipeline | Low | Fixed | A unanimous division would read "a large majority" where the division page says "unanimously" | `division_facts_spec.rb` "says unanimously where the division page does" and `template_compiler_spec.rb` "says the chamber voted unanimously where the division page does". The vote sentence reads "the Senate unanimously voted for ..." (`SummaryWording#amount_with_article`). No 2026 division had an empty side, so no 2026 draft changes. |
 | KI-87 | Pipeline | Medium-High | Open | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switches off the validator's check of `declines_second_reading`, so whether the draft says the amendment opposed the bill rests on the model alone | See the open entry below. |
 | KI-88 | Pipeline | Low | Open | For a second reading amendment, the quoted reasons can be about the bill rather than the amendment's own terms | See the open entry below. |
 | KI-89 | Pipeline | Low | Open | Question Put gives the chair's question the time of the speech before it | See the open entry below. |
@@ -1128,20 +1128,6 @@ already decided (here, "Question negatived" in the Chair's statement) or that do
 question put is passed over, and in `EarlierDebate`, which should keep looking back when the move
 it finds isn't the question's. Test in `mover_finder_spec.rb` and `context_builder_spec.rb` with a
 deferred second reading after a negatived amendment.
-
-### KI-86
-
-**The division page's "unanimously" is never printed.** Severity: Low. Status: Open. **Read**: the
-code against `DivisionsHelper`.
-
-`DivisionFacts.majority_strength` repeats `DivisionsHelper#majority_strength_in_words`'s thresholds
-so that a draft never contradicts the page beside it, but not its first case: the page says
-"unanimously" when `Division#unanimous?`, and the pipeline's copy gives "large majority" for a
-fraction of 1. No 2026 division in either chamber had an empty side, so no draft is affected. In the
-House a unanimous division is most likely at the third reading of a constitution alteration bill,
-where the bells are rung "even when this question is carried on the voices" (House Guide p. 77). A
-fix would return the page's word, and the vote sentence would need a form without "a ... majority".
-Test in `division_facts_spec.rb` ".majority_strength".
 
 ### KI-87
 

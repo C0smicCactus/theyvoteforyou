@@ -66,7 +66,12 @@ module DivisionSummaryPipeline
       (raw || "majority").sub(/\A[Aa]n?\s+/, "").strip
     end
 
+    # The subject of every vote sentence ("At 2:15 PM, a large majority voted for ..."). A
+    # unanimous vote has no majority to size, so the chamber is the subject instead, in the
+    # division page's own word (KI-86).
     def amount_with_article
+      return "the #{chamber} unanimously" if amount == "unanimously"
+
       amount.downcase.match?(/\A[aeiou]/) ? "an #{amount}" : "a #{amount}"
     end
 

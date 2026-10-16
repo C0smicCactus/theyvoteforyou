@@ -634,6 +634,27 @@ describe DivisionSummaryPipeline::TemplateCompiler do
         expect(rendered).not_to include("passed in the negative")
       end
 
+      # KNOWN_ISSUES.md KI-86: the division page says "unanimously" when everyone who voted voted
+      # the same way, so the draft beside it says so too, rather than "a large majority".
+      it "says the chamber voted unanimously where the division page does" do
+        { "senate" => "the Senate", "representatives" => "the House of Representatives" }.each do |house, chamber|
+          division_data = {
+            time: "02:15 PM",
+            house: house,
+            aye_votes: 40,
+            no_votes: 0,
+            amount: "unanimously",
+            result: "passed",
+            mover_name: "Fictional Member"
+          }
+
+          rendered = compile_summary(division_data, template_id: 15, motion_text: "That the chamber records its thanks.")
+
+          expect(rendered).to include("At 2:15 PM, #{chamber} unanimously voted for a motion")
+          expect(rendered).not_to include("majority voted")
+        end
+      end
+
       # A House tie is resolved by the casting vote, and the Chair is not always the Speaker
       # (a Deputy Speaker or Acting Speaker has the same casting vote), so the summary names
       # the office rather than the person.
