@@ -171,7 +171,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-59 | Pipeline | Low | Fixed | When the question settled a template and the model could not find what that template is about, the pipeline read the whole sitting day again instead of doubting the route | `division_summarizer_spec.rb` "does not widen when the model cannot find what a settled template is about, and says so". `TemplateCatalogue::DEFINING_EVIDENCE` (a committee for 12 and 13, a regulation for 9, a target for 10, 23 and 24): with a settled route, that report is not a reason to widen, and the validator warns the reviewer to check the route. |
 | KI-60 | Pipeline | Medium | Fixed | Earlier speeches that moved something else were sent whole even when the chair had named a different mover, though only the mover's sentences can be quoted | `context_builder_spec.rb` "cuts another member's earlier speech to what it moved, once the chair has named the mover". Once the mover is known, another member's earlier speech keeps only its "I move" words and terms. House 18 August 2026 #3's user prompt fell from 33,582 characters to 18,033 with its route and mover unchanged, and no loaded division changed route. |
 | KI-61 | Pipeline | Low | Open (deferred) | Sentences left out between quoted ones are not marked | See the open entry below. |
-| KI-62 | Pipeline | High | Open | The mover of a closure was taken as the mover of the question it brought on, so a second reading draft quoted "That the question be now put" as its motion | See the open entry below. |
+| KI-62 | Pipeline | High | Fixed | The mover of a closure was taken as the mover of the question it brought on, so a second reading draft quoted "That the question be now put" as its motion | `mover_finder_spec.rb` "with a closure moved just before the question", `context_builder_spec.rb` "does not take the closure's mover for the mover of the question it brought on". `MoverFinder` passes a closure over when the question names a reading or a suspension, the business a closure brings on; a question that restates the closure, speaks of closure, names nothing ("that the motion be agreed to") or doesn't read as a question still takes it. Of the 910 divisions of 2026, 12 change: 7 suspensions (one in the House) now find their own mover and terms, 5 of them drafted before as "Closure of Debate"; 5 find no mover where they had the closure's. Two of those are second readings moved on an earlier day (Senate 1 July 2026 #1, 17 September 2026 #1), which `ContextBuilder#earlier_debate` doesn't look for, since the closure beside the division counts as a move. Three are suspensions debated at length before the closure's own division (Senate 10 March 2026 #2, 23 March 2026 #2, 1 July 2026 #8), whose move is further back than `UNNAMED_MOVE_WINDOW`; the motion the closure cut short, as `ContextBuilder#closed_template_id` finds it, is where to look. KI-84 is the same mechanism reached through a deferral, and is still open. |
 | KI-63 | Pipeline | High | Open | A motion moved in an earlier section of the same debate was not found, so a suspension of standing orders was routed as a censure | See the open entry below. |
 | KI-64 | Pipeline | Medium | Open | The model rarely pointed at the mover's reasons, leaving "About the Motion" empty | See the open entry below. |
 | KI-65 | Pipeline | Low | Open | A motion moved at another senator's request is described as the mover's own | See the open entry below. |
@@ -872,23 +872,6 @@ options considered were a "[...]" line between non-adjacent passages, "(sentence
 leaving them as they are, which was chosen for now. Any of them is template text, so it does not
 affect ADR 0005. When this is revisited, the place to change is `EvidenceSections#explanation`, and
 `Transcript#passages` already says where one passage ends and the next begins.
-
-### KI-62
-
-**The mover of a closure was taken as the mover of the question it brought on.** Severity: High.
-Status: Open. **Confirmed** by the draft and by rebuilding its packet from the day's ParlParse XML.
-
-At Senate 17 September 2026 #1 the chair put "The question is that the second reading be agreed to"
-straight after a senator moved "That the question be now put" (S17.1 to S17.2, speech
-`uk.org.publicwhip/lords/2026-09-17.11.1`). `MoverFinder` took the latest "I move" before the
-question, which was the closure's, so the draft said the second reading motion was "introduced by"
-that senator and quoted "That the question be now put." under Motion Text. The second reading
-motion is not in that day's Hansard before the vote, so it was moved on an earlier sitting day. The
-draft passed validation, so an editor would see a plausible draft with the wrong motion in it.
-KI-54 covers the closure's own division; this is the question the closure then brings on. A fix
-belongs in `MoverFinder`, so that a closure is passed over when the question put is not the closure
-itself, and would be tested in `mover_finder_spec.rb` and `context_builder_spec.rb` "with a
-closure". KI-84 is the same mechanism reached through a deferral, so a fix should cover both.
 
 ### KI-63
 
