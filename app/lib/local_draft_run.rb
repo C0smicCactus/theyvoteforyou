@@ -2,7 +2,7 @@
 
 # Drafts AI division summaries with a model running on your own machine (LocalModelClient), newest
 # first, one sitting day at a time, and writes one file per division (LocalDraftFile) ready to zip
-# and hand over for upload.
+# and hand over for upload. Run by `rake ai:draft_local`; docs/local-ai-drafts.md explains the setup.
 #
 # A day's divisions are loaded into the local database only when the run reaches that day, so the
 # first draft arrives in minutes rather than after every sitting day since 2006 has been fetched.
@@ -12,6 +12,20 @@ class LocalDraftRun
   # The first sitting day in the ParlParse XML at data.openaustralia.org.au, for both houses
   # (checked 12 October 2026): where a run given no start date goes back to.
   EARLIEST = Date.new(2006, 2, 7)
+
+  # representatives/2026-09-17/3, on its own or at the end of the division's full URL.
+  SLUG = %r{(#{House.australian.join('|')})/(\d{4}-\d{2}-\d{2})/(\d+)/?\z}
+
+  # The house, date and number a slug or division URL names, or nil when it names none.
+  def self.parse_slug(text)
+    match = SLUG.match(text.to_s.strip) or return nil
+    [match[1], Date.iso8601(match[2]), match[3].to_i]
+  rescue Date::Error
+    nil
+  end
+
+  # DIVISION= named no division, or one Hansard doesn't have.
+  class UnknownDivision < StandardError; end
 
   # FROM= was after TO=, so there is nothing between them to go back over.
   class EmptyRange < StandardError; end
@@ -37,6 +51,19 @@ class LocalDraftRun
     raise EmptyRange, "FROM #{from} is after TO #{to}; the run goes back from TO to FROM" if from > to
 
     to.downto(from) { |date| draft_day(date) }
+    report_totals
+  end
+
+  # One division, named by its slug or URL. Unless forced, one already drafted is left alone.
+  def run_one(slug)
+    house, date, number = self.class.parse_slug(slug)
+    raise UnknownDivision, "#{slug} doesn't name a division; try representatives/2026-09-17/3" unless house
+
+    ensure_loaded(house, date)
+    division = Division.find_by(house: house, date: date, number: number)
+    raise UnknownDivision, "Hansard has no division #{house}/#{date}/#{number}" unless division
+
+    out.puts "#{slug_of(division)}: skipped, as it already has a file; FORCE=1 drafts it again" if draft(division) == :skipped
     report_totals
   end
 
