@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-# Sitting days' ParlParse XML for the local AI summary tasks (lib/tasks/local_llm.rake), fetched
-# once through the loader's own fetch (ARCHITECTURE.md section 5) and kept under tmp/hansard_xml.
-# EarlierDebate looks back up to 70 calendar days for every division, so without this a snapshot
-# takes hours; and because every run then reads the same Hansard, two snapshots taken with no code
-# change between them agree.
+# Sitting days' ParlParse XML for the local AI summary tasks (lib/tasks/local_llm.rake and
+# LocalDraftRun), fetched once through the loader's own fetch (ARCHITECTURE.md section 5) and kept
+# under tmp/hansard_xml. EarlierDebate looks back up to 70 calendar days for every division, so
+# without this a snapshot takes hours; and because every run then reads the same Hansard, two
+# snapshots taken with no code change between them agree.
 class LocalHansardCache
   def initialize(dir: Rails.root.join("tmp/hansard_xml"))
     @dir = Pathname(dir)
