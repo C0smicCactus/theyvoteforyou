@@ -9,6 +9,8 @@ describe LocalDraftRun do
   let(:completions) { "http://model.test:8080/v1/chat/completions" }
   let(:client) { LocalModelClient.new(url: "http://model.test:8080", model: "Example-Model-Q4", replies_dir: replies_dir) }
   let(:out) { StringIO.new }
+  let(:loaded) { [] }
+  let(:loader) { ->(date) { loaded << date } }
   let(:day) { Date.new(2026, 8, 19) }
   let(:model_folder) { root.join("local.Example-Model-Q4") }
   let(:draft_path) { model_folder.join("representatives/2026-08-19/representatives_2026-08-19_1.md") }
@@ -29,7 +31,7 @@ describe LocalDraftRun do
   let(:good_reply) { { interpretation: { template_id: 4, missing: [] }, references: { explanation: ["S1.1"], motion: [] } }.to_json }
 
   def run_with(**)
-    described_class.new(client: client, houses: ["representatives"], root: root, out: out,
+    described_class.new(client: client, houses: ["representatives"], root: root, out: out, loader: loader,
                         cache: LocalHansardCache.new(dir: hansard_dir), **)
   end
 
@@ -114,6 +116,52 @@ describe LocalDraftRun do
 
     it "refuses a range whose start is after its end, rather than quietly drafting nothing" do
       expect { run_with.run(from: day + 1, to: day) }.to raise_error(described_class::EmptyRange, /FROM/)
+    end
+  end
+
+  describe "loading sitting days" do
+    it "loads a day the database doesn't have yet, only when Hansard shows a vote that day" do
+      loader = lambda do |date|
+        loaded << date
+        create(:division, house: "representatives", date: date, number: 1)
+      end
+      run_with(loader: loader).run(from: day - 1, to: day + 1)
+
+      expect(loaded).to eq [day]
+      expect(draft_path).to exist
+    end
+
+    it "skips a day it can't load, says so, and carries on" do
+      run = run_with(loader: ->(_date) { raise "Couldn't find member by gid 123" })
+      run.run(from: day, to: day)
+
+      expect(out.string).to include "representatives/2026-08-19: couldn't load this day's divisions"
+      expect(run.counts[:days_not_loaded]).to eq 1
+    end
+
+    it "loads the rest of a day a stopped run left half-loaded, and drafts the divisions left over" do
+      two_divisions = <<~XML
+        <debates>
+          <major-heading id="h1" url="x">BILLS</major-heading>
+          <minor-heading id="h3" url="x">Example Bill 2026</minor-heading>
+          <speech id="s1" speakername="Robin Carrow" time="10:00:00" url="x"><p>This change protects small business.</p><p>I move:</p><p class="italic">That the words "the Minister" be omitted.</p></speech>
+          <speech id="s2" speakername="Casey Whitlow" time="10:05:00" url="x"><p>The question is that the amendment be agreed to.</p></speech>
+          <division divdate="2026-08-19" divnumber="1" id="d1" time="10:06:00" url="x"><divisioncount ayes="40" noes="30" pairs="0" tellerayes="0" tellernoes="0"/></division>
+          <division divdate="2026-08-19" divnumber="2" id="d2" time="10:07:00" url="x"><divisioncount ayes="40" noes="30" pairs="0" tellerayes="0" tellernoes="0"/></division>
+        </debates>
+      XML
+      File.write(hansard_dir.join("representatives-2026-08-19.xml"), two_divisions)
+      create(:division, house: "representatives", date: day, number: 1)
+      loader = lambda do |date|
+        create(:division, house: "representatives", date: date, number: 2)
+      end
+
+      run = run_with(loader: loader)
+      run.run(from: day, to: day)
+
+      expect(a_request(:post, completions)).to have_been_made.twice
+      expect(run.counts[:drafted] + run.counts[:failed]).to eq 2
+      expect(run.counts[:skipped]).to be_zero
     end
   end
 end

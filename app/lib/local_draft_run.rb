@@ -4,6 +4,8 @@
 # first, one sitting day at a time, and writes one file per division (LocalDraftFile) ready to zip
 # and hand over for upload.
 #
+# A day's divisions are loaded into the local database only when the run reaches that day, so the
+# first draft arrives in minutes rather than after every sitting day since 2006 has been fetched.
 # A division that already has a file is skipped, so a run can be stopped at any time and the same
 # command carries on where it left off.
 class LocalDraftRun
@@ -16,8 +18,9 @@ class LocalDraftRun
 
   attr_reader :counts
 
+  # loader: loads a sitting day's divisions into the database; a spec passes its own.
   def initialize(client:, houses: House.australian, root: LocalDraftFile::ROOT, force: false, retry_failed: false,
-                 cache: LocalHansardCache.new, out: $stdout)
+                 cache: LocalHansardCache.new, out: $stdout, loader: ->(date) { DataLoader::Debates.load!(date) })
     @client = client
     @houses = houses
     @root = Pathname(root)
@@ -25,6 +28,7 @@ class LocalDraftRun
     @retry_failed = retry_failed
     @cache = cache
     @out = out
+    @loader = loader
     @counts = Hash.new(0)
   end
 
@@ -38,17 +42,38 @@ class LocalDraftRun
 
   private
 
-  attr_reader :client, :houses, :root, :force, :retry_failed, :cache, :out
+  attr_reader :client, :houses, :root, :force, :retry_failed, :cache, :out, :loader
 
   def model_id
     @model_id ||= client.model_id
   end
 
-  # Drafts the divisions the local database already has for that day.
   def draft_day(date)
     houses.each do |house|
+      next unless ensure_loaded(house, date)
+
       Division.where(house: house, date: date).order(number: :desc).each { |division| draft(division) }
     end
+  end
+
+  # Whether the house's divisions for that day are all in the local database, loading the day
+  # first when they aren't. A day already in the database may be only part of what Hansard holds
+  # (a run stopped in the middle of loading it), so the day's own count in the cached XML says
+  # whether anything is still missing. Loading saves through Searchkick's callbacks, which would
+  # need Elasticsearch running; drafting doesn't use the search index, so they're off. A day that
+  # can't be loaded is skipped and tried again on the next run.
+  def ensure_loaded(house, date)
+    loaded = Division.where(house: house, date: date).count
+    expected = cache.division_count(house, date)
+    return true if loaded.positive? && loaded >= expected
+    return false if expected.zero?
+
+    Searchkick.callbacks(false) { loader.call(date) }
+    Division.exists?(house: house, date: date)
+  rescue StandardError => e
+    out.puts "#{house}/#{date}: couldn't load this day's divisions (#{e.message}), so it was skipped"
+    counts[:days_not_loaded] += 1
+    false
   end
 
   def draft(division)
@@ -92,7 +117,8 @@ class LocalDraftRun
   end
 
   def report_totals
-    out.puts "Drafted #{counts[:drafted]}, failed #{counts[:failed]}, skipped #{counts[:skipped]} already done."
+    out.puts "Drafted #{counts[:drafted]}, failed #{counts[:failed]}, skipped #{counts[:skipped]} already done" \
+             "#{", #{counts[:days_not_loaded]} days not loaded" if counts[:days_not_loaded].positive?}."
     out.puts "Drafts: #{shown(root.join(model_id))}/  Failed: #{shown(root.join('failed', model_id))}/"
   end
 
