@@ -53,18 +53,26 @@ September 2026, after three local models all quoted the same passage as the move
 then comparing Stage 1 before and after the fix over the 3,856 speeches in the ParlParse XML for
 Senate 18 to 20 August 2026 and the eight test divisions' sitting days.
 
-KI-40 onwards came from running four local models over ten divisions from 12 to 20 August 2026 on
+KI-40 to KI-61 came from running four local models over ten divisions from 12 to 20 August 2026 on
 30 September 2026, reviewing every draft against Hansard, and checking the proposed changes against
-the chambers' standing orders and guides. That
-check found that some of the pipeline's House procedure had been written from the House Guide
-(2017, amended 2019), which predates changes to the House standing orders in 2020, 2022, 2023 and
-2025: the standing orders "as at 23 July 2025" outrank it. The Senate standing orders consulted were
-the June 2009 edition, so a Senate standing order is cited only where a June 2025 Senate guide says
-the same, or after checking the current text.
+the chambers' standing orders and guides. That check found that some of the pipeline's House
+procedure had been written from the House Guide (2017, amended June 2019), which predates every
+change to the House standing orders from 4 July 2019 to 23 July 2025: the standing orders "as at 23
+July 2025" outrank it. The Senate standing orders consulted then were the June 2009 edition. The
+July 2025 edition replaced them on 1 October 2026, and every Senate standing order the pipeline
+cites kept its number and substance.
 
 KI-62 to KI-65 came from the first run of `rake ai:draft_local`, with Qwen3.6-35B-A3B (UD-Q4_K_M)
 through llama.cpp, over the 13 divisions of 17 September 2026 on 12 October 2026, comparing each
 draft's mover and motion with the day's ParlParse XML.
+
+KI-68 to KI-78, and the changes to KI-4, KI-5, KI-6, KI-7, KI-13, KI-44, KI-47, KI-50, KI-52 and
+KI-58, came from a second local model run on 1 October 2026, four models over the same ten
+divisions from 12 to 20 August 2026 with every draft checked against Hansard, and from checking
+about 190 of the pipeline's procedural claims against the House standing orders as at 23 July
+2025, the House Guide, the Senate standing orders of July 2025 and the June 2025 Senate guides.
+Every rule those entries cite, and the Hansard each one quotes, was checked again on 13 October
+2026.
 
 This register was compiled with AI assistance (Claude Code: claude-opus-5[1m] for KI-1 to KI-19,
 claude-opus-5-5 for KI-20 onwards and for condensing the fixed entries; the 1 October 2026 review
@@ -94,7 +102,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-4 | Rules | High | Partly fixed | Real question forms fall through to Template 15 | See the open entry below. |
 | KI-5 | Rules | High | Fixed | Absolute-majority questions were reported on a simple-majority test | `template_compiler_spec.rb` "constitutional and parliamentary procedures" and "Template 17, the purpose a suspension states for itself". The pipeline flags the doubt rather than resolving it: the question alone does not say how a suspension was moved. Corrected in September 2026 against House S.O. 47 as at 23 July 2025: a House suspension without notice is also carried by a majority of those present if the Leader of the House and the Manager of Opposition Business agree, and "by leave" is said only of the House, where the House Guide (pp. 2-3) supports it; neither Senate source mentions it ("gives each chamber's own ways to carry a suspension on a simple majority"). |
 | KI-6 | Rules | Medium | Fixed | Deferred and successive divisions defeated the context window | `context_builder_spec.rb` "context warnings". The S.O. 133 time windows are this code's own estimate, not a figure from either guide; they only raise a warning. Corrected in September 2026 against House S.O. 133 as at 23 July 2025: the Tuesday window after the matter of public importance came from the guide and is no rule of S.O. 133 (it was S.O. 55(c), on quorum counts), so it is gone ("does not warn about a Tuesday afternoon"). S.O. 133(b) now defers evening divisions from Monday to Wednesday "until the first opportunity the next sitting day", which fixes no time; a window for it caught only programmed questions, so it rests on the chair's words, as a deferral on another day already did. |
-| KI-7 | Rules | Medium | Fixed | Template 24 stated the wrong suspension period and the House wording in the Senate | `template_compiler_spec.rb` "Template 24, suspension periods and the two chambers' wording". Corrected again in September 2026 against House S.O. 94(d) as at 23 July 2025: the first suspension is the 24 hours from the time of suspension, and only the second and third leave out the day. The Senate guide does not state S.O. 204's periods, so none are given. The June 2009 standing orders give them (the remainder of that day's sitting, then 7 and 14 sitting days in the same calendar year), and a July 2025 edition exists on aph.gov.au, which refuses automated fetches: **Verify** S.O. 204 in the current edition, and state the periods only then. |
+| KI-7 | Rules | Medium | Partly fixed | Template 24 stated the wrong suspension period and the House wording in the Senate | See the open entry below: the House is fixed, the Senate is not. |
 | KI-8 | Rules | Medium | Fixed | House quorum hardcoded against a 2019 date | `template_compiler_spec.rb` "constitutional and parliamentary procedures". Chamber size comes from the member records on the day; the dated constant is only the fallback. |
 | KI-9 | Rules | Medium | Fixed | Template 2 overstated what carrying a reasoned amendment does | Template 2's explainer (no spec). |
 | KI-10 | Rules | Medium | Fixed | Template 17 asserted a purpose the question usually does not support | `template_compiler_spec.rb` "Template 17, the purpose a suspension states for itself". |
@@ -134,12 +142,12 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-44 | Pipeline | Medium | Fixed | The terms of amendments the chair put under a limitation of debate were left for the model to find, though the chair's statement prints them | `transcript_spec.rb` "takes the amendments printed after the division's question as its terms"; `context_builder_spec.rb` "takes the amendments the chair put as the terms", "keeps the plain headings Hansard sets among the amendments"; `extraction_prompt_spec.rb` "tells the model when the chair put amendments nobody moved"; `division_summarizer_spec.rb` "does not widen for amendments the chair put". The paragraphs after the question sentence, up to the next record or question, are the terms, found by rule, when the question refers to amendments; in the House, unmoved opposition amendments are sometimes printed only for the record (House Guide p. 75), so nothing else is taken. 26 of the 121 loaded divisions now have their terms found by rule, and none of them sends the model to the sitting day for them. |
 | KI-45 | Pipeline | Medium | Fixed | Template 28 did not say which parts of the bill were to stand as printed, or whose amendments to omit them the vote decided | `template_compiler_spec.rb` "names the parts the question named, and who circulated the amendments to omit them". The parts are the chair's words between "that" and "stand as printed" in the division's question, quoted, and who circulated the amendments comes from `Circulation`. |
 | KI-46 | Pipeline | High | Fixed | Every closure not on a bill said "to end the debate on bill", and one on a bill left out "the" | `template_compiler_spec.rb` "Template 22, a closure on a bill and on anything else"; the evaluation corpus fixture 2. With no bill the sentence ends the debate and names none. `bill_reference` was checked everywhere else it is used: every other use follows "the". |
-| KI-47 | Rules | Medium-High | Fixed | Template 18 described the House guillotine from the House Guide (2017): a declaration of urgency followed by a motion allotting time. S.O.s 83 and 84 were omitted on 27 July 2022, and there is no allotment of time any more | Template text (no spec). Rewritten from House S.O. 82 and 85 as at 23 July 2025: the declaration of urgency, one evening's second reading debate to 10 pm, the questions then put without debate at the next sitting, circulated amendments treated as moved and put in groups (government, opposition, each crossbench member), and no closure. The catalogue line and the router's reason say the same. The Senate half matches Senate Guide No. 17 and was kept. Checking the other House standing orders the pipeline cites found two more changed since the guide: S.O. 80 (2025) now bars the gag while a member is moving the terms of a motion, which Template 23 now says, and S.O. 122 (July 2019) now puts "That the amendment be agreed to", noted under KI-4. S.O. 47, 94 and 133 changed too (KI-5, KI-7, KI-6). S.O. 31 and 131 were reread and say what the pipeline says of them; S.O. 11, 46, 58, 81, 87, 135, 150, 153, 173, 188 and 202 have not been amended since the guide, so the earlier check against it stands. S.O. 29 was amended in 2022, but only its sitting times. |
+| KI-47 | Rules | Medium-High | Fixed | Template 18 described the House guillotine from the House Guide (2017): a declaration of urgency followed by a motion allotting time. S.O.s 83 and 84 were omitted on 27 July 2022, and there is no allotment of time any more | Template text (no spec). Rewritten from House S.O. 82 and 85 as at 23 July 2025: the declaration of urgency, one evening's second reading debate to 10 pm, the questions then put without debate at the next sitting, circulated amendments treated as moved and put in groups (government, opposition, each crossbench member), and no closure. The catalogue line and the router's reason say the same. The Senate half matches Senate Guide No. 17 and was kept. Checking the other House standing orders the pipeline cites found S.O. 122 changed since the guide: since July 2019 it puts "That the amendment be agreed to", noted under KI-68. Template 23 now also says S.O. 80 bars the gag while a member is moving the terms of a motion; that bar is older than S.O. 80's amendment of 23 July 2025, since the House Guide already gives it (p. 48). S.O. 47, 94 and 133 changed too (KI-5, KI-7, KI-6). S.O. 31 and 131 were reread and say what the pipeline says of them; S.O. 11, 46, 58, 81, 87, 135, 150, 153, 173, 188 and 202 have not been amended since the guide, so the earlier check against it stands. S.O. 29 was amended in 2022, but only its sitting times. |
 | KI-48 | Pipeline | Low | Fixed | Wording that read as machine output or overstated its source: "1 senator(s)", a Motion Introduction of just "I move:", "decline the bill a second reading", "which means ... This means", "It has happened once, in 2016" stated as current fact from a 2017 guide, "Ndis" for "NDIS" in titles, and "they agreed" for the chamber | `template_compiler_spec.rb` "wording that read as machine output", "Template 2's explainer in each chamber"; `draft_title_spec.rb` "prints a bill's title in the heading as the bills table records it"; the evaluation corpus. A section with nothing left in it is now left out, heading and all, which is how the bare "I move:" goes. `DivisionFacts#bill_titles` carries every bill's own title for `DraftTitle`; `DivisionXml#name` keeps its PHP-compatible casing. |
 | KI-49 | Rules | Medium | Fixed | Subject rules outranked the bill-stage rules, so a reasoned amendment read out as the question was settled as whatever it named: a select committee, or a censure | `procedural_router_spec.rb` "routes the form proposing a select committee to Template 2", "routes a Budget amendment worded as a censure to Template 2", "leaves the same form amending an ordinary motion to the other rules". `reasoned_amendment_form` settles Template 2 when the question reads out an amendment's own form in a second reading debate, before any subject rule. None of the 121 loaded divisions changed route; since KI-35, the Senate's questions no longer carry the amendments' words, so this is for a House chair reading an amendment out. KI-13's note that the Budget case already worked was wrong and has been corrected. |
-| KI-50 | Rules | Medium-High | Fixed | A motion whose first paragraph Hansard sets as "That—" alone was routed on that one word, so the Senate's order fixing a week's hours and guillotines fell to the general motion fallback | `context_builder_spec.rb` "routes a motion whose first paragraph is only \"That\" on the paragraphs after it". `ContextBuilder#operative_paragraph` reads every paragraph after a bare "That", where the order says its parts "operate as limitations of debate under standing order 142", and the existing rule gives Template 18, advisory, since the opening is not a fixed form. Only Senate 18 August 2026 #2 moved in the 121 loaded divisions. |
+| KI-50 | Rules | Medium-High | Partly fixed | A motion whose first paragraph Hansard sets as "That—" alone was routed on that one word; it is now read whole, but the limitation of debate it sets is routed only as advice | See the open entry below. |
 | KI-51 | Rules | Low | Fixed | The plain second reading question ("That the bill be now read a second time") was fenced between Templates 2 and 29 though it names no amendment | `procedural_router_spec.rb` "settles the plain second reading question on Template 29", "fences a second reading question that is not in the plain form". Settled as Template 29 in that form with no amendment wording and not "as amended"; anything else still fenced. Three of the 121 loaded divisions moved from the fence to 29, each a plain second reading. |
-| KI-52 | Rules | Medium | Fixed | A House question put "immediately" under a resolution agreed earlier read as an ordinary debated vote, though the Senate's equivalent was flagged | `division_xml_spec.rb` "finds the Speaker putting the question immediately under a resolution, across the run of divisions"; `template_compiler_spec.rb` "a question the House put immediately under a resolution agreed earlier". Found by rule like the Senate's statement, walking back through the run of divisions, and kept as its own kind: the House programming a bill by suspending standing orders is not a guillotine (House Guide p. 75), so the draft says "This question was put without further debate, under an arrangement the House of Representatives agreed on 12 August 2026", the date from the Speaker's words, and quotes them. Only three forms have been seen, all on 18 August 2026; what the Speaker says under the House's own guillotine for urgent bills (S.O. 82 and 85) is **Verify** before this is extended to it. |
+| KI-52 | Rules | Medium | Partly fixed | A House question put "immediately" under a resolution agreed earlier read as an ordinary debated vote; two more forms of a question put when allotted time has expired are still missed | See the open entry below. |
 | KI-53 | Pipeline | Medium | Fixed | A divided question was summarised, and its motion printed, as though the whole motion had been put | `chair_statement_spec.rb` ".divided_parts"; `template_compiler_spec.rb` "a divided question". When the chair's question puts a motion "minus" or "except" some of its parts, the draft says the vote was on the motion without them, in the chair's words, and the Reviewer Only report says the question was divided. Senate forms only: the House, where a member may move that a question be divided (House S.O. 119), had none in its Hansard from May to September 2026, so none is assumed. A divided question put on the separated part itself is not recognised. |
 | KI-54 | Pipeline | Medium | Fixed | A closure's draft said only that "the debate" ended, and never linked the division that then put the underlying question | `context_builder_spec.rb` "with a closure"; `template_compiler_spec.rb` "says what the debate it ended was on". Stage 1 routes the move the closure cut short (the last one before the closure's own, in the same debate, by someone else) and keeps the template when that settles one, which the sentence names: "to end the debate on a motion to suspend standing orders". The follow-up division is the next that day in the same debate, unless it is a closure itself, looked up in the database. ARCHITECTURE.md section 15's `followup_link` item is built. |
 | KI-55 | Pipeline | Low | Fixed | A matter of urgency did not say whose proposal it was; words incorporated in Hansard were quoted as "Senator X said:"; and a question the chair put with nobody moving it printed empty Motion Introduction and Motion Text sections | `context_builder_spec.rb` "finds who proposed a matter of urgency someone else moved"; `template_compiler_spec.rb` "what a draft says about who moved what"; `transcript_spec.rb` "marks the words of a speech incorporated by leave"; `provenance_validator_spec.rb` "records when the chair put a question that is the whole motion with nobody moving it". The proposer comes from the chair's "Senator X has submitted a proposal" and a surname is linked only when one senator on the day has it; incorporated words are introduced as "Senator X's speech, incorporated in Hansard, reads:"; and when nobody moved anything the sections are left out, and the Question Put section quotes the question. |
@@ -154,6 +162,9 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-64 | Pipeline | Medium | Open | The model rarely pointed at the mover's reasons, leaving "About the Motion" empty | See the open entry below. |
 | KI-65 | Pipeline | Low | Open | A motion moved at another senator's request is described as the mover's own | See the open entry below. |
 | KI-66 | Pipeline | Low | Fixed | A motion's lettered and numbered paragraphs were all quoted at one level, so "(i)" under "(a)" read as though it sat beside it | `quote_outline_spec.rb`; `template_compiler_spec.rb` "an outlined motion". Hansard's XML gives every paragraph as a flat `<p>`, so the depth comes from the labels: each new label style is one level further in, and going back to a style already open goes back to its level. "(i)", "(v)" and "(x)" are read as letters or numerals by what they continue. A paragraph without a label stays at the outer level. Only Motion Text is outlined, not the mover's quoted sentences. Checked on Senate 17 September 2026 #8, #9 and #10. |
+| KI-68 | Rules | High | Open | Six question forms are routed as their opposites, so a draft would report the reverse of the vote | See the open entry below. |
+| KI-69 | Rules | High | Open | A Senate division without a quorum is reported as decided | See the open entry below. |
+| KI-70 | Rules | Medium-High | Open | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | See the open entry below. |
 
 ---
 
@@ -171,25 +182,66 @@ effect". These forms still land there with no template that fits them:
 | Question form | Source | What it actually is |
 |---|---|---|
 | "That the bill stand as printed" | Senate Guide No. 16 | The final question in committee of the whole when no amendments were agreed to. |
-| "That the bill (as amended) be agreed to" | House S.O. 150(c), 153(a), Guide p. 72-73 | End of consideration in detail, or the report stage for a bill from the Federation Chamber. |
+| "That the bill (as amended) be agreed to" | House S.O. 149(b) and (c), 150(c), 153(a) and (b)(iv); Guide pp. 71-73 | End of consideration in detail when the bill is taken as a whole, or the report stage for a bill from the Federation Chamber. |
 | "That the report of the committee be adopted" | Senate Guide No. 16 | Report from committee of the whole; amendments are moved to it. |
 | "That the proposed expenditure(s) be agreed to" | House Guide p. 82 | The appropriation bill detail stage. |
 | "That the House approves the form of agreement ..." | House Guide p. 94-95 | Approval of a legislative instrument, the mirror of disallowance. |
-| "That the words proposed to be omitted stand part of the question" | House Guide p. 52; House S.O. 122 before 4 July 2019 | An inverted question like Template 28; the guide calls the form "no longer used" in the House, and since 4 July 2019 S.O. 122 has the Speaker put "That the amendment be agreed to". |
 
 Each needs its own template, which adds to the catalogue: a decision to agree with a human before
 writing, not a change to make unilaterally. New templates are numbered after the last one (as
 Template 29, the second reading, was) so that no template already cited by number moves.
+
+This entry also listed "That the words proposed to be omitted stand part of the question". That
+form never reaches the fallback: it is settled on Template 2, the opposite of what it decides, so it
+is now in KI-68 with the other inverted forms.
+
+What a missing template costs was **confirmed** at House 16 September 2026 #6, where the chair put
+"The question is the bill be agreed to." at the end of consideration in detail. The router could
+only offer Template 15 as advice, and Qwen3.6-35B-A3B (UD-Q4_K_M) chose Template 4 instead, from the
+label the prompt gives it, "Consideration in Detail (House of Representatives)", which does not say
+that Template 4 is for amendments. The draft then said an amendment had been agreed to and passed
+validation (KI-79). With no settled route, `ContextPacket#question_states_motion?` was false, so the
+prompt told the model to report the terms missing if it could not find them, it did, and the
+pipeline read the whole sitting day looking for terms this question does not have (KI-67). A
+template for this form would have settled the route and avoided both.
+
+### KI-7
+
+**Template 24 states no Senate suspension periods, and uses the House's wording for the Senate.**
+Severity: Medium. Status: **Partly fixed**. **Confirmed** against the Senate standing orders of July
+2025.
+
+Fixed for the House, against House S.O. 94(d) as at 23 July 2025: the first suspension is the 24
+hours from the time of suspension, and only the second and third leave out the day
+(`template_compiler_spec.rb` "Template 24, suspension periods and the two chambers' wording").
+
+Still open for the Senate. This entry asked for Senate S.O. 204 to be checked in the current
+edition before its periods were stated. The July 2025 edition (p. 102) has them as the June 2009
+one did: a suspension "on the first occasion shall be for the remainder of that day's sitting, on
+the second occasion for 7 sitting days, and on the third or any subsequent occasion for 14 sitting
+days", where they fall in the same calendar year, and a suspended senator may not enter the
+chamber (S.O. 204(2)). The Senate sentence in `summary_wording.rb` still says "The Senate names a
+senator under standing order 203 and sets the period of suspension under standing order 204; the
+Senate's own guide does not state those periods", but under S.O. 203(1) the President "may report
+to the Senate that the senator has committed an offence". Template 24's explainer says a member is
+suspended after the Chair "has named them for disorderly conduct", which is only one of the five
+offences S.O. 203(1) lists. A fix would state all three periods, since the data does not say which
+occasion it was, say that the President reports the senator, and not limit the offence to
+disorderly conduct. Test in `template_compiler_spec.rb` "Template 24, suspension periods and the
+two chambers' wording".
 
 ### KI-13
 
 **Template 2 describes the four things a stage amendment can do, but not which one this was.**
 Severity: Low. Status: **Partly fixed**.
 
-Senate Guide No. 16 gives the closed list: express an opinion, reverse the motion so the bill is
-defeated at that point, refer the bill to a committee, or delay further consideration. The
-explainer now lists all four. Still open: extracting which one applies, as a closed choice, so the
-summary can say which. Worth doing once the evaluation corpus has enough Template 2 divisions to
+Senate Guide No. 16 (p. 47) lists four things such an amendment may do: express an opinion,
+reverse the motion so the bill is defeated at that point, refer the bill to a committee, or delay
+further consideration. The explainer now lists all four. The guide does not say the list is
+complete, and Senate S.O. 114(3) allows "Other amendments ... provided that they are relevant to
+the bill", so the "closed list" this entry used to describe was its own reading. Still open:
+extracting which one applies, as a choice from the four with an "other" answer, so the summary
+can say which. Worth doing once the evaluation corpus has enough Template 2 divisions to
 tell whether the model gets it right. Two things to know while working here: a referral can arrive
 as a second reading amendment (Senate S.O. 114(3)), and the second reading amendment on the main
 appropriation bill is conventionally cast as a censure of the Budget (House Guide p. 81-82). This
@@ -218,6 +270,148 @@ Status: **Verify**.
 The House guide confirms works in the parliamentary precincts can be subject to parliamentary
 approval (p. 117) but names no Act, and the Senate guides do not cover it. The citation is probably
 right and was left in, but it has not been checked against a primary source.
+
+### KI-50
+
+**A motion that says its parts "operate as limitations of debate under standing order 142" is
+routed to Template 18 only as advice.** Severity: Medium-High. Status: **Partly fixed**.
+**Confirmed** from four local models' drafts on 1 October 2026 and from the code.
+
+Fixed: a motion whose first paragraph Hansard sets as "That—" alone was routed on that one word, so
+the Senate's order fixing a week's hours and guillotines fell to the general motion fallback.
+`ContextBuilder#operative_paragraph` now reads every paragraph after a bare "That"
+(`context_builder_spec.rb` "routes a motion whose first paragraph is only \"That\" on the
+paragraphs after it"). Only Senate 18 August 2026 #2 moved in the 121 loaded divisions.
+
+Still open: the route that gives is advisory. That order's paragraph (4) reads "Paragraphs 1(b) and
+(c), 2(b) and (c), and 3(c) operate as limitations of debate under standing order 142." A route
+taken from the motion text binds only when the motion opens in a fixed form
+(`ProceduralRouter.fixed_opening?`), which protects against a misleading first paragraph, and this
+one opens with "That" alone. Three of four local models chose Template 19 instead. Both templates
+are true of the motion, but only 18 says debate was limited, and only its title reads "; Limitation
+of Debate". Senate Guide No. 17 (p. 51) supports 18: "the application of a time limit to the
+consideration of a bill is referred to as a guillotine", and "Guillotine motions are often moved as
+part of broader motions varying the days and hours of sitting". Whether a motion's own "limitations
+of debate under standing order 142" should settle or fence the route, as a named exception to the
+rule that motion text is only advice, is a decision for the team. Test in
+`procedural_router_spec.rb`, with a route snapshot before and after.
+
+### KI-52
+
+**Two forms of a question put when a debate's allotted time has expired are not recognised.**
+Severity: Medium. Status: **Partly fixed**. **Read** (the House form); **Verify** (the Senate form
+and the House's urgent-bill wording).
+
+Fixed: a House question put "immediately" under a resolution agreed earlier is found by rule like
+the Senate's statement, walking back through the run of divisions (`division_xml_spec.rb` "finds
+the Speaker putting the question immediately under a resolution, across the run of divisions";
+`template_compiler_spec.rb` "a question the House put immediately under a resolution agreed
+earlier"). It is kept as its own kind: the House programming a bill by suspending standing orders
+is not a guillotine (House Guide p. 75), so the draft says "This question was put without further
+debate, under an arrangement the House of Representatives agreed on 12 August 2026", the date from
+the Speaker's words, and quotes them.
+
+Still open:
+
+- At House 24 June 2026 the Speaker said "In accordance with the resolution agreed to on 23 June
+  2026, the time allotted for this debate has expired. The question is that the amendment be agreed
+  to.", and divisions 1 and 2 (5:35 and 5:43 PM) followed under "; Second Reading".
+  `DivisionXml#limitation_expiry?` accepts a statement that matches `PUT_IMMEDIATELY` ("In
+  accordance with the resolution agreed to on <date> ... put the question immediately"), or one
+  that matches `TIME_EXPIRED` and also cites an order ("pursuant to order", `ORDER_CITED`) or sits
+  under a "Limitation of Debate" heading. This statement matches only `TIME_EXPIRED`, so both
+  drafts would read as ordinary debated votes. A fix would take "In accordance with the resolution
+  agreed to on <date>" followed by the time allotted having expired as the same resolution kind,
+  keeping the "not a guillotine" wording, and update the comment above `PUT_IMMEDIATELY` that says
+  only the 18 August 2026 forms have been seen. Test in `division_xml_spec.rb` with those two
+  divisions.
+- In the Senate on 25 June 2026 the chair said "Pursuant to order agreed to on Tuesday ... I'm now
+  required to put the questions", with no "time allotted ... has expired". Senate Guide No. 17
+  (p. 51) allows a guillotine to set "a set time in a day (e.g. 'all remaining stages to conclude by
+  5 pm today')" rather than a duration, so this form is expected. **Verify** it on more sitting days
+  before adding it; KI-36 is the Senate statement it would extend.
+- What the Speaker says under the House's own guillotine for urgent bills (S.O. 82 and 85) has not
+  been seen in any sitting day checked, so it stays **Verify** before this is extended to it.
+
+### KI-68
+
+**Six question forms are routed as their opposites.** Severity: High. Status: Open. **Confirmed**
+by running each form through `ProceduralRouter.route` on 1 October 2026.
+
+Each form matches a rule meant for another question, so the draft would report the reverse of what
+the vote decided:
+
+| Question form | Rule | Routed to | What the draft would say |
+|---|---|---|---|
+| "That this question be not now put" (the previous question) | Senate S.O. 94(1) and 95, p. 64: if carried, the original question is disposed of without being put | 22, settled | that debate was ended and the question put |
+| "That the bill be read a third time this day 6 months" | Senate S.O. 122(3), p. 74: the only amendment allowed at the third reading, and if carried it "shall finally dispose of the bill" | 6, settled | that the bill passed |
+| "That the bill be now passed without requests" | Senate S.O. 140(3), p. 81: a committee question on a bill the Senate may not amend | 6, settled | that the bill passed the Senate |
+| "That Senator X be further heard" | Senate S.O. 196, p. 100: a senator told to stop for irrelevance or repetition may require this question | fenced to 23, with the reason "a House of Representatives procedure" | that the senator was stopped from speaking |
+| "That [Member] be heard now", "That the Member be further heard" | House S.O. 65(c), p. 40, and 75(b), p. 43 | 23, settled | "be no longer heard" and, if carried, "They were unable to continue speaking" |
+| "That the words proposed to be omitted stand part of the question" | House Guide p. 52: if agreed to, "the amendment is disposed of"; p. 72 calls these forms "no longer used" | 2, settled, under a "; Second Reading" heading | that the amendment was carried |
+
+None was found in the divisions or sitting days checked, so they are rare, but each prints the
+opposite result, and the guard is small: keep "not now put", "this day 6 months", "without
+requests", "heard now" and "further heard" away from the rules that catch them, and send the "stand
+part" form to the fallback or invert it as Template 28 does. Search the loaded divisions for any of
+these forms before relying on made-up questions. Test in `procedural_router_spec.rb`, with a route
+snapshot before and after.
+
+### KI-69
+
+**A Senate division without a quorum is reported as decided.** Severity: High. Status: Open.
+**Read**: the code was read, not run, against the rule quoted below.
+
+Senate S.O. 52(1), p. 43: if a division shows "that a quorum is not present ... no decision of the
+Senate shall be considered to have been arrived at by such division". S.O. 147(2), p. 84, says the
+same in committee of the whole, and the standing orders' front matter gives the quorum as 19.
+`ParliamentaryOutcome#quorum_threshold` returns nil for the Senate, and its comment says that is on
+purpose because "the Guides to Senate Procedure set out no rule voiding a Senate division for want
+of a quorum". The guides are silent, but the standing order is not. A fix would apply the House
+logic with the Senate's quorum and cite S.O. 52(1), and would be tested in
+`template_compiler_spec.rb` "constitutional and parliamentary procedures". Uncertain: whether the
+President, who may vote, counts towards the figure the tellers report. The standing order does not
+say, so a division with exactly 18 recorded votes is safer as a reviewer warning than a verdict.
+S.O. 101(5), p. 67, narrows this: "Every senator present when the question is stated shall vote,
+except the President, or the Chair of Committees in the chair of a committee, for whom voting shall
+be optional", so the senators present are the recorded votes, plus the chair if the chair did not
+vote. S.O. 147(3), p. 84, says what happens to a committee of the whole interrupted for want of a
+quorum: its resumption is "an order of the day for the next day of sitting". The Senate (Quorum)
+Act 1991 has not been checked.
+
+### KI-70
+
+**Amendments a senator moved before a guillotine fell are described as moved by nobody, and three
+parts of the pipeline decide "nobody moved" differently.** Severity: Medium-High. Status: Open.
+**Confirmed** (the prompt, by routing the division and reading the code); **Read** (the
+disagreement).
+
+Senate S.O. 142(4), p. 82: when the time expires the chair puts "the question on any amendment or
+motion already proposed from the chair", and only then the circulated ones. At Senate 18 August
+2026, 8:00 PM, the chair said "I'll first deal with the amendments moved by Senator ... on sheet
+3832", and division 14 (8:09 PM, `uk.org.publicwhip/lords/2026-08-18.209.1`) then put "the remaining
+amendments on sheet 3832". Stage 1 finds a limitation of debate and no mover for division 14, so
+`ExtractionPrompt#no_motion_instruction` tells the model "Under the limitation of debate the chair
+put this question with nobody moving it", and the draft would name no mover for amendments a
+senator moved.
+
+The same idea is decided in three places, and they already disagree:
+
+- `DivisionSummarizer#nobody_moved?`, which stops the sitting-day retry for a missing mover's
+  speech, counts a question that states the whole motion, amendments circulated and put, or a
+  limitation of debate with no mover found.
+- `ExtractionPrompt#no_motion_instruction` and `#circulated_note` tell the model nobody moved in
+  the same three cases.
+- `ProvenanceValidator#put_without_mover?`, which decides whether the draft leaves out its Motion
+  Introduction and Motion Text sections, counts only the first two. Under a guillotine with no
+  mover found, the draft prints "No motion introduction recorded." while the prompt told the model
+  nobody moved.
+
+Division 14 supports the validator's narrower test. A fix would decide this once, on
+`ContextPacket`, saying "nobody moved" only when the question states its own terms or a circulator
+was found, and would look for "moved by" in the earlier statements of the same run of divisions
+(`DivisionXml#run_statements`). Test in `extraction_prompt_spec.rb`, `division_summarizer_spec.rb`
+and `provenance_validator_spec.rb`, with division 14 as the case.
 
 ---
 
