@@ -97,11 +97,11 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | ID | Kind | Severity | Status | Summary | Guarded by, and what is still worth knowing |
 |---|---|---|---|---|---|
 | KI-1 | Pipeline | High | Fixed | Template 6's closing sentence ignored the vote result, and named a destination chamber the data cannot support. The second reading, which Template 6 then also covered, is now Template 29 | `template_compiler_spec.rb` "Templates 29 and 6, reporting the result of the reading and not just the reading". The destination is stated only when `bill_originating_house` is supplied; nothing supplies it yet. |
-| KI-2 | Rules | High | Fixed | Template 7 read every message question as "agree to the other chamber's amendments" | `template_compiler_spec.rb` "Template 7, the forms a message question takes". Still open: insisting on an amendment that itself omitted a clause (Odgers', via Senate Guide No. 18) is not told apart from an ordinary insist. |
+| KI-2 | Rules | High | Fixed | Template 7 read every message question as "agree to the other chamber's amendments" | `template_compiler_spec.rb` "Template 7, the forms a message question takes". Still open: insisting on an amendment that itself omitted a clause (Odgers', via Senate Guide No. 18) is not told apart from an ordinary insist. The same goes for a tie: on "does not insist", `SummaryWording#not_insist_effect_clause` says the amendments are not insisted on, but where the amendment was one to omit a clause, an equal vote means "the amendment to omit the clause is insisted on" (Senate Guide No. 18, p. 56). |
 | KI-3 | Pipeline | High | Fixed | Template 22 contradicted itself for "the business of the day be called on" | `template_compiler_spec.rb` "Template 22, the three questions that arrive as a closure". A template per closure form would be tidier; that is a catalogue decision. |
 | KI-4 | Rules | High | Partly fixed | Real question forms fall through to Template 15 | See the open entry below. |
-| KI-5 | Rules | High | Fixed | Absolute-majority questions were reported on a simple-majority test | `template_compiler_spec.rb` "constitutional and parliamentary procedures" and "Template 17, the purpose a suspension states for itself". The pipeline flags the doubt rather than resolving it: the question alone does not say how a suspension was moved. Corrected in September 2026 against House S.O. 47 as at 23 July 2025: a House suspension without notice is also carried by a majority of those present if the Leader of the House and the Manager of Opposition Business agree, and "by leave" is said only of the House, where the House Guide (pp. 2-3) supports it; neither Senate source mentions it ("gives each chamber's own ways to carry a suspension on a simple majority"). |
-| KI-6 | Rules | Medium | Fixed | Deferred and successive divisions defeated the context window | `context_builder_spec.rb` "context warnings". The S.O. 133 time windows are this code's own estimate, not a figure from either guide; they only raise a warning. Corrected in September 2026 against House S.O. 133 as at 23 July 2025: the Tuesday window after the matter of public importance came from the guide and is no rule of S.O. 133 (it was S.O. 55(c), on quorum counts), so it is gone ("does not warn about a Tuesday afternoon"). S.O. 133(b) now defers evening divisions from Monday to Wednesday "until the first opportunity the next sitting day", which fixes no time; a window for it caught only programmed questions, so it rests on the chair's words, as a deferral on another day already did. |
+| KI-5 | Rules | High | Fixed | Absolute-majority questions were reported on a simple-majority test | `template_compiler_spec.rb` "constitutional and parliamentary procedures" and "Template 17, the purpose a suspension states for itself". The pipeline flags the doubt rather than resolving it: the question alone does not say how a suspension was moved. Corrected in September 2026 against House S.O. 47 as at 23 July 2025: a House suspension without notice is also carried by a majority of those present if the Leader of the House and the Manager of Opposition Business agree, and "by leave" is said only of the House, where the House Guide (p. 2) supports it; neither Senate source mentions it ("gives each chamber's own ways to carry a suspension on a simple majority"). The House Guide (2019) predates S.O. 47's amendments of 23 March 2020 and 27 July 2022, and the current S.O. 47 (p. 33) does not mention leave: **Verify** that a House suspension moved by leave still needs only a majority. S.O. 47(c)(ii)'s alternative is "a majority of Members present", where the notice says "a majority of those voting". |
+| KI-6 | Rules | Medium | Fixed | Deferred and successive divisions defeated the context window | `context_builder_spec.rb` "context warnings". The S.O. 133 time windows are this code's own estimate, not a figure from either guide; they only raise a warning. Corrected in September 2026 against House S.O. 133 as at 23 July 2025: the Tuesday window after the matter of public importance was S.O. 133's own rule when the House Guide was written (p. 58) and is not in the current S.O. 133, so it is gone ("does not warn about a Tuesday afternoon"). S.O. 133(b) now defers evening divisions from Monday to Wednesday "until the first opportunity the next sitting day", which fixes no time; a window for it caught only programmed questions, so it rests on the chair's words, as a deferral on another day already did. |
 | KI-7 | Rules | Medium | Partly fixed | Template 24 stated the wrong suspension period and the House wording in the Senate | See the open entry below: the House is fixed, the Senate is not. |
 | KI-8 | Rules | Medium | Fixed | House quorum hardcoded against a 2019 date | `template_compiler_spec.rb` "constitutional and parliamentary procedures". Chamber size comes from the member records on the day; the dated constant is only the fallback. |
 | KI-9 | Rules | Medium | Fixed | Template 2 overstated what carrying a reasoned amendment does | Template 2's explainer (no spec). |
@@ -139,7 +139,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-41 | Pipeline | High | Fixed | A chair's statement over 1,200 characters was not taken for the chair's, so a draft said the question was never recorded, and quoted all 45,679 characters when it was | `division_xml_spec.rb` "is the chair's statement however many amendments Hansard prints in it"; `transcript_spec.rb` "#question_units"; `provenance_validator_spec.rb` "quotes only the chair's words putting the division's question"; `earlier_debate_spec.rb` "keeps a long statement of the chair's putting another question". The size limit is applied to the plain paragraphs only: the italic ones are the amendments being put. Question Put quotes the chair's words putting the division's question, and the earlier debate keeps only the chair's words from earlier statements. |
 | KI-42 | Pipeline | High | Fixed | The validator accepted the chair putting a question as the terms of the motion moved | `provenance_validator_spec.rb` "never takes the chair putting or deciding a question as the terms moved". A model motion reference whose text is a chair's question sentence or "Question agreed to." and the like is refused with a warning, whoever the transcript says spoke it: at Senate 18 August 2026 #16 a draft printed "The question now is that amendments ... be agreed to." as the amendment moved. |
 | KI-43 | Rules | High | Fixed | Amendments nobody moved were credited to whoever last moved anything: a party's circulated amendments to the minister who had moved the second reading, with the minister's case for the bill offered as the case against it | `mover_finder_spec.rb` "does not credit a move whose terms cannot be what the question puts", "does not guess an unnamed mover for amendments the chair says were circulated"; `chair_statement_spec.rb` "#circulated_by"; `context_builder_spec.rb` "when the chair puts amendments nobody moved in the chamber"; `template_compiler_spec.rb` "amendments the chair put without anyone moving them". An unnamed move counts only when its terms could be what the question puts, and not at all when the chair says the amendments were circulated. Who circulated them is found by rule, from the chair's words or Hansard's heading over them, and the draft says "circulated by the Australian Greens ... were put", never "moved". Every template now prints the mover through `{{mover_clause}}`, so a draft with no mover says nothing rather than "introduced by a member". With no mover, an explanation can only be the circulating member's words. |
-| KI-44 | Pipeline | Medium | Fixed | The terms of amendments the chair put under a limitation of debate were left for the model to find, though the chair's statement prints them | `transcript_spec.rb` "takes the amendments printed after the division's question as its terms"; `context_builder_spec.rb` "takes the amendments the chair put as the terms", "keeps the plain headings Hansard sets among the amendments"; `extraction_prompt_spec.rb` "tells the model when the chair put amendments nobody moved"; `division_summarizer_spec.rb` "does not widen for amendments the chair put". The paragraphs after the question sentence, up to the next record or question, are the terms, found by rule, when the question refers to amendments; in the House, unmoved opposition amendments are sometimes printed only for the record (House Guide p. 75), so nothing else is taken. 26 of the 121 loaded divisions now have their terms found by rule, and none of them sends the model to the sitting day for them. |
+| KI-44 | Pipeline | Medium | Fixed | The terms of amendments the chair put under a limitation of debate were left for the model to find, though the chair's statement prints them | `transcript_spec.rb` "takes the amendments printed after the division's question as its terms"; `context_builder_spec.rb` "takes the amendments the chair put as the terms", "keeps the plain headings Hansard sets among the amendments"; `extraction_prompt_spec.rb` "tells the model when the chair put amendments nobody moved"; `division_summarizer_spec.rb` "does not widen for amendments the chair put". The paragraphs after the question sentence, up to the next record or question, are the terms, found by rule, when the question refers to amendments; in the House, unmoved opposition amendments are sometimes printed only for the record (House Guide p. 75), so nothing else is taken. 26 of the 121 loaded divisions now have their terms found by rule, and none of them sends the model to the sitting day for them. The House Guide's note (p. 75) describes the guillotine as it was before S.O.s 83 and 84 were omitted on 27 July 2022; S.O. 85(c) now treats circulated amendments to an urgent bill as moved, so the caution is harmless and was kept. |
 | KI-45 | Pipeline | Medium | Fixed | Template 28 did not say which parts of the bill were to stand as printed, or whose amendments to omit them the vote decided | `template_compiler_spec.rb` "names the parts the question named, and who circulated the amendments to omit them". The parts are the chair's words between "that" and "stand as printed" in the division's question, quoted, and who circulated the amendments comes from `Circulation`. |
 | KI-46 | Pipeline | High | Fixed | Every closure not on a bill said "to end the debate on bill", and one on a bill left out "the" | `template_compiler_spec.rb` "Template 22, a closure on a bill and on anything else"; the evaluation corpus fixture 2. With no bill the sentence ends the debate and names none. `bill_reference` was checked everywhere else it is used: every other use follows "the". |
 | KI-47 | Rules | Medium-High | Fixed | Template 18 described the House guillotine from the House Guide (2017): a declaration of urgency followed by a motion allotting time. S.O.s 83 and 84 were omitted on 27 July 2022, and there is no allotment of time any more | Template text (no spec). Rewritten from House S.O. 82 and 85 as at 23 July 2025: the declaration of urgency, one evening's second reading debate to 10 pm, the questions then put without debate at the next sitting, circulated amendments treated as moved and put in groups (government, opposition, each crossbench member), and no closure. The catalogue line and the router's reason say the same. The Senate half matches Senate Guide No. 17 and was kept. Checking the other House standing orders the pipeline cites found S.O. 122 changed since the guide: since July 2019 it puts "That the amendment be agreed to", noted under KI-68. Template 23 now also says S.O. 80 bars the gag while a member is moving the terms of a motion; that bar is older than S.O. 80's amendment of 23 July 2025, since the House Guide already gives it (p. 48). S.O. 47, 94 and 133 changed too (KI-5, KI-7, KI-6). S.O. 31 and 131 were reread and say what the pipeline says of them; S.O. 11, 46, 58, 81, 87, 135, 150, 153, 173, 188 and 202 have not been amended since the guide, so the earlier check against it stands. S.O. 29 was amended in 2022, but only its sitting times. |
@@ -165,6 +165,11 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-68 | Rules | High | Open | Six question forms are routed as their opposites, so a draft would report the reverse of the vote | See the open entry below. |
 | KI-69 | Rules | High | Open | A Senate division without a quorum is reported as decided | See the open entry below. |
 | KI-70 | Rules | Medium-High | Open | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | See the open entry below. |
+| KI-72 | Rules | Medium | Open | Senate rescission: the standing order and the guide disagree on the majority, and the code's pattern is too broad | See the open entry below. |
+| KI-73 | Rules | Medium | Open | Explainer and vote sentences that state one chamber's rule as general, or say more than the rules do (Templates 5, 7, 14, 25 and 26) | See the open entry below. |
+| KI-74 | Rules | Low | Open | Three House rules the pipeline gets wrong in rare cases: a tie on the ballot closure, the quorum fallback, and Template 1 | See the open entry below. |
+| KI-75 | Rules | Low | Open | Comments, router reasons and template sentences to correct or verify, none of which changes a route | See the open entry below. |
+| KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
 
 ---
 
@@ -412,6 +417,204 @@ Division 14 supports the validator's narrower test. A fix would decide this once
 was found, and would look for "moved by" in the earlier statements of the same run of divisions
 (`DivisionXml#run_statements`). Test in `extraction_prompt_spec.rb`, `division_summarizer_spec.rb`
 and `provenance_validator_spec.rb`, with division 14 as the case.
+
+### KI-72
+
+**Senate rescission: the standing order and the guide disagree on the majority, and the code's
+pattern is too broad.** Severity: Medium. Status: Open. **Read** (code); **Verify** (the
+threshold).
+
+Senate S.O. 87, p. 62: an order "may be rescinded, but not during the same session unless 7 days'
+notice is given and at least one-half of the whole number of senators vote in favour", which is 38
+of 76. Senate Guide No. 3, p. 9, says rescission needs an absolute majority, which "is more than
+half of all possible votes (39)". The standing order is the rule and the guide explains it, so the
+threshold should be 38, and only within the same session. The standing order's exception, "to
+correct irregularities or mistakes one day's notice shall be sufficient", shortens the notice and,
+on its words, leaves the majority as it is. Separately,
+`ParliamentaryOutcome#absolute_majority_requirement` returns `:always` for any Senate motion whose
+words include "rescind", "rescinded" or "rescinding", so a motion that calls on the Government to
+rescind its own decision is flagged as needing a special majority. A fix would match only a motion
+to rescind an order, resolution or vote of the Senate. How the Senate applies S.O. 87 should be
+checked in Odgers' Australian Senate Practice before the threshold changes.
+
+### KI-73
+
+**Explainer and vote sentences that state one chamber's rule as general, or say more than the rules
+do.** Severity: Medium. Status: Open. **Confirmed** against the rules named, and by running the
+router where a route is involved.
+
+Each is a wording change in a template or in `summary_wording.rb`, except where the last column
+says a decision is needed:
+
+| Where | What it says | What the rules say | Change |
+|---|---|---|---|
+| Template 5 (Federation Chamber report) | the questions on the report are "put immediately, without debate or amendment" | House S.O. 153(b)(i), p. 68: on a bill reported with unresolved questions, "A separate question shall be proposed on each unresolved question and each shall be open to amendment or debate". Only 153(a), (b)(ii) and (b)(iv) are decided without | Correct the sentence. An amendment question under a "; Report from Federation Chamber" heading routes to [2, 4], so Template 5 cannot be chosen for the questions that actually divide there: whether to allow it is a catalogue decision |
+| Template 26 (adjournment), in the Senate | "At a set time each sitting day the chair proposes that the chamber do now adjourn" | Senate S.O. 54(5), p. 44: "The President shall adjourn the Senate without putting the question"; S.O. 53(2), p. 43: the adjournment may be moved "by or on behalf of a minister", so a Senate adjournment division only comes from a minister's motion | A Senate sentence citing both |
+| Template 25 (dissent) | "Dissent can only be moved against a ruling", with no chamber named | That is the House (House Guide p. 42: decisions "at the Speaker's discretion are not rulings and cannot be dissented from"). Senate S.O. 198(1), p. 101: an objection may be taken "to a ruling or decision of the President", and S.O. 198(2) adjourns its debate to the next sitting day unless the Senate decides otherwise | Label the sentence House-only and add a Senate one, without claiming every decision can be challenged, since Odgers' may limit it |
+| Template 14 (Selection of Bills) | the committee "decides which newly introduced bills need to be sent to other committees"; an amendment to the motion adopting its report is settled on 14 and printed as voting on "a motion ... to adopt the report" | Senate S.O. 24A(1), p. 26: the committee reports on bills to be referred; Senate Guide No. 13, p. 34: it "makes recommendations to the Senate about bills to be referred", and adopting the report does the referring | "recommends", and a vote sentence for an amendment |
+| Template 7 and `SECTION_53_NOTE` | section 53 "stops the Senate amending a bill at all", naming only tax and ordinary annual services bills | House Guide p. 88 and Senate Guide No. 16, p. 49: the Senate also may not amend a bill "so as to increase any proposed charge or burden on the people", though the House Guide (p. 89) says what that covers has not been "conclusively determined" | Add the limb, carefully |
+| Template 7, the effect of a message vote | "goes back to it for further negotiation" and "proceeds without them" | House: a return to the Senate goes through a motion with written reasons and "That the reasons be adopted" (S.O. 161(c), p. 70), and S.O. 162 and 169 (pp. 70 to 72) leave the House other courses, such as further or alternative amendments, laying the bill aside, or insisting. Senate: not insisting "and" making alternative amendments in their place is not "proceeds without them" (Senate Guide No. 18, p. 54), and a bill may be laid aside (S.O. 126(6), p. 75) | Neutral wording for the House until a source says more, and detect the compound "not insist" forms before printing an effect. KI-2's omit-clause case is separate |
+
+### KI-74
+
+**Three House rules the pipeline gets wrong in rare cases.** Severity: Low. Status: Open.
+
+- **A tie on the ballot closure.** During the election of a Speaker, House S.O. 11(h), p. 17, puts
+  "That the ballot be taken now", and "If the votes are equal the question shall be negatived";
+  until a Speaker is elected "there is no provision for a casting vote" (House Guide p. 5). The
+  question routes to Template 22 (**Confirmed**), and a House tie prints the casting-vote notice. A
+  House tie on it is lost.
+- **The House quorum fallback.** House S.O. 54 (as at 23 July 2025, p. 37) gives "a quorum of 30
+  Members", and the House Guide (pp. 16 to 17) says the quorum is one fifth of the House and is not
+  reduced by a death or resignation. `HOUSE_OF_151_FROM` gives 31 for any date after 1 July 2019
+  when the member count is unknown, and counting members on the day can under-count during a
+  vacancy. **Verify** the figure from 2019 to 2025 and the size of the House since the 2025 election
+  against House of Representatives Practice or the Votes and Proceedings before changing it, and
+  prefer the number of seats to the number of members on the day. KI-8 is the fix this builds on.
+  House S.O. 2 (as at 23 July 2025) also contradicts itself: "count out is the adjournment of the
+  House because of the lack of a quorum of Members (currently 31 Members)" (p. 7), against "quorum
+  of the House is at least one-fifth of the whole number of Members of the House (currently 30
+  Members)" (p. 10), and S.O. 54 (p. 37) gives 30. The 31 looks left over from the House of 151.
+  The member records give 150 on 35 of the 2026 House division days and 149 on the other 9 (2 March
+  to 1 April), so the quorum was 30 either way.
+- **Template 1 in the House.** House S.O. 141(a), p. 64: a bill is "read a first time without a
+  question being put", so no House division is on the first reading itself, but the router settles
+  Template 1 on "first reading" in either chamber (**Confirmed**), and the vote sentence says the
+  chamber voted on "a motion ... to introduce the [bill] and read it for a first time". A fix would
+  fence rather than settle for the House. In the explainer, "which is where most first reading
+  divisions come from" (the Senate) has no source, so check it against They Vote For You's own data
+  or drop it, and "This vote is about procedure only" should say "in most cases", as Senate Guide
+  No. 16 (p. 45) does: "in most cases a purely procedural step".
+
+### KI-75
+
+**Comments, router reasons and template sentences to correct or verify, none of which changes a
+route.** Severity: Low. Status: Open. **Confirmed** against the rules named in each line, except
+the last, which is **Verify**.
+
+- `ContextBuilder`'s comment on S.O. 133 says the old Tuesday deferral window "was S.O. 55(c), on
+  quorum counts". The House Guide (p. 58) gives it as S.O. 133's own rule: "On Tuesdays divisions
+  called before 2 pm are deferred until after the discussion of the matter of public importance".
+  The guide gives the same window for quorum calls under S.O. 55 (p. 18), which is likely where the
+  mix-up came from. Dropping the window was still right, since the current S.O. 133 has none (KI-6).
+- The router's comment that an urgency motion "Decides that the debate happens, not the issue" is
+  backwards. "The question on an urgency motion shall be put at the expiration of the time for
+  debate" (Senate S.O. 75(7), p. 57), and the motion is "That in the opinion of the Senate the
+  following is a matter of urgency" (S.O. 75(1)(b)).
+- The router's reason for "be considered an urgent bill" names only the House's time limits, but it
+  is also the Senate's form (Senate S.O. 142(1), p. 82).
+- The router's reason for the House Selection Committee says the question adopts its
+  determinations; House S.O. 222(e), p. 92, says they are "treated as having been adopted when they
+  are presented".
+- A comment in `summary_wording.rb` attributes "even when this question is carried on the voices"
+  to House S.O. 173; the words are the House Guide's (p. 77), and S.O. 173 is the absolute majority
+  it explains.
+- The comment above `SummaryWording#carried_amendment_note` says the Senate guide does not say what
+  carrying a reasoned amendment does. The Senate standing orders do say what carrying an amendment
+  does: "When amendments have been made the main question shall be put as amended" (S.O. 91(4),
+  p. 63), and "this day 6 months" if carried "shall finally dispose of the bill" (S.O. 114(2),
+  p. 71). The comment is why the note is empty in the Senate, so a Senate draft never says what its
+  result leads to: at Senate 14 September 2026 #7 the draft ends at "The text of the bill is
+  unchanged either way.", where "When amendments have been proposed but not made the question shall
+  be put as originally proposed" (S.O. 91(5), p. 63).
+- The prompt's rule 7 gives "House of Representatives Guide to Procedures; House S.O. 146; Senate
+  S.O. 114" as the source of its standard forms for `declines_second_reading`. House S.O. 146
+  (p. 65) has only omitting "now" in order to insert "not"; the rule for reasoned amendments is
+  House S.O. 145 (p. 65), which isn't cited. Senate S.O. 114 (p. 71) has only "this day 6 months"
+  and "Other amendments ... provided that they are relevant to the bill"; the Senate forms the
+  prompt lists, such as "the Senate rejects the bill", are in neither S.O. 114 nor Senate Guide
+  No. 16.
+- Template 2's explainer, in the Senate too, says a second reading amendment is "often called a
+  'reasoned amendment' in the House of Representatives". The House Guide (p. 68) gives that name to
+  amendments moved under House S.O. 145, which "must not propose the addition of words to the
+  question" (S.O. 145(a)(iii), p. 65). A Senate amendment that adds words at the end of the motion,
+  as at Senate 14 September 2026 #7, is not what the House means by it, so the aside could go from
+  the Senate's explainer.
+- The router's comment above `production_of_documents` describes Template 8 as the chamber
+  "ordering the government to hand over papers it holds". An order can require a document to be
+  created: "There is also no requirement that a document be one that is already in existence"
+  (Senate Guide No. 12, p. 30). Template 8's own explainer already says so.
+- Template 23 says of the gag that "the Senate has no equivalent, and its own guide says there is no
+  ability to gag a senator". That is true of "no longer heard" (Senate Guide No. 2, p. 6), but
+  Senate S.O. 196 (p. 100) has "be further heard" (KI-68).
+- KI-44 and the code it describes are cautious about House amendments printed in Hansard only for
+  the record. The House Guide's note (p. 75) describes the guillotine as it was before S.O.s 83 and
+  84 were omitted on 27 July 2022; S.O. 85(c) now treats circulated amendments to an urgent bill as
+  moved. The caution is harmless.
+- Senate wording: Template 20 should say a Senate order of the day is "discharged" (S.O. 97(4), p.
+  65) and a motion once moved "cannot be withdrawn without leave" (S.O. 83(3), p. 61); Template 19
+  should allow adjourning a debate "to a later hour of the same day" (S.O. 201(1), p. 101); Template
+  13 should drop "permanent"; Template 3's amendment effect is wrong for a request; and the
+  suspension effect clause's "immediately" overstates Senate Guide No. 5 (p. 13), which says a
+  suspension "allows the senator to take the course of action to which the motion was directed".
+- Template 9's notice and disallowance periods (Senate Guide No. 19, pp. 57 to 58) are right for the
+  usual case, but the guide notes exempt and unusual instruments (p. 58). A constitution alteration
+  bill's "will go to the [other chamber]" depends on where the bill started, the same problem as
+  KI-1.
+- Deferred and successive divisions are cited from the House's rules only. `earlier_debate.rb` says
+  a deferred division is put "often at the start of the next sitting day (House S.O. 133)"; in the
+  Senate a division called after the cut-off "shall be taken on the next day of sitting, at a time
+  fixed by the Senate" (Senate S.O. 57(3), p. 47), and in 2026 the Senate took some days or weeks
+  later. `ARCHITECTURE.md` section 4 gives only House S.O. 131 for successive divisions; the
+  Senate's is S.O. 101(3), p. 66. The comment on `ContextBuilder::DEFERRED_STATEMENT` says it reads
+  "either chamber's words"
+- `SummaryWording#constitution_alteration_clause`, for a third reading carried with fewer
+  ayes than an absolute majority, says whether the bill passed "does not follow from the division
+  figures alone". Senate S.O. 135, p. 79, says what follows: "the bill shall be forthwith laid aside
+  without any question being put". The House sentence is the same, and House S.O. 173, p. 73, says
+  that if an absolute majority "does not agree to the third reading of a bill which proposes an
+  alteration of the Constitution, the bill shall be laid aside immediately and may not be revived
+  during the same session of Parliament". The Senate sentence, and the absolute majority notices,
+  also say "members" of the Senate where the Senate says senators (Senate Guide No. 3, p. 9).
+- **Verify** against House of Representatives Practice, Odgers' or the Act itself, since neither the
+  guides nor the standing orders cover them: Template 10's "Neither has any legal effect and neither
+  forces anyone to resign", Template 12's account of a select committee's dissolution after its
+  final report, the Legislation Act 2003 for Template 9, and the
+  House of Representatives (Quorum) Act 1989 and the Senate (Quorum) Act 1991. The Parliament Act
+  1974 for Template 21 is KI-19.
+
+### KI-78
+
+**Choices the pipeline made are not marked as choices, so they could be defended as rules or
+"fixed" as errors.** Severity: Low. Status: Open. **Confirmed** against the rules named.
+
+None of these is wrong. Each is a decision this project made, not something a standing order or
+guide requires, and the code should say so where it makes it:
+
+- Template 17's "not the merits" (KI-58): neither chamber confines debate on a suspension to the
+  reasons for suspending. A suspension moved during other business must be relevant to it (Senate
+  S.O. 209(3), p. 104; House S.O. 47(c)(i), p. 33), and nothing more.
+- "X MP" for House members is the site's own form (KI-24), not something House S.O. 64 requires.
+- "an arrangement the House agreed on <date>" (KI-52): Hansard's word is "resolution", and calling
+  it "not a guillotine" is an inference from the House Guide (p. 75: "Instead of using the formal
+  guillotine procedure outlined above, a Minister may move a motion to suspend standing orders").
+- A tied House division is "not decided by the division figures" rather than guessed (KI-18).
+- `declines_second_reading` as true or false, and which form is which: the House Guide lists the
+  forms without classifying them (pp. 68 to 69), and "carriage of a second reading amendment would
+  likely be regarded as preventing further progress on the bill" (p. 70), so `false` does not mean
+  the bill can proceed.
+- Template 2's four uses are the Senate guide's list (KI-13), applied to both chambers. In the
+  House, outright defeat is S.O. 146's "not" amendment, and an amendment "should amount to more
+  than a direct negation" (House Guide p. 69).
+- Framing sentences with no rule behind them: Template 8's "a vote about access to the documents",
+  not "about the subject"; Template 9's "Giving notice matters as much as the vote"; Template 19's
+  "not what the parliament decides"; Template 27's "not on whether the chamber agrees"; Template
+  10's "same class of vote"; and the closure explainer's "because the timetable has taken its
+  place", where House S.O. 85(d) and Senate S.O. 142(5) give no reason.
+- Heuristics: `MoverFinder`'s three-speech window, the validator's word lists, the 400-character
+  limit on "by leave" position statements, recognising a divided question only by "minus" or
+  "except", the Monday 12:00 to 12:59 deferral window, and the fallback constants (39, 76, 30, 31).
+- `ContextBuilder#closed_template_id` takes the motion a closure cut short to be the last one moved
+  by someone else. Senate S.O. 199(3) (p. 101) bars a senator who has spoken in the debate from
+  moving the closure "other than a minister", so a minister can close the debate on their own
+  motion, and the code would then pass that motion over.
+- Amendments are taken as circulated whenever the chair prints terms or names a circulator and no
+  move is found. That held in all 46 Senate cases sampled on 1 October 2026, but the rule behind it
+  covers only a limitation of debate (Senate S.O. 142(4)), and KI-70 is the exception.
+- "on behalf of" for an urgency motion's proposer (KI-55): Hansard says "at the request of", as
+  Senate S.O. 83(1) (p. 61) does for a notice.
+- Routing on the chair's question rather than the heading, and quoting only the mover's sentences
+  (ADR 0005), are design, resting on Senate Guide No. 17's account of what a guillotine does.
 
 ---
 
