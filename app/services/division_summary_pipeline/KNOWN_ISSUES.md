@@ -77,10 +77,21 @@ about 190 of the pipeline's procedural claims against the House standing orders 
 Every rule those entries cite, and the Hansard each one quotes, was checked again on 13 October
 2026.
 
+KI-80 onwards, and the changes to existing entries made with them, came from a review, begun on
+15 October 2026, of the drafts from `rake ai:draft_local`'s run over the 910 divisions from 19
+January to 17 September 2026 (712 Senate, 198 House). The drafts were made with Qwen3.6-35B-A3B
+(UD-Q4_K_M) through llama.cpp between 12 and 15 October 2026: 867 compiled, and the 43 that failed
+were reviewed as failures, without a retry. The review first studied each kind of vote in each
+chamber from the House standing orders as at 23 July 2025, the House Guide, the Senate standing
+orders of July 2025 and the June 2025 Senate guides, and then, for each division, worked out from
+the day's ParlParse XML and those rules what a correct draft would say before comparing the draft,
+and the pipeline's route to it, with that.
+
 This register was compiled with AI assistance (Claude Code: claude-opus-5[1m] for KI-1 to KI-19,
 claude-opus-5-5 for KI-20 onwards and for condensing the fixed entries; the 1 October 2026 review
-behind KI-68 to KI-78 also used helper agents on claude-opus-5-5 and claude-sonnet-5). The
-procedural citations should be checked against the documents named above.
+behind KI-68 to KI-78 also used helper agents on claude-opus-5-5 and claude-sonnet-5, and the
+review behind KI-80 onwards used helper agents on claude-opus-5-5). The procedural citations should
+be checked against the documents named above.
 
 ## How findings were verified
 
@@ -178,6 +189,11 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-77 | Pipeline | Low | Open | The local model tools lose or misreport a reply that does not finish | See the open entry below. |
 | KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
 | KI-79 | Pipeline | High | Open | A draft said an amendment was agreed to when no amendment was moved or found, and passed validation | See the open entry below. |
+| KI-82 | Rules | Low | Open | A draft can't say that its division was deferred from an earlier day, or that it replaced an earlier decision | See the open entry below. |
+| KI-83 | Rules | Low | Open | The absolute majority is worked out from the members on the day, not the fixed figure the rules give: 38 in a Senate vacancy, and 75 in the House in March 2026 | See the open entry below. |
+| KI-85 | Rules | Medium-High | Open | A House division with six or fewer on a side (S.O. 127) may be reported as decided by no one, or the wrong way round | See the open entry below. |
+| KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
+| KI-93 | Rules | Low | Open | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | See the open entry below. |
 
 ---
 
@@ -274,6 +290,16 @@ not in the aye and no counts. The summary now reports a tied House division as "
 division figures, which were equal" and says the figures do not record the casting vote. Recovering
 it means reading the Votes and Proceedings, where S.O. 135(c) requires the Speaker's reasons to be
 recorded, and TVFY does not load that.
+
+"The occupant of the Chair" overstates who has the casting vote. House S.O. 3(d), pp. 11 to 12:
+"The power to exercise a casting vote (standing order 135) is reserved for the Speaker, Acting
+Speaker, Deputy Speaker or Second Deputy Speaker", and the House Guide (p. 58) adds that it "does
+not apply to members of the Speaker's panel in the Chair unless specifically appointed by resolution
+of the House as Acting Speaker". The same words are in `SummaryWording#result_notice` and the
+comment on `ParliamentaryOutcome#tied?`. S.O. 135(c) records the Speaker's reasons, if given; the
+decision itself is in the Votes and Proceedings (S.O. 27), and the Chair announces it in the House,
+so Hansard after the division may be enough to recover it. **Verify** that, and that a casting vote
+is not in TVFY's aye and no counts: no tied House division is in the 2026 data.
 
 ### KI-19
 
@@ -484,7 +510,7 @@ says a decision is needed:
   of the House is at least one-fifth of the whole number of Members of the House (currently 30
   Members)" (p. 10), and S.O. 54 (p. 37) gives 30. The 31 looks left over from the House of 151.
   The member records give 150 on 35 of the 2026 House division days and 149 on the other 9 (2 March
-  to 1 April), so the quorum was 30 either way.
+  to 1 April), so the quorum was 30 either way. KI-83 is the same point for absolute majorities.
 - **Template 1 in the House.** House S.O. 141(a), p. 64: a bill is "read a first time without a
   question being put", so no House division is on the first reading itself, but the router settles
   Template 1 on "first reading" in either chamber (**Confirmed**), and the vote sentence says the
@@ -624,7 +650,126 @@ guide requires, and the code should say so where it makes it:
 - Routing on the chair's question rather than the heading, and quoting only the mover's sentences
   (ADR 0005), are design, resting on Senate Guide No. 17's account of what a guillotine does.
 
----
+### KI-82
+
+**A draft can't say that its division was deferred from an earlier day, or that it replaced an
+earlier decision.** Severity: Low. Status: Open. **Read**, from Hansard and the drafts.
+
+A Senate division called after the cut-off "shall be taken on the next day of sitting, at a time
+fixed by the Senate" (Senate S.O. 57(3), p. 47), and in 2026 some were taken weeks later: Senate
+4 March 2026 #7 decided a motion moved on 5 February (`uk.org.publicwhip/lords/2026-03-04.142.3`).
+A question can also be put again by leave and divided on afresh (Senate Guide No. 3, p. 9, on
+divisions "held again by leave"; S.O. 88, p. 62): Senate 16 September 2026 #12 negatived a general
+business motion that Hansard records as "Question agreed to." 38 minutes earlier
+(`uk.org.publicwhip/lords/2026-09-16.142.2`, recommitted by leave at 165.2 after a party's mistake
+in its directions). Both drafts report the right result. Neither says when the motion was moved,
+or that an earlier decision was replaced, and no template has a place to, so a reader can take a
+month-old motion for that day's. `EarlierDebate` already has the date of the move. Whether drafts
+should say so is a catalogue decision.
+
+The House is the same. Its eight deferred divisions of 2026 (10 February #1, 5 March #1, 14 May
+#1, 28 May #1 to #4, 19 August #1) were put on the next sitting day "without amendment or further
+debate" (House S.O. 133(d), p. 60), and no draft says the vote was deferred. The House also replaces
+a division: after "That the House divide again", "the result of the subsequent division shall be the
+decision of the House" (S.O. 132(b), p. 60). The division that miscarried stays in TVFY and would be
+drafted as a decision. None in 2026.
+
+### KI-83
+
+**The absolute majority is worked out from the members on the day, not the fixed figure the rules
+give.** Severity: Low. Status: Open. **Read**; **Verify** before changing anything.
+
+`ParliamentaryOutcome#absolute_majority` is half the senators current in They Vote For You's member
+records on the day, plus one, falling back to 39, and its comment says a known member count
+"supersedes" the guides' figure. Senate Guide No. 3, p. 9, gives an absolute majority as "more than
+half of all possible votes (39)"; the standing orders' front matter, p. vi, gives "Absolute majority
+39"; and S.O. 209(1), p. 104, says "an absolute majority of the whole number of senators". During a
+vacancy the code would ask for 38. The member records have 76 senators on every Senate division date
+of 2026, so no draft was affected: it is right for now only because no seat was vacant. Whether a
+vacancy lowers "the whole number of senators" should be checked in Odgers' Australian Senate
+Practice first. This is the Senate counterpart of KI-74's House quorum point, where the advice is
+the same: prefer the number of seats to the number of members on the day. Test in
+`template_compiler_spec.rb` "constitutional and parliamentary procedures".
+
+The House is the same, and there it has happened. The member records have 149 members from 2 March
+to 1 April 2026, so the code gives 75 on those nine sitting days, against 76 in a House of 150 (House
+Guide pp. 2 and 77; House S.O. 2, p. 7, "a majority of the membership of the House (including the
+Speaker)"). No House division in that period had exactly 75 ayes, so no draft was affected.
+**Verify** whether a vacancy lowers the figure, in House of Representatives Practice.
+
+### KI-85
+
+**A House division with six or fewer on a side is not handled.** Severity: Medium-High. Status:
+Open. **Inferred** from the code and the standing order; **Verify** how such a division reaches
+They Vote For You.
+
+House S.O. 127 (amended 23 July 2025, p. 58): "If, after the doors are locked, there are six or
+fewer Members on one side in a division, the Speaker shall declare the decision of the House
+immediately, without completing the count. The names of the Members who are in the minority shall
+be recorded in the Votes and Proceedings." The House Guide (p. 56) still says "four or fewer".
+Nothing in the pipeline knows this rule. If the record of such a division lists only the minority,
+its turnout is six or fewer, `ParliamentaryOutcome#want_of_quorum?` is true, and the draft says the
+question was "not decided, because fewer than a quorum of members voted": a decision the House made,
+reported as never made. `Division#passed?` would also read the result from a one-sided count, which
+may be the wrong way round. No 2026 House division had six or fewer on a side, but six had seven
+(for example House 11 March 2026 #2 and #5, and 4 June 2026 #12). First check how Hansard, the
+openaustralia-parser and the loader record one. A fix would treat a one-sided House count of six or
+fewer as S.O. 127 rather than want of quorum, take the result from the Chair's declaration after the
+division, and say so. Test in `template_compiler_spec.rb` "constitutional and parliamentary
+procedures".
+
+### KI-92
+
+**A senator's position on parts of a question, recorded by leave just after its division, never
+appears in a draft. Whether it should is a decision for the team.** Severity: Low. Status: Open.
+**Read**.
+
+At Senate 14 September 2026 #8 Senator Payman voted no, then said "by leave—In the interest of time,
+I ask to have my support recorded for parts (a), (b)(i) and (b)(iv)"
+(`uk.org.publicwhip/lords/2026-09-14.41.1`). The draft says "Nobody voted against their party on this
+occasion", true by the record, and nothing of her stated support for three of the amendment's five
+parts. Senate Guide No. 3, p. 8, provides for a vote recorded by leave instead of a division ("A group
+of senators voting against a motion may have their vote recorded in the Journals, by leave, as an
+alternative to a division"); a statement after a division, qualifying the senator's own vote in it,
+is not described in the standing orders or guides read for this entry. It is not a vote, and must not
+be counted or called a rebellion. `DivisionXml::POSITION_RECORDED` already recognises such statements,
+but only to walk past them when looking for a guillotine, and the context ends at the division, so
+they never reach a draft.
+
+A decision is needed, not a fix: whether a draft should note such a statement, in Hansard's words and
+with no count. If it should, the tests belong in `division_xml_spec.rb`, for finding the statement
+after the division, and `template_compiler_spec.rb`, for the note.
+
+### KI-93
+
+**Template 8's explainer speaks to the writer, calls a Senate order a power of "the parliament", and
+doesn't say that the documents become public only when tabled.** Severity: Low. Status: Open.
+**Confirmed** by replaying Senate 14 September 2026 #10 on 15 October 2026; the text is fixed, so it
+is in all 107 Template 8 drafts of the 2026 run.
+
+At Senate 14 September 2026 #10, an order for documents on the Intergenerational Trust Fund for the
+People of the Republic of Nauru, carried 35 to 19, the explainer reads:
+
+- "This is a vote about access to the documents. It is not a vote about the subject the documents
+  deal with, and the summary should not suggest otherwise." The last clause is an instruction to
+  whoever writes the summary, printed in the public text. The first two sentences are a choice
+  (KI-78).
+- "An Order for the Production of Documents is a power the parliament uses to make the government
+  hand over papers ...". The order is the Senate's: "Documents may be ordered to be laid on the
+  table" (Senate S.O. 164(1), p. 90), a power the Senate has "through section 49 of the
+  Constitution" (Senate Guide No. 12, p. 30).
+- "hand over": the order is that documents be laid on the table, and "When returned the documents
+  shall be laid on the table by the Clerk" (S.O. 164(2), p. 90); tabled documents become public
+  (Senate Guide No. 10, p. 26). The explainer says governments "sometimes resist an order", but not
+  that the documents become public only once they are tabled, so a reader of "requiring the
+  Government to produce documents, which means it was successful" can take them as already
+  released.
+
+Nothing in a draft is false, which is why this is Low. A fix belongs in
+`templates/8_production_of_documents.md`: drop "and the summary should not suggest otherwise", say
+"the Senate", and say that the documents are to be tabled, and so made public, by the date the order
+sets. Test in `template_compiler_spec.rb` with a Template 8 compile whose explainer has no "summary"
+and says "the Senate".
 
 ## Open: pipeline
 
