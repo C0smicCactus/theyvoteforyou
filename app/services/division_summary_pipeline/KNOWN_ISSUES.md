@@ -115,12 +115,12 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-3 | Pipeline | High | Fixed | Template 22 contradicted itself for "the business of the day be called on" | `template_compiler_spec.rb` "Template 22, the three questions that arrive as a closure". A template per closure form would be tidier; that is a catalogue decision. |
 | KI-4 | Rules | High | Partly fixed | Real question forms fall through to Template 15 | See the open entry below. |
 | KI-5 | Rules | High | Fixed | Absolute-majority questions were reported on a simple-majority test | `template_compiler_spec.rb` "constitutional and parliamentary procedures" and "Template 17, the purpose a suspension states for itself". The pipeline flags the doubt rather than resolving it: the question alone does not say how a suspension was moved. Corrected in September 2026 against House S.O. 47 as at 23 July 2025: a House suspension without notice is also carried by a majority of those present if the Leader of the House and the Manager of Opposition Business agree, and "by leave" is said only of the House, where the House Guide (p. 2) supports it; neither Senate source mentions it ("gives each chamber's own ways to carry a suspension on a simple majority"). The House Guide (2019) predates S.O. 47's amendments of 23 March 2020 and 27 July 2022, and the current S.O. 47 (p. 33) does not mention leave: **Verify** that a House suspension moved by leave still needs only a majority. S.O. 47(c)(ii)'s alternative is "a majority of Members present", where the notice says "a majority of those voting". |
-| KI-6 | Rules | Medium | Fixed | Deferred and successive divisions defeated the context window | `context_builder_spec.rb` "context warnings". The S.O. 133 time windows are this code's own estimate, not a figure from either guide; they only raise a warning. Corrected in September 2026 against House S.O. 133 as at 23 July 2025: the Tuesday window after the matter of public importance was S.O. 133's own rule when the House Guide was written (p. 58) and is not in the current S.O. 133, so it is gone ("does not warn about a Tuesday afternoon"). S.O. 133(b) now defers evening divisions from Monday to Wednesday "until the first opportunity the next sitting day", which fixes no time; a window for it caught only programmed questions, so it rests on the chair's words, as a deferral on another day already did. |
+| KI-6 | Rules | Medium | Fixed | Deferred and successive divisions defeated the context window | `context_builder_spec.rb` "context warnings". The S.O. 133 time windows are this code's own estimate, not a figure from either guide; they only raise a warning. Corrected in September 2026 against House S.O. 133 as at 23 July 2025: the Tuesday window after the matter of public importance was S.O. 133's own rule when the House Guide was written (p. 58) and is not in the current S.O. 133, so it is gone ("does not warn about a Tuesday afternoon"). S.O. 133(b) now defers evening divisions from Monday to Wednesday "until the first opportunity the next sitting day", which fixes no time; a window for it caught only programmed questions, so it rests on the chair's words, as a deferral on another day already did. The Senate's half is open: the chair's words are read both too narrowly and too widely there (KI-81). |
 | KI-7 | Rules | Medium | Partly fixed | Template 24 stated the wrong suspension period and the House wording in the Senate | See the open entry below: the House is fixed, the Senate is not. |
 | KI-8 | Rules | Medium | Fixed | House quorum hardcoded against a 2019 date | `template_compiler_spec.rb` "constitutional and parliamentary procedures". Chamber size comes from the member records on the day; the dated constant is only the fallback. |
 | KI-9 | Rules | Medium | Fixed | Template 2 overstated what carrying a reasoned amendment does | Template 2's explainer (no spec). |
 | KI-10 | Rules | Medium | Fixed | Template 17 asserted a purpose the question usually does not support | `template_compiler_spec.rb` "Template 17, the purpose a suspension states for itself". |
-| KI-11 | Rules | Medium | Fixed | `declines_second_reading` was left to the model when the guides give a closed list of forms | `provenance_validator_spec.rb` "declines_second_reading against the motion text". Extended in September 2026 (`provenance_validator_spec.rb` "with the forms whose words settle it"): the words also settle it as declining when the amendment rejects the bill (the Senate's usual form) or would finally dispose of it (House S.O. 146, "now" to "not"; Senate S.O. 114(2), "this day 6 months"), and as not declining when a Senate amendment only adds words expressing an opinion. An addition that refers or delays the bill is left to the model (Senate Guide No. 16), and a House amendment that adds words, which S.O. 145(a)(iii) does not allow, is a warning. The House's "disapproves of ... charges" form is no longer listed as not declining: the guide does not classify it. |
+| KI-11 | Rules | Medium | Fixed | `declines_second_reading` was left to the model when the guides give a closed list of forms | `provenance_validator_spec.rb` "declines_second_reading against the motion text". Extended in September 2026 (`provenance_validator_spec.rb` "with the forms whose words settle it"): the words also settle it as declining when the amendment rejects the bill (the Senate's usual form) or would finally dispose of it (House S.O. 146, "now" to "not"; Senate S.O. 114(2), "this day 6 months"), and as not declining when a Senate amendment only adds words expressing an opinion. An addition that refers or delays the bill is left to the model (Senate Guide No. 16), and a House amendment that adds words, which S.O. 145(a)(iii) does not allow, is a warning. The House's "disapproves of ... charges" form is no longer listed as not declining: the guide does not classify it. The pattern for a referral or delay matches those words anywhere in the added words, so an amendment that only mentions a delay or a committee is left to the model too (KI-87). |
 | KI-12 | Rules | Low | Fixed | Template copy the guides sharpen (1, 3, 4, 5, 8, 9, 10, 14, 16, 18, 20, 22, 25, 26, 27, 28) | Template text (no spec). Template 23 was checked and is right: the Senate has no gag. Checked against the House Guide (2017), which the House standing orders have since overtaken: Template 18's House half was out of date until KI-47. |
 | KI-13 | Rules | Low | Partly fixed | Template 2 described one of the four things a stage amendment can do | See the open entry below. |
 | KI-14 | Pipeline | Low | Fixed | `ARCHITECTURE.md` drift: template count, adjournment, Senate quorum | Documentation. |
@@ -189,9 +189,14 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-77 | Pipeline | Low | Open | The local model tools lose or misreport a reply that does not finish | See the open entry below. |
 | KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
 | KI-79 | Pipeline | High | Open | A draft said an amendment was agreed to when no amendment was moved or found, and passed validation | See the open entry below. |
+| KI-80 | Pipeline | High | Open | A deferred vote the chair put by name, without restating its question, was drafted as a closure | See the open entry below. |
+| KI-81 | Pipeline | Low | Open | The deferral warning misses Senate wordings, and in both chambers fires on text that isn't the chair's | See the open entry below. |
 | KI-82 | Rules | Low | Open | A draft can't say that its division was deferred from an earlier day, or that it replaced an earlier decision | See the open entry below. |
 | KI-83 | Rules | Low | Open | The absolute majority is worked out from the members on the day, not the fixed figure the rules give: 38 in a Senate vacancy, and 75 in the House in March 2026 | See the open entry below. |
+| KI-84 | Pipeline | High | Open | A deferred second reading was credited to the mover of a second reading amendment negatived before it, and the amendment was printed as its motion | See the open entry below. |
 | KI-85 | Rules | Medium-High | Open | A House division with six or fewer on a side (S.O. 127) may be reported as decided by no one, or the wrong way round | See the open entry below. |
+| KI-86 | Pipeline | Low | Open | A unanimous division would read "a large majority" where the division page says "unanimously" | See the open entry below. |
+| KI-87 | Pipeline | Medium-High | Open | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switches off the validator's check of `declines_second_reading`, so whether the draft says the amendment opposed the bill rests on the model alone | See the open entry below. |
 | KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
 | KI-93 | Rules | Low | Open | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | See the open entry below. |
 
@@ -591,7 +596,7 @@ the last, which is **Verify**.
   fixed by the Senate" (Senate S.O. 57(3), p. 47), and in 2026 the Senate took some days or weeks
   later. `ARCHITECTURE.md` section 4 gives only House S.O. 131 for successive divisions; the
   Senate's is S.O. 101(3), p. 66. The comment on `ContextBuilder::DEFERRED_STATEMENT` says it reads
-  "either chamber's words"
+  "either chamber's words", which KI-81 shows it doesn't.
 - `SummaryWording#constitution_alteration_clause`, for a third reading carried with fewer
   ayes than an absolute majority, says whether the bill passed "does not follow from the division
   figures alone". Senate S.O. 135, p. 79, says what follows: "the bill shall be forthwith laid aside
@@ -1025,3 +1030,155 @@ Nothing compares the kind of template chosen with the evidence found. An amendme
 terms, no amendments circulated and no mover is the case to catch. A fix belongs in
 `ProvenanceValidator` and would be tested in `provenance_validator_spec.rb`. Whether it fails the
 draft or only warns the reviewer is a decision to agree first.
+
+### KI-80
+
+**A deferred vote the chair put by name, without restating its question, was drafted as a
+closure.** Severity: High. Status: Open. **Confirmed** from the draft, the model's saved reply and
+Hansard, and by replaying the division on 15 October 2026.
+
+When the Senate takes a deferred vote, the chair may name it rather than restate the question. At
+Senate 5 March 2026 #8 the chair said "The question is the deferred vote, as moved by Senator Duniam
+on Tuesday 3 March, be taken now." (`uk.org.publicwhip/lords/2026-03-05.37.2`). The motion deferred
+was "That the Criminal Code Amendment (Keeping Australia Safe) Bill 2026 be considered during
+private senators' time on Thursday, 5 March 2026" (`uk.org.publicwhip/lords/2026-03-03.208.3`,
+deferred at 208.4). No router rule matched the chair's words, so `GENERAL_MOTION_FALLBACK` offered
+Template 15 as advice, and Qwen3.6-35B-A3B (UD-Q4_K_M) chose Template 22, reasoning that "be taken
+now" made it "a closure question". The prompt's description of Template 22 lists "That the ballot be
+taken now" among its forms. The draft is titled "Closure of Debate", carries the closure explainer,
+and says the senator's motion was "to end the debate and put the question immediately ... The
+debate continued." The Reviewer Only section carried the deferral warning, which did not stop it,
+and nothing checks a template the model chose against the router's advice.
+`ParliamentaryOutcome#closure_variant` looks for "ballot be taken now", so it would not have
+caught it either.
+
+The words for taking a deferred vote are not the question decided: the division is the one called
+on the motion deferred (Senate S.O. 57(3), p. 47). `EarlierDebate` had already found the motion
+moved on 3 March, so the route could follow it when the chair's words only name a deferred vote. A
+fix would route on that motion, and would be tested with this form of words.
+
+### KI-81
+
+**The deferral warning misses Senate wordings, and in both chambers fires on text that isn't the
+chair's.** Severity: Low. Status: Open. **Confirmed** by running the pattern against each chair's
+statement, and by replaying Senate 4 March 2026 #4 and House 18 August 2026 #10 on 15 October 2026.
+
+`ContextBuilder::DEFERRED_STATEMENT` misses three ways the Senate takes a deferred vote: "a division
+on amendment (1) on sheet 3472 moved by Senator Shoebridge was deferred"
+(`uk.org.publicwhip/lords/2026-03-03.13.3`, Senate 3 March 2026 #2); "the votes on the amendments
+moved by Senator Shorebridge and Senator Bell were deferred" (Hansard's spelling,
+`uk.org.publicwhip/lords/2026-08-20.65.2`, Senate 20 August 2026 #14 and #15); and a deferred vote
+put with no mention of deferral (`uk.org.publicwhip/lords/2026-03-25.17.3`, deferred at
+`uk.org.publicwhip/lords/2026-03-23.216.2`; that division failed to draft). And because
+`#deferred_by_chair?` reads every speech in the packet, not just the chair's statements, it fires on
+a motion's own terms (Senate 4 March 2026 #4, whose motion at
+`uk.org.publicwhip/lords/2026-03-04.23.1` mentions "the deferred vote") and, on the sitting-day
+retry, on any deferred vote earlier in the day (Senate 5 February 2026 #10 and #11, from
+`uk.org.publicwhip/lords/2026-02-05.36.2`). A false warning tells the model that the speeches beside
+the division are not its debate. Where the warning was missed, the earlier debate was still added
+for 3 March #2 and 20 August #15, because nothing beside the division moved anything and the
+question mentioned an amendment: right, but not because the deferral was seen.
+
+The Senate rightly has no time window to fall back on: S.O. 57(3), p. 47, takes the division "at a
+time fixed by the Senate". A fix would read only the chair's statements putting this question and
+its run, and allow words between "division" or "votes" and "deferred". Test in
+`context_builder_spec.rb` "context warnings". This is the Senate half of KI-6.
+
+The House has the same false warnings, from the same reading of every speech: House 10 February
+2026 #2, 5 March 2026 #5, and 19 August 2026 #5 and #7 took it on the sitting-day retry from a
+deferred question put that morning (`uk.org.publicwhip/debate/2026-02-10.3.3`, `2026-03-05.6.3`,
+`2026-08-19.4.3`), and House 18 August 2026 #10 took it from a suspension motion's own terms, "(7)
+standing order 133(b) (deferred divisions) being suspended" (`uk.org.publicwhip/debate/2026-08-18.95.3`).
+The retry prompt for 18 August #10 carries the false warning in its context warnings. The eight
+House deferrals of 2026 were all found, so KI-6's fix holds for finding them.
+
+### KI-84
+
+**A deferred second reading was credited to the mover of a second reading amendment negatived
+before it, and the amendment was printed as its motion.** Severity: High. Status: Open.
+**Confirmed** by replaying House 5 March 2026 #1 on 15 October 2026, the same as the draft, and by
+reading its prompt.
+
+On 4 March 2026 the Chair put the member for Goldstein's second reading amendment, which was
+negatived on the voices, and then the second reading itself, on which "in accordance with standing
+order 133 the division was deferred until the first opportunity of the next sitting day"
+(`uk.org.publicwhip/debate/2026-03-04.122.2`). On 5 March the Speaker put it: "I shall now proceed
+to put the question on the motion moved on the second reading of the [bill] ... The question before
+the House is that this bill be now read a second time." (`2026-03-05.6.3`). The second reading had
+been moved by the Treasurer on 11 February 2026 (`2026-02-11.4.3`). `EarlierDebate` found the latest
+move, the amendment moved on 3 March (`2026-03-03.102.28`), and stopped there; the 4 March statement
+saying the amendment had been negatived did not reach the packet. `MoverFinder` took that move as
+the motion, and the prompt told the model the mover and that "The motion is settled". The draft says
+a majority "voted for a motion introduced by Tim Wilson MP (Liberal Party) to pass the [bill] through
+its second reading", quotes his "In addition to that, I move:" as the Motion Introduction, and prints
+his amendment as the Motion Text. It passed validation.
+
+House S.O. 133(d), p. 60: "The Speaker shall put all questions on which a division has been
+deferred", so the deferred question is the one the Chair names, which need not be the last thing
+moved. This is KI-62's mechanism, the latest move taken as the question's, reached through a
+deferral rather than a closure. A fix belongs in `MoverFinder`, so that a move whose question was
+already decided (here, "Question negatived" in the Chair's statement) or that doesn't match the
+question put is passed over, and in `EarlierDebate`, which should keep looking back when the move
+it finds isn't the question's. Test in `mover_finder_spec.rb` and `context_builder_spec.rb` with a
+deferred second reading after a negatived amendment.
+
+### KI-86
+
+**The division page's "unanimously" is never printed.** Severity: Low. Status: Open. **Read**: the
+code against `DivisionsHelper`.
+
+`DivisionFacts.majority_strength` repeats `DivisionsHelper#majority_strength_in_words`'s thresholds
+so that a draft never contradicts the page beside it, but not its first case: the page says
+"unanimously" when `Division#unanimous?`, and the pipeline's copy gives "large majority" for a
+fraction of 1. No 2026 division in either chamber had an empty side, so no draft is affected. In the
+House a unanimous division is most likely at the third reading of a constitution alteration bill,
+where the bells are rung "even when this question is carried on the voices" (House Guide p. 77). A
+fix would return the page's word, and the vote sentence would need a form without "a ... majority".
+Test in `division_facts_spec.rb` ".majority_strength".
+
+### KI-87
+
+**A word such as "delayed", "Committee" or "refer" anywhere in a Senate second reading amendment's
+added words switches off the validator's check of `declines_second_reading`.** Severity:
+Medium-High. Status: Open. **Confirmed** by running `ProvenanceValidator`'s own patterns on the
+terms of Senate 14 September 2026 #7 on 15 October 2026. That a draft would then be wrong is
+**Inferred**: no 2026 draft has been found wrong this way.
+
+At Senate 14 September 2026 #7 the Greens' amendment (`uk.org.publicwhip/lords/2026-09-14.30.1`)
+adds words that only note and call on the Government: "At the end of the motion, add ', but the
+Senate: (a) notes the uncertainty ... caused by the delayed confirmation of continued funding for
+the worker retention payment; and (b) calls on the Government to ...". `#declining_by_rule` settles
+an opinion-only Senate addition as not declining (KI-11), but `REFERRAL_OR_DELAY` matches the stem
+"delay" in "delayed", so it returns nil and the flag is left to the model, with no warning. The
+model answered `false`, rightly. Had it answered `true`, the draft would have said "Because the
+amendment sought to refuse the bill a second reading, a vote for it was in effect a vote against the
+bill proceeding", the reverse of what the mover said ("The Australian Greens support this
+legislation", 30.1). Of the 50 Senate second reading amendment drafts of 2026 whose amendment adds
+words at the end of the motion, 19 have the check switched off this way. About ten of them do refer
+the bill to a committee; the rest only mention a delay, a committee, a referral or a rejection
+("by delaying taking action", "refused to refer the bill", a House committee named in an opinion,
+"condemns and rejects legislation"). The model answered `false` in all 19; whether that was right
+for each was not checked.
+
+Senate Guide No. 16, p. 47, lists what such amendments may do: "express an opinion about the bill
+or the government's handling of the related policy issues; reverse the effect of the motion so that
+the bill is defeated at that point; refer the bill to a committee; and delay further consideration
+of the bill". What decides the flag is whether the added words do one of the last three, not whether
+they mention a committee or a delay. A fix belongs in `ProvenanceValidator::REFERRAL_OR_DELAY`,
+which should match operative forms ("the bill be referred", "consideration of the bill be
+postponed", "not be proceeded with", "this day 6 months") rather than stems anywhere, and a warning
+that the flag was left unchecked would tell the editor when it still is. Test in
+`provenance_validator_spec.rb` "declines_second_reading against the motion text": an opinion-only
+addition mentioning "the delayed confirmation" and "the Committee's report" is settled as `false`,
+and a real referral is still left to the model.
+
+The opinion-only test also fails the other way. `OPINION_PATTERN` (notes, calls on, is of the
+opinion, condemns, regrets, expresses, acknowledges, recognises, urges) has no "welcomes",
+"supports" or "reaffirms", so added words that only welcome or support leave the flag to the
+model too, with no warning. At Senate 14 September 2026 #8 the check settled `false` by rule only
+because part (b) of the amendment says "notes"; part (a) alone ("welcomes the certainty ...")
+matches neither pattern (run on 15 October 2026). No 2026 draft is harmed: of the 50 Senate drafts
+adding words at the end of the motion, 10 have no opinion word, nine of them referrals and one
+(Senate 31 March 2026 #15) already left to the model by `REFERRAL_OR_DELAY`. A fix could settle as
+`false` any addition with no operative referral, delay or declining form, rather than require an
+opinion word. Test: an addition that only "welcomes" is settled `false`.
