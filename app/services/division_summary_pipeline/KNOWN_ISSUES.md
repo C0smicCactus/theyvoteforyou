@@ -66,6 +66,9 @@ KI-62 to KI-65 came from the first run of `rake ai:draft_local`, with Qwen3.6-35
 through llama.cpp, over the 13 divisions of 17 September 2026 on 12 October 2026, comparing each
 draft's mover and motion with the day's ParlParse XML.
 
+KI-67 and KI-79 came from the same task's run over 16 September 2026 on 13 October 2026: the draft
+for House 16 September 2026 #6, and the prompt and reply saved for its sitting-day retry.
+
 KI-68 to KI-78, and the changes to KI-4, KI-5, KI-6, KI-7, KI-13, KI-44, KI-47, KI-50, KI-52 and
 KI-58, came from a second local model run on 1 October 2026, four models over the same ten
 divisions from 12 to 20 August 2026 with every draft checked against Hansard, and from checking
@@ -153,7 +156,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-55 | Pipeline | Low | Fixed | A matter of urgency did not say whose proposal it was; words incorporated in Hansard were quoted as "Senator X said:"; and a question the chair put with nobody moving it printed empty Motion Introduction and Motion Text sections | `context_builder_spec.rb` "finds who proposed a matter of urgency someone else moved"; `template_compiler_spec.rb` "what a draft says about who moved what"; `transcript_spec.rb` "marks the words of a speech incorporated by leave"; `provenance_validator_spec.rb` "records when the chair put a question that is the whole motion with nobody moving it". The proposer comes from the chair's "Senator X has submitted a proposal" and a surname is linked only when one senator on the day has it; incorporated words are introduced as "Senator X's speech, incorporated in Hansard, reads:"; and when nobody moved anything the sections are left out, and the Question Put section quotes the question. |
 | KI-56 | Pipeline | Medium | Fixed | In Templates 1, 5, 6 and 29 the mover's words sat under "About the Bill" straight after the Bills Digest, so once a digest is wired in a reader could take the mover's case for the Parliamentary Library's | `template_compiler_spec.rb` "gives the mover's words their own heading, apart from the Bills Digest". They are under "### About the Motion", as in the other templates (heading chosen by Blake, 30 September 2026). With nobody moving anything the section is left out. |
 | KI-57 | Pipeline | Medium | Fixed | Hansard's records of the chamber inside a member's speech ("Leave not granted.", "(Time expired)", "Opposition senators interjecting—", "Question agreed to.") were the member's own sentences, so the validator would have accepted one as their explanation | `speech_text_spec.rb` "labels Hansard's records of the chamber as records"; `transcript_spec.rb` "marks Hansard's record at the end of a paragraph as a record"; `provenance_validator_spec.rb` "drops Hansard's record of the chamber inside the mover's speech". A paragraph or sentence that is wholly one of a closed list of forms, from House and Senate Hansard of May to September 2026, is a `:record`: shown to the model as "record" and never accepted as an explanation. Not `:quotation`, because in the chair's statement "Question agreed to." closes a question rather than joining the amendments printed after it. The nightly loader's `#motion` is untouched. No draft in the run printed one; the Senate XML for 12 to 20 August alone had "Leave granted." or "Leave not granted." about 45 times. |
-| KI-58 | Pipeline | Medium | Fixed | The prompt let a model pick remarks aimed at other members as "the mover's case", and left it unclear what Template 17's explanation should hold, so models split three ways | `extraction_prompt_spec.rb` "asks for the case rather than remarks aimed at others, and says Template 17 usually has none"; `reviewer_report_spec.rb` "flags a quoted explanation that speaks to someone or names another member". Rule 5 asks for sentences about the motion, the bill or the policy, not about other members or parties or addressed to them, and says an empty list is the usual answer for Template 17, whose scope the team kept as "why the rules should be set aside, not the merits" (decided by Blake, 30 September 2026). The Reviewer Only report lists quoted sentences that say "you" or name another member, as a prompt only. Whether models choose better can only be judged on real output: **Verify** with a Bedrock run on Senate 20 August 2026 #23 and 12 August 2026 #4, compared by a person before and after. |
+| KI-58 | Pipeline | Medium | Partly fixed | The prompt let a model pick remarks aimed at other members as "the mover's case", and left it unclear what Template 17's explanation should hold; some models still pick them | See the open entry below. |
 | KI-59 | Pipeline | Low | Fixed | When the question settled a template and the model could not find what that template is about, the pipeline read the whole sitting day again instead of doubting the route | `division_summarizer_spec.rb` "does not widen when the model cannot find what a settled template is about, and says so". `TemplateCatalogue::DEFINING_EVIDENCE` (a committee for 12 and 13, a regulation for 9, a target for 10, 23 and 24): with a settled route, that report is not a reason to widen, and the validator warns the reviewer to check the route. |
 | KI-60 | Pipeline | Medium | Fixed | Earlier speeches that moved something else were sent whole even when the chair had named a different mover, though only the mover's sentences can be quoted | `context_builder_spec.rb` "cuts another member's earlier speech to what it moved, once the chair has named the mover". Once the mover is known, another member's earlier speech keeps only its "I move" words and terms. House 18 August 2026 #3's user prompt fell from 33,582 characters to 18,033 with its route and mover unchanged, and no loaded division changed route. |
 | KI-61 | Pipeline | Low | Open (deferred) | Sentences left out between quoted ones are not marked | See the open entry below. |
@@ -162,14 +165,19 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-64 | Pipeline | Medium | Open | The model rarely pointed at the mover's reasons, leaving "About the Motion" empty | See the open entry below. |
 | KI-65 | Pipeline | Low | Open | A motion moved at another senator's request is described as the mover's own | See the open entry below. |
 | KI-66 | Pipeline | Low | Fixed | A motion's lettered and numbered paragraphs were all quoted at one level, so "(i)" under "(a)" read as though it sat beside it | `quote_outline_spec.rb`; `template_compiler_spec.rb` "an outlined motion". Hansard's XML gives every paragraph as a flat `<p>`, so the depth comes from the labels: each new label style is one level further in, and going back to a style already open goes back to its level. "(i)", "(v)" and "(x)" are read as letters or numerals by what they continue. A paragraph without a label stays at the outer level. Only Motion Text is outlined, not the mover's quoted sentences. Checked on Senate 17 September 2026 #8, #9 and #10. |
+| KI-67 | Pipeline | Medium | Open | The sitting-day retry has no limit on its size | See the open entry below. |
 | KI-68 | Rules | High | Open | Six question forms are routed as their opposites, so a draft would report the reverse of the vote | See the open entry below. |
 | KI-69 | Rules | High | Open | A Senate division without a quorum is reported as decided | See the open entry below. |
 | KI-70 | Rules | Medium-High | Open | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | See the open entry below. |
+| KI-71 | Pipeline | Medium | Open | The prompt does not connect a House mover's name with the seat or office the chair calls them by | See the open entry below. |
 | KI-72 | Rules | Medium | Open | Senate rescission: the standing order and the guide disagree on the majority, and the code's pattern is too broad | See the open entry below. |
 | KI-73 | Rules | Medium | Open | Explainer and vote sentences that state one chamber's rule as general, or say more than the rules do (Templates 5, 7, 14, 25 and 26) | See the open entry below. |
 | KI-74 | Rules | Low | Open | Three House rules the pipeline gets wrong in rare cases: a tie on the ballot closure, the quorum fallback, and Template 1 | See the open entry below. |
 | KI-75 | Rules | Low | Open | Comments, router reasons and template sentences to correct or verify, none of which changes a route | See the open entry below. |
+| KI-76 | Pipeline | Low | Open | The Reviewer Only section leaves out things a reviewer needs | See the open entry below. |
+| KI-77 | Pipeline | Low | Open | The local model tools lose or misreport a reply that does not finish | See the open entry below. |
 | KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
+| KI-79 | Pipeline | High | Open | A draft said an amendment was agreed to when no amendment was moved or found, and passed validation | See the open entry below. |
 
 ---
 
@@ -675,6 +683,28 @@ said "amendment". No real question in either form has been seen; both came from 
 and new routers over generated questions. `procedural_router_spec.rb` "a bill title that contains
 the word amendment" is where a fix would be tested.
 
+### KI-58
+
+**Models still pick remarks aimed at other members as the mover's case on some divisions.**
+Severity: Medium. Status: **Partly fixed**. **Confirmed** from four local models' drafts on
+1 October 2026.
+
+Fixed in the prompt: rule 5 asks for sentences about the motion, the bill or the policy, not about
+other members or parties or addressed to them, and says an empty list is the usual answer for
+Template 17, whose scope the team kept as "why the rules should be set aside, not the merits"
+(decided by Blake, 30 September 2026; `extraction_prompt_spec.rb` "asks for the case rather than
+remarks aimed at others, and says Template 17 usually has none"). The Reviewer Only report lists
+quoted sentences that say "you" or name another member, as a prompt only (`reviewer_report_spec.rb`
+"flags a quoted explanation that speaks to someone or names another member").
+
+Still open: the rule worked at Senate 12 August 2026 #4, where no model picked the remark aimed at
+others this time, but not at Senate 20 August 2026 #23, where three of four models still picked a
+sentence addressed to "you", and one also picked a sentence about another member that names nobody
+(KI-76). On Template 17, three of four models followed the rule; the fourth had run out of its
+reasoning budget. Whether models choose better can only be judged on real output: **Verify** with a
+Bedrock run on those two divisions, compared by a person before and after. KI-64 may be the other
+side of the same rule: a model too cautious to quote anything.
+
 ### KI-61
 
 **Sentences left out between quoted ones are not marked.** Severity: Low. Status: **Open, deferred
@@ -753,3 +783,100 @@ introduction, so a reader can see who it belonged to; #5 quotes nothing that sho
 put names the senator whose business it was in both, so the information is in the packet.
 `MoverFinder` already reads "in the name of" for its weaker `notice_owner` sign, which is where a
 fix would start.
+
+### KI-67
+
+**The sitting-day retry has no limit on its size.** Severity: Medium. Status: Open. **Confirmed**
+from the prompt and reply saved for the retry.
+
+The retry's packet takes the last 200 speeches before the division whole
+(`DataLoader::DivisionXml::CONTEXT_SPEECH_LIMITS`), however long they are, and `EarlierDebate`
+searches earlier sitting days exhaustively. At House 16 September 2026 #6 that came to a user
+prompt of 453,534 characters: 123,391 tokens to Qwen3.6-35B-A3B (UD-Q4_K_M), against 3,308 for the
+first call. Through llama.cpp on a local machine it took 18 minutes to read. The model then
+repeated one sentence until the prompt and its reply filled the server's 131,072-token context,
+and gave no answer. The draft was built from the first reply, as
+`DivisionSummarizer#widened_attempt` intends, so the cost was 26 minutes for a retry that could not
+have helped, since this question has no separate terms (KI-4). A model with a smaller context
+window would refuse a prompt this size outright, and on Bedrock every model run pays to read it.
+
+The packet also named an amendment moved at 5:38 PM as this question's motion, and told the model
+"The motion is settled": the latest "I move" before the question taken as its motion, as in KI-62.
+The retry gave no answer, so this did not reach the draft.
+
+This is the fourth retry found reading the whole day when it could not help, after KI-32, KI-44
+and KI-59. Each of those was fixed by stopping one trigger, and nothing yet bounds the retry itself.
+A fix could give the sitting-day tier a character budget, as `EarlierDebate::MAX_CHARS` does for
+earlier days, or skip the retry and tell the reviewer when the packet would exceed one. It would be
+tested in `context_builder_spec.rb` and `division_summarizer_spec.rb`.
+
+### KI-71
+
+**The prompt does not connect a House mover's name with the seat or office the chair calls them
+by.** Severity: Medium. Status: Open. **Confirmed** (the gap and the rule); that it caused a
+failure is **Inferred** from the model's reasoning.
+
+House S.O. 64 (as at 23 July 2025, p. 40) bars referring to a Member by name: a Member is referred
+to by their ministerial office, their parliamentary office or their electoral division. So the
+House chair puts "the amendment moved by the honourable member for [division]", while the prompt's
+`<motion_as_moved>` gives the mover only by name ("Moved by: [name] (speech S[n])."). Stage 1
+already knows they are the same person, since `MoverFinder` resolved the member. On 1 October 2026
+the contradiction sent Qwen3.5-9B into a loop at House 18 August 2026 #3, going by its reasoning,
+and its draft failed validation. The same gap was in the sitting-day retry for House 16 September
+2026 #6 on 13 October 2026, where the chair named "the honourable member for Kooyong" and the
+prompt gave the member's name. A fix would add the seat or office to the "Moved by" line for House
+divisions ("Moved by: [name], the member for [division]"), and offices as well as seats, since "the
+Minister for ..." or "the Leader of the House" confuses in the same way. The Senate chair names
+senators, so the gap looks House-only. Test in `extraction_prompt_spec.rb`.
+
+### KI-76
+
+**The Reviewer Only section leaves out things a reviewer needs.** Severity: Low. Status: Open.
+**Confirmed** from drafts, except where marked.
+
+- A draft from `rake ai:draft_local` does not name the saved reply it was built from, or say
+  whether that reply was cut off, so matching a draft to its reply means opening the saved prompts.
+  The reply files are named by database id, which differs between machines.
+- The "Mover" table has no row for an urgency motion's proposer, so a reviewer cannot see where "on
+  behalf of Senator ..." came from (`ReviewerReport#mover_rows`). **Read.**
+- "Explanation sentences to look at twice" (`ReviewerReport::POINTED`) looks for "you", "Senator X",
+  "member for X", "Prime Minister" or "Minister X", so at Senate 20 August 2026 #23 it missed a
+  sentence that described another member without naming them. No pattern can catch every such
+  phrase, so the list should say it is a prompt for the reviewer, not a complete check.
+- The "Title" row quotes the heading as stored on the Division record, such as "Securing the Ndis
+  for Future Generations", though the draft's own title now reads "NDIS" (KI-48).
+
+### KI-77
+
+**The local model tools lose or misreport a reply that does not finish.** Severity: Low. Status:
+Open. **Confirmed**.
+
+`LocalModelClient`, used by `rake ai:draft_local` and `ai:summarize_division_local`, writes the
+prompt and reply to `tmp/llm_replies/` only once the server has answered. A request that times out
+leaves neither, so the runs most worth looking at leave nothing to read: on 1 October 2026 two
+divisions that timed out for one model left no files. Writing the prompt before sending the request
+would fix it. Separately, a reply cut off for length is always reported as "model wrote
+<max_tokens> tokens without finishing (max_tokens in config/local_model.yml)", but at House
+16 September 2026 #6 the model wrote 7,681 tokens and ran out of the server's context instead
+(KI-67), so the message points at the wrong setting. It should give the number of tokens actually
+written and say whether `max_tokens` or the server's context ran out.
+
+### KI-79
+
+**A draft said an amendment was agreed to when no amendment was moved or found, and passed
+validation.** Severity: High. Status: Open. **Confirmed** from the draft.
+
+At House 16 September 2026 #6 the question was "The question is the bill be agreed to.", the final
+question of consideration in detail (KI-4). The model chose Template 4, an amendment template,
+though Stage 1 found no mover and no terms, and the model gave no motion references and reported
+"operative_motion" missing. The draft's title ended "Consideration in Detail Amendment", and it said
+"a small majority voted for an amendment to the [bill] during the Consideration in Detail stage,
+which means it was successful. The text of the bill has been changed accordingly." The last
+sentence is `SummaryWording#amendment_effect_clause`, which Templates 3 and 4 print when the vote
+succeeds. `ProvenanceValidator` recorded no errors, only the warning that the model had reported the
+terms missing, so an editor would see a plausible draft saying this vote amended the bill.
+
+Nothing compares the kind of template chosen with the evidence found. An amendment template with no
+terms, no amendments circulated and no mover is the case to catch. A fix belongs in
+`ProvenanceValidator` and would be tested in `provenance_validator_spec.rb`. Whether it fails the
+draft or only warns the reviewer is a decision to agree first.
