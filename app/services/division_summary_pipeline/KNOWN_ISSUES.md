@@ -197,8 +197,13 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-85 | Rules | Medium-High | Open | A House division with six or fewer on a side (S.O. 127) may be reported as decided by no one, or the wrong way round | See the open entry below. |
 | KI-86 | Pipeline | Low | Open | A unanimous division would read "a large majority" where the division page says "unanimously" | See the open entry below. |
 | KI-87 | Pipeline | Medium-High | Open | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switches off the validator's check of `declines_second_reading`, so whether the draft says the amendment opposed the bill rests on the model alone | See the open entry below. |
+| KI-88 | Pipeline | Low | Open | For a second reading amendment, the quoted reasons can be about the bill rather than the amendment's own terms | See the open entry below. |
+| KI-89 | Pipeline | Low | Open | Question Put gives the chair's question the time of the speech before it | See the open entry below. |
+| KI-90 | Pipeline | Medium | Open | A mover's reasons given before an earlier division in the same debate never reach the model, so "About the Amendment" says "No explanatory claims recorded." | See the open entry below. |
+| KI-91 | Pipeline | Low | Open | Template 2's vote sentence says an amendment "introduced by" a senator "to the" bill, though amendments are moved, and a second reading amendment is to the motion | See the open entry below. |
 | KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
 | KI-93 | Rules | Low | Open | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | See the open entry below. |
+| KI-94 | Pipeline | Low | Open | "No explanatory claims recorded." prints as a block quote, in the pipeline's own term, whatever the reason there is nothing to quote | See the open entry below. |
 
 ---
 
@@ -884,7 +889,7 @@ draft passed validation, so an editor would see a plausible draft with the wrong
 KI-54 covers the closure's own division; this is the question the closure then brings on. A fix
 belongs in `MoverFinder`, so that a closure is passed over when the question put is not the closure
 itself, and would be tested in `mover_finder_spec.rb` and `context_builder_spec.rb` "with a
-closure".
+closure". KI-84 is the same mechanism reached through a deferral, so a fix should cover both.
 
 ### KI-63
 
@@ -919,6 +924,9 @@ third reading and an item standing as printed, and for those an empty section is
 whether the second reading amendments at Senate 17 September 2026 #9 and #10 had speeches giving
 reasons that the model should have quoted. If they did, KI-58's wording in the prompt, which asks
 for the case rather than remarks aimed at others, may have made the model too cautious.
+Senate 17 September 2026 #9 and #10 are among the second reading amendments moved straight after
+another division, where the mover's earlier speech never reaches the model (KI-90), so check them
+against that cause first.
 
 ### KI-65
 
@@ -1182,3 +1190,126 @@ adding words at the end of the motion, 10 have no opinion word, nine of them ref
 (Senate 31 March 2026 #15) already left to the model by `REFERRAL_OR_DELAY`. A fix could settle as
 `false` any addition with no operative referral, delay or declining form, rather than require an
 opinion word. Test: an addition that only "welcomes" is settled `false`.
+
+### KI-88
+
+**For a second reading amendment, the quoted reasons can be about the bill rather than the
+amendment.** Severity: Low. Status: Open. **Confirmed** by replaying Senate 14 September 2026 #7 on
+15 October 2026.
+
+A second reading amendment is usually moved at the end of a second reading speech on the whole
+bill, so most of the mover's sentences are about the bill. At Senate 14 September 2026 #7 the model quoted, from
+`uk.org.publicwhip/lords/2026-09-14.30.1`, "... doesn't mean we must not also urgently address the
+gap for educators in family day care and in-home care." The Greens' amendment says nothing about
+family day care or in-home care; the opposition's amendment, voted on next (#8), does. A reader may
+take the quote as the amendment's purpose. The model's reasoning checked the sentence against the
+prompt's rule 5 on remarks about other members, not against the amendment's terms: rule 5's "Scope
+to what the vote itself decides" list names Templates 8, 17, 18 and 9, and not 2.
+
+A fix belongs in `extraction/extraction_prompt.rb` rule 5: a Template 2 line asking for the reasons
+for the amendment's own terms, not for or against the bill as a whole. Test in
+`extraction_prompt_spec.rb`; whether models follow it can only be judged on real output, as for
+KI-58. The same trap waits where the amendment is moved apart from the speech: at Senate
+14 September 2026 #8 the mover's earlier speech (`uk.org.publicwhip/lords/2026-09-14.28.1`) also
+argues for the committee amendments, so once KI-90 brings it to the model, a draft must not quote
+those sentences as the second reading amendment's purpose.
+
+### KI-89
+
+**"Question Put" gives the chair's question the time of the speech before it.** Severity: Low.
+Status: Open. **Confirmed** by replaying Senate 14 September 2026 #7 on 15 October 2026; the time
+the question was really put is **Inferred**.
+
+At Senate 14 September 2026 #7 the draft says "At 1:04 PM, Senator Leah Blyth, in the chair, put
+the following question". The XML gives the chair's statement
+(`uk.org.publicwhip/lords/2026-09-14.37.2`) `time="13:04"`, the time the minister's summing-up
+(37.1) began; the question came after that speech, before the 13:16 division.
+`EvidenceSections#moment` prints the excerpt's XML time, which is right for a member's own speech
+(KI-29's fix) but, for a chair's interjection, is inherited from the speech it follows. The longer
+that speech, the further out the time.
+
+A fix belongs in `EvidenceSections#question`, which could say "Before the division at ..." or leave
+the time out when the chair's statement shares the previous speech's time. Test in
+`template_compiler_spec.rb` beside "quotes each passage under the time of the speech and the
+mover's name".
+
+### KI-90
+
+**A mover's reasons given before an earlier division in the same debate never reach the model, so
+"About the Amendment" says "No explanatory claims recorded."** Severity: Medium. Status: Open.
+**Confirmed** by replaying Senate 14 September 2026 #8 on 15 October 2026: the packet holds only the
+move and the chair's question, and "Earlier debate added" is "none". How often it happens is
+**Inferred** from the 2026 drafts and the cached XML.
+
+At Senate 14 September 2026 #8 Senator O'Sullivan gave the opposition's case in his second reading
+speech (`uk.org.publicwhip/lords/2026-09-14.28.1`, 11:25). Two hours later, after the minister's
+closing speech and division 7 on the Greens' amendment, he moved the opposition's amendment with no
+further words (`uk.org.publicwhip/lords/2026-09-14.39.1`), and division 8 decided it.
+`DivisionXml#previous_speeches` stops at the previous `division` element, so the subdebate packet
+held only 39.1 and the chair's question (39.2). `ContextBuilder#earlier_debate` is skipped whenever a
+speech beside the division moves something (`moved_here`), and 39.1 does. Told that an explanation
+can only be sentences the mover spoke, the model rightly found none. The Reviewer Only section says
+only that there was no explanation and "Earlier debate added | none", so the editor isn't told the
+reasons exist.
+
+This is the usual Senate pattern when more than one second reading amendment is foreshadowed: "An
+amendment proposed shall be disposed of before another amendment to the original question may be
+moved" (Senate S.O. 91(2), p. 63), so each later one is moved after the previous one's division. Of
+the 105 Senate second reading amendment drafts of 2026, 11 have their moving speech straight after a
+division, and all 11 print "No explanatory claims recorded."; in four the mover had spoken earlier
+under the same heading that day (Senate 31 March 2026 #15 and #21, 7 September 2026 #2, 14 September
+2026 #8). Whether each of those speeches gave reasons for the amendment, and whether the other seven
+movers spoke on an earlier day, was not checked. Senate 17 September 2026 #9 and #10, which KI-64
+asks about, are among the seven. KI-64 looks at the model; this cause is in Stage 1, and may account
+for part of KI-64's count.
+
+A fix belongs in Stage 1: when the mover is found and the window starts at an earlier division under
+the same heading, add the mover's own earlier speeches in that debate (`EarlierDebate` already finds
+the same debate's speeches). `ARCHITECTURE.md` section 3 should say that the subdebate stops at the
+previous division. Once fixed, KI-88 applies. Test in `context_builder_spec.rb`: a member speaks,
+another member's amendment is divided on, then the first member moves theirs without a speech, and
+the packet holds the first member's speech.
+
+### KI-91
+
+**Template 2's vote sentence says the amendment was "introduced by" the senator "to the" bill.**
+Severity: Low. Status: Open. **Confirmed** by replaying Senate 14 September 2026 #8 on 15 October
+2026.
+
+At Senate 14 September 2026 #8: "a small majority voted against a second reading amendment
+introduced by Senator Matt O'Sullivan (Liberal Party) to the [bill]". The explainer above it says "It
+amends the motion instead", and the Amendment Text says "moved". The same senator's committee
+amendment to the same bill, decided at Senate 15 September 2026 #1, reads "voted against an
+amendment introduced by Senator Matt O'Sullivan (Liberal Party) to the [bill]": one vote on words of
+opinion, one on the bill's text, in nearly the same sentence. Amendments "may be moved to the
+question for the second reading" (Senate S.O. 114(3), p. 71), and are moved and proposed (S.O. 90
+and 91, p. 63), while senators "introduce a bill" (Senate Guide No. 16, p. 45); such amendments "may
+affect the passage of the bill but not its content" (Guide No. 16, p. 47).
+
+"introduced by" comes from `TemplateCompiler#mover_details` and is shared by every template; if it is
+the site's chosen style, KI-78 should say so. "to the" bill comes from
+`SummaryWording#second_reading_amendment_sentence`. A fix: "moved by" for amendments, and for
+Template 2 "an amendment ... to the motion for the second reading of the [bill]". Test in
+`template_compiler_spec.rb` beside the Template 2 vote sentence.
+
+### KI-94
+
+**When there is nothing to quote, "About the Motion" prints "> No explanatory claims recorded." as a
+block quote, in the pipeline's own term, whatever the reason.** Severity: Low. Status: Open.
+**Confirmed** by replaying Senate 14 September 2026 #10 on 15 October 2026; 456 of the run's 867
+drafts print it.
+
+At Senate 14 September 2026 #10 the mover gave no reasons: the order was moved and put as formal
+business, and a formal motion is "put and determined without amendment or debate" (Senate S.O.
+66(3), p. 51; "Most orders for production of documents start with a notice of motion, which is moved
+and determined during 'formal motions'", Senate Guide No. 12, p. 30). The draft's "About the Motion"
+is the one line "> No explanatory claims recorded.", set in the same block-quote style as the
+Hansard quotes below it, so it can be read as words someone said, and "explanatory claims" is the
+pipeline's term, not a reader's. The same line prints whether the mover gave no reasons (here), gave
+them where the pipeline didn't look (KI-90), or the model didn't point at them (KI-64), and the reader
+can't tell which.
+
+The line is `EvidenceSections::NO_EXPLANATION`. A fix: print it as plain text in a reader's words,
+such as "The mover gave no reasons in the chamber.", and, once Stage 1 can tell a formal motion from
+a debated one, say so. Test in `template_compiler_spec.rb` beside the existing "No explanatory claims
+recorded." expectation, and update `spec/fixtures/division_summaries/test_1/expected_output.md`.
