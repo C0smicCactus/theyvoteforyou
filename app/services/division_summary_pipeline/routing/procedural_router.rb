@@ -101,9 +101,12 @@ module DivisionSummaryPipeline
     # No. 1) Bill 2026". A bill that amends an Act is commonly titled "... Amendment Bill", which
     # says nothing about whether the question is on an amendment, so amendment wording is looked
     # for only outside titles (KNOWN_ISSUES.md, KI-29). A title is replaced rather than deleted
-    # so the words either side of it stay apart.
-    TITLE_WORD = /(?:[A-Z0-9][\w'.\u{2013}\u{2014}\u{2019}-]*|(?:a|an|and|as|at|by|for|from|in|into|of|on|or|the|to|with)\b)/
-    TITLE_PART = /(?:#{TITLE_WORD}|\(#{TITLE_WORD}(?:,?\s+#{TITLE_WORD})*\))/
+    # so the words either side of it stay apart. Only inside parentheses can a title run through
+    # "the" or "to": otherwise "That the Opposition Amendment to the Example Bill 2026" was taken
+    # whole as a title, and the amendment it is about was lost (KNOWN_ISSUES.md KI-30).
+    TITLE_WORD = /(?:[A-Z0-9][\w'.\u{2013}\u{2014}\u{2019}-]*|(?:a|an|and|as|at|by|for|from|in|into|of|on|or|with)\b)/
+    PARENTHESISED_TITLE_WORD = /(?:#{TITLE_WORD}|(?:the|to)\b)/
+    TITLE_PART = /(?:#{TITLE_WORD}|\(#{PARENTHESISED_TITLE_WORD}(?:,?\s+#{PARENTHESISED_TITLE_WORD})*\))/
     BILL_TITLE = /
       \b[A-Z][\w'.\u{2013}\u{2014}\u{2019}-]*
       (?:,?\s+#{TITLE_PART})*?                # as few words as reach "Bill"
