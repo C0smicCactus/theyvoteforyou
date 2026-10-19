@@ -106,7 +106,7 @@ module DivisionSummaryPipeline
     def placeholders(facts, outcome, evidence, digest_text, bill_template:)
       wording = SummaryWording.new(outcome)
       entry = TemplateCatalogue.fetch(outcome.template_id)
-      mover = mover_details(facts, evidence)
+      mover = mover_details(facts, evidence, entry.moved)
       sections = EvidenceSections.new(evidence, facts, mover_label: mover[:label], moved: entry.moved)
       note_evidence_fallbacks(evidence, entry)
       note_outcome_fallbacks(outcome, bill_template: bill_template)
@@ -213,8 +213,10 @@ module DivisionSummaryPipeline
     # member": at the scheduled time the Speaker proposes the adjournment with nobody moving it
     # (House S.O. 31), and under a limitation of debate the chair puts circulated amendments and
     # the remaining stages with nobody moving them, when the clause says who circulated them
-    # instead, if Hansard says.
-    def mover_details(facts, evidence)
+    # instead, if Hansard says. An amendment is "moved" (Senate S.O. 90, 91); a motion is
+    # "introduced", the site's own word, from its research guide's "Who introduced the motion and
+    # why?" (KI-91).
+    def mover_details(facts, evidence, moved)
       details = supplied_mover(facts) || found_mover(facts, evidence.mover)
       return circulated_details(facts, evidence.circulation) if details.nil? && evidence.circulation
 
@@ -223,7 +225,8 @@ module DivisionSummaryPipeline
         return { name: "", link: "", party: "", title: "", suffix: "", clause: "", label: nil }
       end
 
-      details.merge(clause: " introduced by #{member_phrase(details)}",
+      verb = moved == "amendment" ? "moved" : "introduced"
+      details.merge(clause: " #{verb} by #{member_phrase(details)}",
                     label: "#{details[:title]} #{details[:name]}#{details[:suffix]}".strip)
     end
 

@@ -200,7 +200,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-88 | Pipeline | Low | Open | For a second reading amendment, the quoted reasons can be about the bill rather than the amendment's own terms | See the open entry below. |
 | KI-89 | Pipeline | Low | Open | Question Put gives the chair's question the time of the speech before it | See the open entry below. |
 | KI-90 | Pipeline | Medium | Open | A mover's reasons given before an earlier division in the same debate never reach the model, so "About the Amendment" says "No explanatory claims recorded." | See the open entry below. |
-| KI-91 | Pipeline | Low | Open | Template 2's vote sentence says an amendment "introduced by" a senator "to the" bill, though amendments are moved, and a second reading amendment is to the motion | See the open entry below. |
+| KI-91 | Pipeline | Low | Fixed | Template 2's vote sentence says an amendment "introduced by" a senator "to the" bill, though amendments are moved, and a second reading amendment is to the motion | `template_compiler_spec.rb` "naming members of the House" and "amendments the chair put without anyone moving them"; `division_summarizer_spec.rb` "compiles a draft quoting only Hansard" (Template 4); the evaluation corpus. Templates 2, 3 and 4 now say "moved by"; motions keep "introduced by", the word the site's research guide uses ("Who introduced the motion and why?"). |
 | KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
 | KI-93 | Rules | Low | Open | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | See the open entry below. |
 | KI-94 | Pipeline | Low | Open | "No explanatory claims recorded." prints as a block quote, in the pipeline's own term, whatever the reason there is nothing to quote | See the open entry below. |
@@ -1269,28 +1269,6 @@ the same debate's speeches). `ARCHITECTURE.md` section 3 should say that the sub
 previous division. Once fixed, KI-88 applies. Test in `context_builder_spec.rb`: a member speaks,
 another member's amendment is divided on, then the first member moves theirs without a speech, and
 the packet holds the first member's speech.
-
-### KI-91
-
-**Template 2's vote sentence says the amendment was "introduced by" the senator "to the" bill.**
-Severity: Low. Status: Open. **Confirmed** by replaying Senate 14 September 2026 #8 on 15 October
-2026.
-
-At Senate 14 September 2026 #8: "a small majority voted against a second reading amendment
-introduced by Senator Matt O'Sullivan (Liberal Party) to the [bill]". The explainer above it says "It
-amends the motion instead", and the Amendment Text says "moved". The same senator's committee
-amendment to the same bill, decided at Senate 15 September 2026 #1, reads "voted against an
-amendment introduced by Senator Matt O'Sullivan (Liberal Party) to the [bill]": one vote on words of
-opinion, one on the bill's text, in nearly the same sentence. Amendments "may be moved to the
-question for the second reading" (Senate S.O. 114(3), p. 71), and are moved and proposed (S.O. 90
-and 91, p. 63), while senators "introduce a bill" (Senate Guide No. 16, p. 45); such amendments "may
-affect the passage of the bill but not its content" (Guide No. 16, p. 47).
-
-"introduced by" comes from `TemplateCompiler#mover_details` and is shared by every template; if it is
-the site's chosen style, KI-78 should say so. "to the" bill comes from
-`SummaryWording#second_reading_amendment_sentence`. A fix: "moved by" for amendments, and for
-Template 2 "an amendment ... to the motion for the second reading of the [bill]". Test in
-`template_compiler_spec.rb` beside the Template 2 vote sentence.
 
 ### KI-94
 

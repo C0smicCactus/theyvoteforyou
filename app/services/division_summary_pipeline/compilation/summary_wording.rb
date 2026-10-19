@@ -132,12 +132,13 @@ module DivisionSummaryPipeline
     end
 
     # Template 2's vote sentence, which says the opposite thing depending on whether the
-    # amendment declined the bill a second reading (KI-11).
+    # amendment declined the bill a second reading (KI-11). The amendment is to the motion for the
+    # second reading, not to the bill (Senate Guide No. 16, p. 47; House S.O. 145; KI-91).
     def second_reading_amendment_sentence(mover_clause, bill_reference)
       plural = outcome.plural_amendments?
-      noun = plural ? "second reading amendments" : "a second reading amendment"
+      noun = plural ? "amendments" : "an amendment"
       sentence = "At #{facts.time}, #{amount_with_article} voted #{result_phrasing} #{noun}#{mover_clause} to the " \
-                 "#{bill_reference}, #{means_clause} #{successful_text}."
+                 "motion for the second reading of the #{bill_reference}, #{means_clause} #{successful_text}."
       if outcome.declines_second_reading
         "#{sentence} Because the #{plural ? 'amendments' : 'amendment'} sought to refuse the bill a second reading, " \
           "a vote for #{plural ? 'them' : 'it'} was in effect a vote against the bill proceeding."

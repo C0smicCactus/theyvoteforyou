@@ -1240,7 +1240,7 @@ describe DivisionSummaryPipeline::TemplateCompiler do
           declines_second_reading: false
         )
 
-        expect(rendered).to include("a second reading amendment to the bill,")
+        expect(rendered).to include("an amendment to the motion for the second reading of the bill,")
         expect(rendered).not_to include("Early childhood wages,")
       end
 
@@ -1319,8 +1319,8 @@ describe DivisionSummaryPipeline::TemplateCompiler do
       rendered = compile_summary({ time: "12:27 PM", result: "negatived", house: "senate", bill_name: "Example Bill 2026" },
                                  template_id: 2, declines_second_reading: true, motion_text: terms, circulation: greens)
 
-      expect(rendered).to include("voted against second reading amendments circulated by the Example Party to the " \
-                                  "Example Bill 2026, which means they were unsuccessful.")
+      expect(rendered).to include("voted against amendments circulated by the Example Party to the motion for the " \
+                                  "second reading of the Example Bill 2026, which means they were unsuccessful.")
       expect(rendered).to include("Because the amendments sought to refuse the bill a second reading, a vote for them")
       expect(rendered).to include("The following amendments, circulated by the Example Party, were put:\n\n> Omit all words")
       expect(rendered).not_to include("moved", "introduced by")
@@ -1444,7 +1444,7 @@ describe DivisionSummaryPipeline::TemplateCompiler do
                                              question_text: "The question is that the amendment be agreed to.",
                                              mover: DivisionSummaryPipeline::MemberResolver.named("Jo Rae"))
 
-      expect(rendered).to include("a second reading amendment introduced by Jo Rae MP to the bill")
+      expect(rendered).to include("an amendment moved by Jo Rae MP to the motion for the second reading of the bill")
       expect(rendered).to include("At 1:27 PM, Jo Rae MP said:")
       expect(rendered).to include("At 1:30 PM, Robin Castellan MP, in the chair, put the following question:")
       expect(rendered).not_to include("Representative ", "the Speaker")
