@@ -189,7 +189,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-77 | Pipeline | Low | Open | The local model tools lose or misreport a reply that does not finish | See the open entry below. |
 | KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
 | KI-79 | Pipeline | High | Open | A draft said an amendment was agreed to when no amendment was moved or found, and passed validation | See the open entry below. |
-| KI-80 | Pipeline | High | Open | A deferred vote the chair put by name, without restating its question, was drafted as a closure | See the open entry below. |
+| KI-80 | Pipeline | High | Fixed | A deferred vote the chair put by name, without restating its question, was drafted as a closure | `procedural_router_spec.rb` "locks out the closure when the chair only names a deferred vote". A question that names a deferred vote and matches no rule forbids Template 22, since the division is on the motion deferred (Senate S.O. 57(3), p. 47). When the motion deferred settles a route, that route is used as before, so a closure that was itself deferred is still a closure. Senate 5 March 2026 #8's motion matches no rule, so its route is still the general motion default. Of the 910 divisions from January to September 2026, only it and Senate 4 March 2026 #7, another deferred vote, changed route. |
 | KI-81 | Pipeline | Low | Open | The deferral warning misses Senate wordings, and in both chambers fires on text that isn't the chair's | See the open entry below. |
 | KI-82 | Rules | Low | Open | A draft can't say that its division was deferred from an earlier day, or that it replaced an earlier decision | See the open entry below. |
 | KI-83 | Rules | Low | Open | The absolute majority is worked out from the members on the day, not the fixed figure the rules give: 38 in a Senate vacancy, and 75 in the House in March 2026 | See the open entry below. |
@@ -1038,32 +1038,6 @@ Nothing compares the kind of template chosen with the evidence found. An amendme
 terms, no amendments circulated and no mover is the case to catch. A fix belongs in
 `ProvenanceValidator` and would be tested in `provenance_validator_spec.rb`. Whether it fails the
 draft or only warns the reviewer is a decision to agree first.
-
-### KI-80
-
-**A deferred vote the chair put by name, without restating its question, was drafted as a
-closure.** Severity: High. Status: Open. **Confirmed** from the draft, the model's saved reply and
-Hansard, and by replaying the division on 15 October 2026.
-
-When the Senate takes a deferred vote, the chair may name it rather than restate the question. At
-Senate 5 March 2026 #8 the chair said "The question is the deferred vote, as moved by Senator Duniam
-on Tuesday 3 March, be taken now." (`uk.org.publicwhip/lords/2026-03-05.37.2`). The motion deferred
-was "That the Criminal Code Amendment (Keeping Australia Safe) Bill 2026 be considered during
-private senators' time on Thursday, 5 March 2026" (`uk.org.publicwhip/lords/2026-03-03.208.3`,
-deferred at 208.4). No router rule matched the chair's words, so `GENERAL_MOTION_FALLBACK` offered
-Template 15 as advice, and Qwen3.6-35B-A3B (UD-Q4_K_M) chose Template 22, reasoning that "be taken
-now" made it "a closure question". The prompt's description of Template 22 lists "That the ballot be
-taken now" among its forms. The draft is titled "Closure of Debate", carries the closure explainer,
-and says the senator's motion was "to end the debate and put the question immediately ... The
-debate continued." The Reviewer Only section carried the deferral warning, which did not stop it,
-and nothing checks a template the model chose against the router's advice.
-`ParliamentaryOutcome#closure_variant` looks for "ballot be taken now", so it would not have
-caught it either.
-
-The words for taking a deferred vote are not the question decided: the division is the one called
-on the motion deferred (Senate S.O. 57(3), p. 47). `EarlierDebate` had already found the motion
-moved on 3 March, so the route could follow it when the chair's words only name a deferred vote. A
-fix would route on that motion, and would be tested with this form of words.
 
 ### KI-81
 

@@ -601,10 +601,20 @@ module DivisionSummaryPipeline
     # Parliament votes on plenty that fits no pattern, so an unmatched question falls to the
     # general motion template rather than failing the run. The guillotine lockout still applies:
     # the heading can mislead the extractor here as readily as anywhere else.
+    #
+    # So does a closure lockout when the chair only names a deferred vote ("The question is the
+    # deferred vote, as moved by Senator Example on Tuesday 3 March, be taken now"). The division is
+    # on the motion deferred (Senate S.O. 57(3)), and a model read "be taken now" as a closure
+    # (KNOWN_ISSUES.md KI-80). A closure that was itself deferred is still routed on its motion.
     def general_motion_fallback
       reason = "Unmatched specific procedural pattern; default candidate is General Motion (Template 15)."
+      forbidden = heading_lockout
+      if says?("deferred vote")
+        reason += " The question takes a deferred vote, so Template 22 is locked out."
+        forbidden += [22]
+      end
       RoutingDecision.default([15], rule_name: FALLBACK, reason: "#{reason}#{heading_lockout_note}",
-                                    forbidden: heading_lockout)
+                                    forbidden: forbidden)
     end
 
     # ---------------------------------------------------------------------------------------
