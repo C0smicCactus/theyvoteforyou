@@ -177,7 +177,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-65 | Pipeline | Low | Open | A motion moved at another senator's request is described as the mover's own | See the open entry below. |
 | KI-66 | Pipeline | Low | Fixed | A motion's lettered and numbered paragraphs were all quoted at one level, so "(i)" under "(a)" read as though it sat beside it | `quote_outline_spec.rb`; `template_compiler_spec.rb` "an outlined motion". Hansard's XML gives every paragraph as a flat `<p>`, so the depth comes from the labels: each new label style is one level further in, and going back to a style already open goes back to its level. "(i)", "(v)" and "(x)" are read as letters or numerals by what they continue. A paragraph without a label stays at the outer level. Only Motion Text is outlined, not the mover's quoted sentences. Checked on Senate 17 September 2026 #8, #9 and #10. |
 | KI-67 | Pipeline | Medium | Open | The sitting-day retry has no limit on its size | See the open entry below. |
-| KI-68 | Rules | High | Open | Six question forms are routed as their opposites, so a draft would report the reverse of the vote | See the open entry below. |
+| KI-68 | Rules | High | Fixed | Six question forms were routed as their opposites, so a draft would report the reverse of the vote | `procedural_router_spec.rb` "question forms that mean the opposite of the rule their words match". Each now falls to the general motion fallback: the previous question (Senate S.O. 94 and 95, p. 64) is kept from the closure rule, a reading "this day 6 months" (Senate S.O. 114(2), p. 71, and 122(3), p. 74) from the second and third reading rules, the committee's "without requests" and "subject to the requests" (Senate S.O. 140(3), p. 81) from the bill passing, "heard now" and "further heard" (House S.O. 65(c), p. 40, and 75(b), p. 43; Senate S.O. 196, p. 100) from Template 23, and the House's older "words proposed to be omitted stand part of the question" (House Guide p. 52) from the amendment rules. None of them is in the Hansard of 24 November 2025 to 17 September 2026, and none of the 910 divisions of January to September 2026 changed route. |
 | KI-69 | Rules | High | Open | A Senate division without a quorum is reported as decided | See the open entry below. |
 | KI-70 | Rules | Medium-High | Open | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | See the open entry below. |
 | KI-71 | Pipeline | Medium | Open | The prompt does not connect a House mover's name with the seat or office the chair calls them by | See the open entry below. |
@@ -381,30 +381,6 @@ Still open:
   before adding it; KI-36 is the Senate statement it would extend.
 - What the Speaker says under the House's own guillotine for urgent bills (S.O. 82 and 85) has not
   been seen in any sitting day checked, so it stays **Verify** before this is extended to it.
-
-### KI-68
-
-**Six question forms are routed as their opposites.** Severity: High. Status: Open. **Confirmed**
-by running each form through `ProceduralRouter.route` on 1 October 2026.
-
-Each form matches a rule meant for another question, so the draft would report the reverse of what
-the vote decided:
-
-| Question form | Rule | Routed to | What the draft would say |
-|---|---|---|---|
-| "That this question be not now put" (the previous question) | Senate S.O. 94(1) and 95, p. 64: if carried, the original question is disposed of without being put | 22, settled | that debate was ended and the question put |
-| "That the bill be read a third time this day 6 months" | Senate S.O. 122(3), p. 74: the only amendment allowed at the third reading, and if carried it "shall finally dispose of the bill" | 6, settled | that the bill passed |
-| "That the bill be now passed without requests" | Senate S.O. 140(3), p. 81: a committee question on a bill the Senate may not amend | 6, settled | that the bill passed the Senate |
-| "That Senator X be further heard" | Senate S.O. 196, p. 100: a senator told to stop for irrelevance or repetition may require this question | fenced to 23, with the reason "a House of Representatives procedure" | that the senator was stopped from speaking |
-| "That [Member] be heard now", "That the Member be further heard" | House S.O. 65(c), p. 40, and 75(b), p. 43 | 23, settled | "be no longer heard" and, if carried, "They were unable to continue speaking" |
-| "That the words proposed to be omitted stand part of the question" | House Guide p. 52: if agreed to, "the amendment is disposed of"; p. 72 calls these forms "no longer used" | 2, settled, under a "; Second Reading" heading | that the amendment was carried |
-
-None was found in the divisions or sitting days checked, so they are rare, but each prints the
-opposite result, and the guard is small: keep "not now put", "this day 6 months", "without
-requests", "heard now" and "further heard" away from the rules that catch them, and send the "stand
-part" form to the fallback or invert it as Template 28 does. Search the loaded divisions for any of
-these forms before relying on made-up questions. Test in `procedural_router_spec.rb`, with a route
-snapshot before and after.
 
 ### KI-69
 

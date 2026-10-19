@@ -78,15 +78,6 @@ describe DivisionSummaryPipeline::ProceduralRouter do
         expect(decision.rule_name).to eq("MEMBER_NO_LONGER_HEARD_CHAMBER_CONFLICT")
       end
 
-      it "traps Member Be Further Heard (Template 23)" do
-        decision = described_class.route(
-          speaker_question: "The question is that the member be further heard."
-        )
-        expect(decision).to be_deterministic
-        expect(decision.template_id).to eq(23)
-        expect(decision.rule_name).to eq("MEMBER_NO_LONGER_HEARD")
-      end
-
       it "traps Suspension of a Member (Template 24)" do
         decision = described_class.route(
           speaker_question: "The question is that the member be suspended from the service of the House."
@@ -167,13 +158,6 @@ describe DivisionSummaryPipeline::ProceduralRouter do
     end
 
     context "with nuanced stages" do
-      it "identifies direct Second Reading Amendment (Template 2)" do
-        decision = described_class.route(
-          speaker_question: "The question is that the words proposed to be omitted (Mr Pyne's amendment) stand part of the question."
-        )
-        expect(decision.allowed_templates).to include(2)
-      end
-
       # KI-51: the plain form names no amendment, so it is the second reading.
       it "settles the plain second reading question on Template 29" do
         ["The question is that this bill be now read a second time.",
@@ -705,6 +689,32 @@ describe DivisionSummaryPipeline::ProceduralRouter do
         expect(decision).to be_deterministic
         expect(decision.template_id).to eq(2)
         expect(decision.rule_name).to eq("SECOND_READING_AMENDMENT_DIRECT")
+      end
+    end
+
+    # Each matched a rule meant for its opposite, so a draft would have reported the vote in reverse
+    # (KNOWN_ISSUES.md KI-68): the previous question as a closure, a reading "this day 6 months" or a
+    # committee's "without requests" as the bill passing, a member heard as a member gagged, and the
+    # House's older "stand part" question as the amendment it disposes of.
+    describe "question forms that mean the opposite of the rule their words match" do
+      [
+        ["That this question be not now put.", "senate", ""],
+        ["That the bill be read a third time this day 6 months.", "senate", ""],
+        ["That the bill be read a second time this day 6 months.", "senate", ""],
+        ["That the bill be now passed without requests.", "senate", ""],
+        ["That Senator Example be further heard.", "senate", ""],
+        ["That the member for Exampleton be heard now.", "representatives", ""],
+        ["That the member be further heard.", "representatives", ""],
+        ["That the words proposed to be omitted stand part of the question.", "representatives",
+         "Bills - Example Bill 2026; Second Reading"],
+        ["That the words proposed to be omitted (Mr Example's amendment) stand part of the question.",
+         "representatives", "Bills - Example Bill 2026; Second Reading"]
+      ].each do |question, chamber, heading|
+        it "leaves \"#{question}\" to the fallback" do
+          decision = described_class.route(speaker_question: question, chamber: chamber, debate_heading: heading)
+
+          expect(decision.rule_name).to eq("GENERAL_MOTION_FALLBACK")
+        end
       end
     end
   end
