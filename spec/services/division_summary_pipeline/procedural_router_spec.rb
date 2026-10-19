@@ -628,6 +628,19 @@ describe DivisionSummaryPipeline::ProceduralRouter do
         expect(decision.rule_name).to eq("REMAINING_STAGES_PASSING")
       end
 
+      # Senate 12 March 2026 #24 put "the bill now be passed" rather than "be now passed" (KNOWN_ISSUES.md KI-96).
+      it "routes the remaining stages with 'now be passed' to Template 6" do
+        decision = described_class.route(
+          speaker_question: "The question is that the remaining stages of the bill be agreed to and the bill " \
+                            "now be passed.",
+          chamber: "senate", debate_heading: "Bills - Example Bill 2026; In Committee"
+        )
+
+        expect(decision).to be_deterministic
+        expect(decision.template_id).to eq(6)
+        expect(decision.rule_name).to eq("REMAINING_STAGES_PASSING")
+      end
+
       # The question sentences ContextBuilder now takes out of the chair's statements at Senate
       # 18 August 2026 #3, #4 and #16, which the whole statements had routed to 18, 12 and 28.
       it "routes the chair's question sentence, whatever the rest of the statement said" do

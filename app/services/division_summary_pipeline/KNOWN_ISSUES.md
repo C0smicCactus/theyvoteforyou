@@ -204,6 +204,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
 | KI-93 | Rules | Low | Open | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | See the open entry below. |
 | KI-94 | Pipeline | Low | Open | "No explanatory claims recorded." prints as a block quote, in the pipeline's own term, whatever the reason there is nothing to quote | See the open entry below. |
+| KI-96 | Rules | Medium | Fixed | "the remaining stages of the bill be agreed to and the bill now be passed" fell to the general motion fallback | `procedural_router_spec.rb` "routes the remaining stages with 'now be passed' to Template 6". KI-31's question in another word order: `ProceduralRouter#third_reading` looked for "be now passed", not "now be passed", so at Senate 12 March 2026 #24 a draft would not say the bill passed. Both forms are now accepted. |
 
 ---
 

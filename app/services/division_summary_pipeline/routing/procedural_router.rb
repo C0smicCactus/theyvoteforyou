@@ -504,7 +504,7 @@ module DivisionSummaryPipeline
     def third_reading
       if says?("read a third time", "third reading")
         settle(6, "THIRD_READING_PASSING", "Question is that the bill be read a third time (passing the chamber).")
-      elsif says?("be now passed")
+      elsif says?("be now passed", "now be passed")
         settle(6, "REMAINING_STAGES_PASSING",
                "Question is that the bill be now passed, taking any remaining stages together (passing the chamber).")
       end
