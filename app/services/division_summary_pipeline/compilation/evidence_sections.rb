@@ -12,7 +12,9 @@ module DivisionSummaryPipeline
   # the time of the speech it came from, which is not the time of the division. A section with
   # nothing to quote says so in a fixed sentence rather than being filled in.
   class EvidenceSections
-    NO_EXPLANATION = "> No explanatory claims recorded."
+    # Not set as a quote, and true whatever the reason: the mover gave no reasons, gave them where
+    # Stage 1 didn't look (KI-90), or the model didn't point at them (KI-64). KNOWN_ISSUES.md KI-94.
+    NO_EXPLANATION = "No reasons from the mover were found to quote."
     NO_INTRODUCTION = "> No motion introduction recorded."
     NO_MOTION = "> No separate motion was recorded; the question put below states it."
     NO_QUESTION = "> No question was recorded before the division."

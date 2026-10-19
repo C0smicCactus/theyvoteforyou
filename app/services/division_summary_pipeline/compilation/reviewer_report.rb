@@ -15,7 +15,7 @@ module DivisionSummaryPipeline
       mover_unresolved: "No mover was identified, so the summary names nobody as the mover.",
       no_bill_record: "The division has no bill record, so the summary says \"the bill\" without a link.",
       no_digest: "No Bills Digest was supplied, so \"No Bill Digest found.\" is printed.",
-      no_explanation: "No explanatory sentences were quoted, so \"No explanatory claims recorded.\" is printed.",
+      no_explanation: "No explanatory sentences were quoted, so \"#{EvidenceSections::NO_EXPLANATION}\" is printed.",
       no_introduction: "The mover's \"I move\" words were not found, so none are quoted.",
       no_motion_terms: "No terms moved were found; the question put stands in for the motion.",
       no_question: "The chair's statement putting the question was not recorded, so none is quoted.",

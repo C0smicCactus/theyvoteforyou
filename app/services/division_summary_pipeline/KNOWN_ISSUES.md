@@ -203,7 +203,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-91 | Pipeline | Low | Open | Template 2's vote sentence says an amendment "introduced by" a senator "to the" bill, though amendments are moved, and a second reading amendment is to the motion | See the open entry below. |
 | KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
 | KI-93 | Rules | Low | Open | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | See the open entry below. |
-| KI-94 | Pipeline | Low | Open | "No explanatory claims recorded." prints as a block quote, in the pipeline's own term, whatever the reason there is nothing to quote | See the open entry below. |
+| KI-94 | Pipeline | Low | Fixed | "No explanatory claims recorded." prints as a block quote, in the pipeline's own term, whatever the reason there is nothing to quote | `template_compiler_spec.rb` "says so in a fixed sentence when there is nothing to quote"; `evaluation_spec.rb` "says no explanation was recorded rather than restating the amendment". It now reads "No reasons from the mover were found to quote.", as plain text, which is true whatever the reason. "The mover gave no reasons in the chamber." would have been false at Senate 14 September 2026 #8, whose mover had made the opposition's case in a speech two hours before moving the amendment without one (KI-90), and wherever a Template 17 mover argues only the matter the suspension is for, which the prompt leaves unquoted, as at House 17 September 2026 #1 (1,698 words after "I move:"). Still open: a draft can't say why there is nothing to quote, such as a formal motion, which is decided without debate (Senate S.O. 66(3), p. 51). |
 
 ---
 
@@ -801,7 +801,7 @@ each guarded by the spec named:
   reference that resolves, and a question that only refers to a motion nobody can find is a hard
   error: `provenance_validator_spec.rb` "the operative motion".
 - A draft with no claims published "[No explanatory claims recorded]", and the claim cap was not
-  enforced. The section now reads "No explanatory claims recorded.", and at most six sentences are
+  enforced. The section now says so in a fixed sentence (KI-94), and at most six sentences are
   quoted: `provenance_validator_spec.rb` "quotes at most six sentences, the first ones spoken",
   `evaluation_spec.rb`.
 - Every mover's statement was dated with the division's time. Each quote now carries its own
@@ -1291,25 +1291,3 @@ the site's chosen style, KI-78 should say so. "to the" bill comes from
 `SummaryWording#second_reading_amendment_sentence`. A fix: "moved by" for amendments, and for
 Template 2 "an amendment ... to the motion for the second reading of the [bill]". Test in
 `template_compiler_spec.rb` beside the Template 2 vote sentence.
-
-### KI-94
-
-**When there is nothing to quote, "About the Motion" prints "> No explanatory claims recorded." as a
-block quote, in the pipeline's own term, whatever the reason.** Severity: Low. Status: Open.
-**Confirmed** by replaying Senate 14 September 2026 #10 on 15 October 2026; 456 of the run's 867
-drafts print it.
-
-At Senate 14 September 2026 #10 the mover gave no reasons: the order was moved and put as formal
-business, and a formal motion is "put and determined without amendment or debate" (Senate S.O.
-66(3), p. 51; "Most orders for production of documents start with a notice of motion, which is moved
-and determined during 'formal motions'", Senate Guide No. 12, p. 30). The draft's "About the Motion"
-is the one line "> No explanatory claims recorded.", set in the same block-quote style as the
-Hansard quotes below it, so it can be read as words someone said, and "explanatory claims" is the
-pipeline's term, not a reader's. The same line prints whether the mover gave no reasons (here), gave
-them where the pipeline didn't look (KI-90), or the model didn't point at them (KI-64), and the reader
-can't tell which.
-
-The line is `EvidenceSections::NO_EXPLANATION`. A fix: print it as plain text in a reader's words,
-such as "The mover gave no reasons in the chamber.", and, once Stage 1 can tell a formal motion from
-a debated one, say so. Test in `template_compiler_spec.rb` beside the existing "No explanatory claims
-recorded." expectation, and update `spec/fixtures/division_summaries/test_1/expected_output.md`.

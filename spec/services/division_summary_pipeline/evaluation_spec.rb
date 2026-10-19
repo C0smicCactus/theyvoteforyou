@@ -43,7 +43,7 @@ describe "Parliamentary Evaluation Corpus" do
     # The mover said nothing beyond "I move:" and the amendment, so there is nothing to
     # quote as an explanation, and the amendment's own clauses must not stand in for one.
     it "says no explanation was recorded rather than restating the amendment" do
-      expect(run_fixture("test_1")[:compiled]).to include("### About the Amendment\n\n> No explanatory claims recorded.")
+      expect(run_fixture("test_1")[:compiled]).to include("### About the Amendment\n\nNo reasons from the mover were found to quote.")
     end
   end
 

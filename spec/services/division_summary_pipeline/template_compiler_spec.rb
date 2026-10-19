@@ -1418,7 +1418,7 @@ describe DivisionSummaryPipeline::TemplateCompiler do
       rendered = described_class.compile(senate_data.merge(result: "passed"), interpretation, evidence.with(put_without_mover: true))
 
       expect(rendered).not_to include("### Motion Introduction", "### Motion Text", "No separate motion was recorded",
-                                      "No explanatory claims recorded.")
+                                      "No reasons from the mover were found to quote.")
       expect(rendered).to include("### Question Put")
     end
 
@@ -1573,6 +1573,7 @@ describe DivisionSummaryPipeline::TemplateCompiler do
         )
       end
 
+      # KI-94: not set as a quote, and not a claim that the mover gave no reasons.
       it "says so in a fixed sentence when there is nothing to quote" do
         rendered = compile_summary(
           senate_data,
@@ -1581,7 +1582,7 @@ describe DivisionSummaryPipeline::TemplateCompiler do
           mover: treloar
         )
 
-        expect(section(rendered, "About the Motion")).to eq("> No explanatory claims recorded.")
+        expect(section(rendered, "About the Motion")).to eq("No reasons from the mover were found to quote.")
       end
 
       it "prints one header over two passages from the same speech" do
@@ -1613,7 +1614,7 @@ describe DivisionSummaryPipeline::TemplateCompiler do
 
           expect(rendered).not_to include("said:")
           expect(rendered).not_to include("This sentence is never printed.")
-          expect(rendered).not_to include("No explanatory claims recorded.")
+          expect(rendered).not_to include("No reasons from the mover were found to quote.")
         end
       end
     end
