@@ -23,8 +23,10 @@ module DivisionSummaryPipeline
     attr_reader :outcome
 
     # The sentence before the chair's words saying why the question was put without debate: a
-    # limitation of debate, or in the House a resolution agreed earlier, which is not a guillotine
-    # and is not called one (House Guide p. 75; KI-52).
+    # limitation of debate, or in the House a resolution agreed earlier, which is not called a
+    # guillotine (KI-52). Both that and "an arrangement", for Hansard's "resolution", are this
+    # project's choices (KI-78): the House Guide (p. 75) says only that such a motion is used
+    # instead of the formal guillotine "to achieve a similar effect".
     def limitation_lead
       date = outcome.resolution_agreed_on
       return LIMITATION_OF_DEBATE_LEAD unless date
@@ -51,6 +53,9 @@ module DivisionSummaryPipeline
       outcome.successful? ? "for" : "against"
     end
 
+    # In a tied House division the chair has a casting vote the figures don't record (KI-18).
+    # Saying the figures didn't decide it, rather than guessing the result, is this project's
+    # choice (KI-78).
     def successful_text
       return "not decided, because fewer than a quorum of members voted" if outcome.want_of_quorum?
       return "not decided by the division figures, which were equal" if outcome.tied? && !senate?
@@ -132,7 +137,11 @@ module DivisionSummaryPipeline
     end
 
     # Template 2's vote sentence, which says the opposite thing depending on whether the
-    # amendment declined the bill a second reading (KI-11).
+    # amendment declined the bill a second reading (KI-11). Where a form's words don't settle it,
+    # which side it falls on is this project's call (the prompt's rule 7): the House Guide lists the
+    # forms without classifying them (pp. 68-69). Nor does false mean the bill can go on in the
+    # House, where carrying any second reading amendment "would likely be regarded as preventing
+    # further progress on the bill" (p. 70; KI-78).
     def second_reading_amendment_sentence(mover_clause, bill_reference)
       plural = outcome.plural_amendments?
       noun = plural ? "second reading amendments" : "a second reading amendment"
@@ -185,6 +194,8 @@ module DivisionSummaryPipeline
       "#{passed} It started in the #{chamber}, so it now goes to the #{other_chamber}."
     end
 
+    # "because the timetable has taken its place" is this project's reason: House S.O. 85(d) and
+    # Senate S.O. 142(5) bar the closure under a time limit without giving one (KI-78).
     def closure_explainer
       case outcome.closure_variant
       when :business_of_the_day

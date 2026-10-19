@@ -441,6 +441,15 @@ template has Motion Introduction, the terms moved and Question Put, and prints t
 `{{mover_clause}}`, which is empty when nobody moved anything and says "circulated by ..." for
 amendments the chair put.
 
+Some template sentences rest on no rule. They are this project's way of saying what a vote does, so
+changing one is a wording decision, not a correction (KI-78): Template 8's "a vote about access to
+the documents", not "about the subject"; Template 9's "Giving notice matters as much as the vote";
+Template 10's "the same class of vote"; Template 19's "not what the parliament decides about it";
+and Template 27's "not on whether the chamber agrees". Template 2's four uses of a second reading
+amendment are Senate Guide No. 16's list (p. 47), applied to the House too, where outright defeat is
+S.O. 146's "not" amendment and an amendment "should amount to more than a direct negation" (House
+Guide p. 69).
+
 ## 9. Where everything lives
 
 ```text

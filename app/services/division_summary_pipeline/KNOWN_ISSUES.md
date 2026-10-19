@@ -187,7 +187,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-75 | Rules | Low | Open | Comments, router reasons and template sentences to correct or verify, none of which changes a route | See the open entry below. |
 | KI-76 | Pipeline | Low | Open | The Reviewer Only section leaves out things a reviewer needs | See the open entry below. |
 | KI-77 | Pipeline | Low | Open | The local model tools lose or misreport a reply that does not finish | See the open entry below. |
-| KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
+| KI-78 | Rules | Low | Fixed | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | Comments (no spec), citing KI-78 where the code makes each choice, and `ARCHITECTURE.md` section 8 for the template sentences. "X MP", the Monday deferral window, the divided question forms, the fallback constants, `MoverFinder`'s window, the validator's word lists and routing on the chair's question were already marked as the code's own or gave its reasons, so are unchanged. |
 | KI-79 | Pipeline | High | Open | A draft said an amendment was agreed to when no amendment was moved or found, and passed validation | See the open entry below. |
 | KI-80 | Pipeline | High | Open | A deferred vote the chair put by name, without restating its question, was drafted as a closure | See the open entry below. |
 | KI-81 | Pipeline | Low | Open | The deferral warning misses Senate wordings, and in both chambers fires on text that isn't the chair's | See the open entry below. |
@@ -616,49 +616,6 @@ the last, which is **Verify**.
   final report, the Legislation Act 2003 for Template 9, and the
   House of Representatives (Quorum) Act 1989 and the Senate (Quorum) Act 1991. The Parliament Act
   1974 for Template 21 is KI-19.
-
-### KI-78
-
-**Choices the pipeline made are not marked as choices, so they could be defended as rules or
-"fixed" as errors.** Severity: Low. Status: Open. **Confirmed** against the rules named.
-
-None of these is wrong. Each is a decision this project made, not something a standing order or
-guide requires, and the code should say so where it makes it:
-
-- Template 17's "not the merits" (KI-58): neither chamber confines debate on a suspension to the
-  reasons for suspending. A suspension moved during other business must be relevant to it (Senate
-  S.O. 209(3), p. 104; House S.O. 47(c)(i), p. 33), and nothing more.
-- "X MP" for House members is the site's own form (KI-24), not something House S.O. 64 requires.
-- "an arrangement the House agreed on <date>" (KI-52): Hansard's word is "resolution", and calling
-  it "not a guillotine" is an inference from the House Guide (p. 75: "Instead of using the formal
-  guillotine procedure outlined above, a Minister may move a motion to suspend standing orders").
-- A tied House division is "not decided by the division figures" rather than guessed (KI-18).
-- `declines_second_reading` as true or false, and which form is which: the House Guide lists the
-  forms without classifying them (pp. 68 to 69), and "carriage of a second reading amendment would
-  likely be regarded as preventing further progress on the bill" (p. 70), so `false` does not mean
-  the bill can proceed.
-- Template 2's four uses are the Senate guide's list (KI-13), applied to both chambers. In the
-  House, outright defeat is S.O. 146's "not" amendment, and an amendment "should amount to more
-  than a direct negation" (House Guide p. 69).
-- Framing sentences with no rule behind them: Template 8's "a vote about access to the documents",
-  not "about the subject"; Template 9's "Giving notice matters as much as the vote"; Template 19's
-  "not what the parliament decides"; Template 27's "not on whether the chamber agrees"; Template
-  10's "same class of vote"; and the closure explainer's "because the timetable has taken its
-  place", where House S.O. 85(d) and Senate S.O. 142(5) give no reason.
-- Heuristics: `MoverFinder`'s three-speech window, the validator's word lists, the 400-character
-  limit on "by leave" position statements, recognising a divided question only by "minus" or
-  "except", the Monday 12:00 to 12:59 deferral window, and the fallback constants (39, 76, 30, 31).
-- `ContextBuilder#closed_template_id` takes the motion a closure cut short to be the last one moved
-  by someone else. Senate S.O. 199(3) (p. 101) bars a senator who has spoken in the debate from
-  moving the closure "other than a minister", so a minister can close the debate on their own
-  motion, and the code would then pass that motion over.
-- Amendments are taken as circulated whenever the chair prints terms or names a circulator and no
-  move is found. That held in all 46 Senate cases sampled on 1 October 2026, but the rule behind it
-  covers only a limitation of debate (Senate S.O. 142(4)), and KI-70 is the exception.
-- "on behalf of" for an urgency motion's proposer (KI-55): Hansard says "at the request of", as
-  Senate S.O. 83(1) (p. 61) does for a notice.
-- Routing on the chair's question rather than the heading, and quoting only the mover's sentences
-  (ADR 0005), are design, resting on Senate Guide No. 17's account of what a guillotine does.
 
 ### KI-82
 
