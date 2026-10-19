@@ -113,6 +113,10 @@ describe DivisionSummaryPipeline::ExtractionPrompt do
                                 "remarks addressed to them (\"you\")", "usual and expected answer for Template 17")
     end
 
+    it "scopes a second reading amendment's explanation to what the amendment says (KNOWN_ISSUES.md KI-88)" do
+      expect(prompt).to include("Template 2 (second reading amendment): reasons for what the amendment itself says")
+    end
+
     it "says what a quotation unit is, and that words the mover quoted never explain the motion (KNOWN_ISSUES.md, KI-38)" do
       expect(prompt).to include("\"quotation\" is text", "Words the mover quoted are someone else's, even in their speech.")
     end
