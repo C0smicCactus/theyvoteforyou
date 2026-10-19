@@ -6,7 +6,8 @@ module DivisionSummaryPipeline
   # front of a division do not contain the motion it decides, which happens routinely:
   #
   # - A deferred division is put without debate, often at the start of the next sitting day
-  #   (House S.O. 133), so the only speech beside it is the chair saying which amendment it is.
+  #   (House S.O. 133), or in the Senate at a time it fixes, sometimes days later (Senate S.O.
+  #   57(3)), so the only speech beside it is the chair saying which amendment it is.
   # - A bill's second reading debate runs over several days, and an amendment moved on the
   #   first day is voted on at the end of the last.
   # - A debate interrupted by Question Time resumes under a repeated heading, and the division

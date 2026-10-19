@@ -1,4 +1,4 @@
-**Jargon Explainer:** *This motion formally tasks an already existing, permanent parliamentary committee (like an Economics or Community Affairs committee) with investigating a new specific issue.*
+**Jargon Explainer:** *This motion formally tasks an already existing parliamentary committee (like an Economics or Community Affairs committee) with investigating a new specific issue.*
 
 ---
 

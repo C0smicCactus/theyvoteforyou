@@ -247,9 +247,9 @@ for human review.
   other questions in between does not push it out of the window. `MemberResolver` resolves members
   from the database and owns the one name matcher (`same_speaker?`).
 - Context warnings flag when the speeches beside a division may not be the debate about it:
-  successive divisions (House S.O. 131), deferral read from the chair's words or the House's
-  deferral windows (S.O. 133), speeches added from earlier in the debate, no speeches at all, or no
-  matching XML.
+  successive divisions (House S.O. 131; Senate S.O. 101(3)), deferral read from the chair's words
+  or the House's deferral windows (S.O. 133), speeches added from earlier in the debate, no
+  speeches at all, or no matching XML.
 - `ContextPacket` is immutable. A widened packet is built afresh with the first packet's routing
   passed in, because routing is about this division and was decided on the speeches beside it.
 

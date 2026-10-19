@@ -27,8 +27,8 @@ module DivisionSummaryPipeline
     # until the adjournment is deferred "until the first opportunity the next sitting day". The
     # Speaker then puts the deferred questions successively, without amendment or further debate,
     # so the speeches beside such a division belong to whatever business the House had reached.
-    # (This once had a Tuesday window after the matter of public importance, taken from the House
-    # Guide; the current standing order has no such rule, which was S.O. 55(c), on quorum counts.)
+    # (This once had a Tuesday window after the matter of public importance, which the House Guide
+    # (p. 58) gives as S.O. 133's own rule; the current standing order has none.)
     #
     # The standing order fixes when a deferral ends but not when the run of questions is put or
     # how long it takes, so the hour-long window below is this code's own estimate. It only raises
@@ -45,9 +45,9 @@ module DivisionSummaryPipeline
     DEFAULT_LEVEL = :subdebate
     DEFAULT_SPEAKER_QUESTION = "The question is that the motion be agreed to."
 
-    # The chair saying a division was deferred, in either chamber's words: "on which a division
-    # was called for and deferred", "the division is deferred until ...", "we have a deferred
-    # vote on ...". Read from the text because the time-of-day windows below miss deferrals put
+    # The chair saying a division was deferred: "on which a division was called for and deferred",
+    # "the division is deferred until ...", "we have a deferred vote on ...". It misses some Senate
+    # wordings (KI-81). Read from the text because the time-of-day windows below miss deferrals put
     # on other days, such as at the start of the next sitting day.
     DEFERRED_STATEMENT = /standing\s+order\s+133|called\s+for\s+and\s+deferred|(?:division|vote)\s+(?:is|was|be|being|has\s+been)\s+deferred|deferred\s+(?:division|vote|question)/i
 

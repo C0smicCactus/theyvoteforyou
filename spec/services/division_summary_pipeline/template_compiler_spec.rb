@@ -1506,8 +1506,9 @@ describe DivisionSummaryPipeline::TemplateCompiler do
       senate = compile_summary({ house: "senate", result: "negatived" }, template_id: 2, declines_second_reading: false,
                                                                          motion_text: "At the end of the motion, add words.")
 
-      expect(house).to include("The House's Guide to Procedures (2017) records it happening once, in 2016")
-      expect(senate).not_to include("carried in the House", "2016")
+      expect(house).to include("The House's Guide to Procedures (2017) records it happening once, in 2016",
+                               "(often called a 'reasoned amendment' in the House of Representatives)")
+      expect(senate).not_to include("carried in the House", "2016", "reasoned amendment")
       expect(senate).to include("or to delay further consideration of it.*")
     end
   end

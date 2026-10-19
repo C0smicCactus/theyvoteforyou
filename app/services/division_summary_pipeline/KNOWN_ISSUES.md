@@ -184,7 +184,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-72 | Rules | Medium | Open | Senate rescission: the standing order and the guide disagree on the majority, and the code's pattern is too broad | See the open entry below. |
 | KI-73 | Rules | Medium | Open | Explainer and vote sentences that state one chamber's rule as general, or say more than the rules do (Templates 5, 7, 14, 25 and 26) | See the open entry below. |
 | KI-74 | Rules | Low | Open | Three House rules the pipeline gets wrong in rare cases: a tie on the ballot closure, the quorum fallback, and Template 1 | See the open entry below. |
-| KI-75 | Rules | Low | Open | Comments, router reasons and template sentences to correct or verify, none of which changes a route | See the open entry below. |
+| KI-75 | Rules | Low | Partly fixed | Comments, router reasons and template sentences to correct or verify, none of which changes a route | See the open entry below: the comments, router reasons and most citations are corrected, and so are Templates 2, 13 and 19 (`template_compiler_spec.rb` "Template 2's explainer in each chamber"); the other template sentences, a citation in the prompt and the claims to verify are open. |
 | KI-76 | Pipeline | Low | Open | The Reviewer Only section leaves out things a reviewer needs | See the open entry below. |
 | KI-77 | Pipeline | Low | Open | The local model tools lose or misreport a reply that does not finish | See the open entry below. |
 | KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
@@ -533,75 +533,34 @@ says a decision is needed:
 ### KI-75
 
 **Comments, router reasons and template sentences to correct or verify, none of which changes a
-route.** Severity: Low. Status: Open. **Confirmed** against the rules named in each line, except
-the last, which is **Verify**.
+route.** Severity: Low. Status: **Partly fixed**. **Confirmed** against the rules named in each
+line, except the last, which is **Verify**.
 
-- `ContextBuilder`'s comment on S.O. 133 says the old Tuesday deferral window "was S.O. 55(c), on
-  quorum counts". The House Guide (p. 58) gives it as S.O. 133's own rule: "On Tuesdays divisions
-  called before 2 pm are deferred until after the discussion of the matter of public importance".
-  The guide gives the same window for quorum calls under S.O. 55 (p. 18), which is likely where the
-  mix-up came from. Dropping the window was still right, since the current S.O. 133 has none (KI-6).
-- The router's comment that an urgency motion "Decides that the debate happens, not the issue" is
-  backwards. "The question on an urgency motion shall be put at the expiration of the time for
-  debate" (Senate S.O. 75(7), p. 57), and the motion is "That in the opinion of the Senate the
-  following is a matter of urgency" (S.O. 75(1)(b)).
-- The router's reason for "be considered an urgent bill" names only the House's time limits, but it
-  is also the Senate's form (Senate S.O. 142(1), p. 82).
-- The router's reason for the House Selection Committee says the question adopts its
-  determinations; House S.O. 222(e), p. 92, says they are "treated as having been adopted when they
-  are presented".
-- A comment in `summary_wording.rb` attributes "even when this question is carried on the voices"
-  to House S.O. 173; the words are the House Guide's (p. 77), and S.O. 173 is the absolute majority
-  it explains.
-- The comment above `SummaryWording#carried_amendment_note` says the Senate guide does not say what
-  carrying a reasoned amendment does. The Senate standing orders do say what carrying an amendment
-  does: "When amendments have been made the main question shall be put as amended" (S.O. 91(4),
-  p. 63), and "this day 6 months" if carried "shall finally dispose of the bill" (S.O. 114(2),
-  p. 71). The comment is why the note is empty in the Senate, so a Senate draft never says what its
-  result leads to: at Senate 14 September 2026 #7 the draft ends at "The text of the bill is
-  unchanged either way.", where "When amendments have been proposed but not made the question shall
-  be put as originally proposed" (S.O. 91(5), p. 63).
-- The prompt's rule 7 gives "House of Representatives Guide to Procedures; House S.O. 146; Senate
-  S.O. 114" as the source of its standard forms for `declines_second_reading`. House S.O. 146
-  (p. 65) has only omitting "now" in order to insert "not"; the rule for reasoned amendments is
-  House S.O. 145 (p. 65), which isn't cited. Senate S.O. 114 (p. 71) has only "this day 6 months"
-  and "Other amendments ... provided that they are relevant to the bill"; the Senate forms the
-  prompt lists, such as "the Senate rejects the bill", are in neither S.O. 114 nor Senate Guide
+Corrected in October 2026, as the lines then removed from this entry record: every comment,
+router reason and citation it listed apart from the prompt's below, Template 2's "reasoned amendment"
+aside (now printed in the House only), "permanent" in Template 13, and Template 19's adjourning to a
+later time. Still open:
+
+- A Senate draft for Template 2 never says what its result leads to: at Senate 14 September 2026 #7
+  the draft ends at "The text of the bill is unchanged either way.", where "When amendments have
+  been proposed but not made the question shall be put as originally proposed" (S.O. 91(5), p. 63),
+  and when they are made it "shall be put as amended" (S.O. 91(4)).
+- The prompt's rule 7 cites Senate S.O. 114 (p. 71) for its forms, but S.O. 114 has only "this day
+  6 months" and "Other amendments ... provided that they are relevant to the bill"; the Senate forms
+  the prompt lists, such as "the Senate rejects the bill", are in neither S.O. 114 nor Senate Guide
   No. 16.
-- Template 2's explainer, in the Senate too, says a second reading amendment is "often called a
-  'reasoned amendment' in the House of Representatives". The House Guide (p. 68) gives that name to
-  amendments moved under House S.O. 145, which "must not propose the addition of words to the
-  question" (S.O. 145(a)(iii), p. 65). A Senate amendment that adds words at the end of the motion,
-  as at Senate 14 September 2026 #7, is not what the House means by it, so the aside could go from
-  the Senate's explainer.
-- The router's comment above `production_of_documents` describes Template 8 as the chamber
-  "ordering the government to hand over papers it holds". An order can require a document to be
-  created: "There is also no requirement that a document be one that is already in existence"
-  (Senate Guide No. 12, p. 30). Template 8's own explainer already says so.
 - Template 23 says of the gag that "the Senate has no equivalent, and its own guide says there is no
   ability to gag a senator". That is true of "no longer heard" (Senate Guide No. 2, p. 6), but
   Senate S.O. 196 (p. 100) has "be further heard" (KI-68).
-- KI-44 and the code it describes are cautious about House amendments printed in Hansard only for
-  the record. The House Guide's note (p. 75) describes the guillotine as it was before S.O.s 83 and
-  84 were omitted on 27 July 2022; S.O. 85(c) now treats circulated amendments to an urgent bill as
-  moved. The caution is harmless.
 - Senate wording: Template 20 should say a Senate order of the day is "discharged" (S.O. 97(4), p.
-  65) and a motion once moved "cannot be withdrawn without leave" (S.O. 83(3), p. 61); Template 19
-  should allow adjourning a debate "to a later hour of the same day" (S.O. 201(1), p. 101); Template
-  13 should drop "permanent"; Template 3's amendment effect is wrong for a request; and the
-  suspension effect clause's "immediately" overstates Senate Guide No. 5 (p. 13), which says a
-  suspension "allows the senator to take the course of action to which the motion was directed".
+  65) and a motion once moved "cannot be withdrawn without leave" (S.O. 83(3), p. 61); Template 3's
+  amendment effect is wrong for a request; and the suspension effect clause's "immediately"
+  overstates Senate Guide No. 5 (p. 13), which says a suspension "allows the senator to take the
+  course of action to which the motion was directed".
 - Template 9's notice and disallowance periods (Senate Guide No. 19, pp. 57 to 58) are right for the
   usual case, but the guide notes exempt and unusual instruments (p. 58). A constitution alteration
   bill's "will go to the [other chamber]" depends on where the bill started, the same problem as
   KI-1.
-- Deferred and successive divisions are cited from the House's rules only. `earlier_debate.rb` says
-  a deferred division is put "often at the start of the next sitting day (House S.O. 133)"; in the
-  Senate a division called after the cut-off "shall be taken on the next day of sitting, at a time
-  fixed by the Senate" (Senate S.O. 57(3), p. 47), and in 2026 the Senate took some days or weeks
-  later. `ARCHITECTURE.md` section 4 gives only House S.O. 131 for successive divisions; the
-  Senate's is S.O. 101(3), p. 66. The comment on `ContextBuilder::DEFERRED_STATEMENT` says it reads
-  "either chamber's words", which KI-81 shows it doesn't.
 - `SummaryWording#constitution_alteration_clause`, for a third reading carried with fewer
   ayes than an absolute majority, says whether the bill passed "does not follow from the division
   figures alone". Senate S.O. 135, p. 79, says what follows: "the bill shall be forthwith laid aside
