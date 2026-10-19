@@ -10,8 +10,9 @@ describe LocalModelClient do
 
   after { FileUtils.rm_rf(replies_dir) }
 
-  def reply_body(content, finish_reason: "stop")
-    { model: "Example-Model-Q4", choices: [{ message: { content: content }, finish_reason: finish_reason }] }.to_json
+  def reply_body(content, finish_reason: "stop", completion_tokens: nil)
+    { model: "Example-Model-Q4", choices: [{ message: { content: content }, finish_reason: finish_reason }],
+      usage: { completion_tokens: completion_tokens } }.to_json
   end
 
   describe ".from_config" do
@@ -88,10 +89,31 @@ describe LocalModelClient do
         .to eq("system" => "the system prompt", "user" => "the user prompt")
     end
 
+    it "saves the prompt even when the request times out" do
+      stub_request(:post, completions).to_raise(Net::ReadTimeout)
+
+      expect { answer }.to raise_error(Net::ReadTimeout)
+      saved = Dir[replies_dir.join("division-#{division.id}-*-prompt.json")]
+      expect(saved.size).to eq 1
+      expect(JSON.parse(File.read(saved.first)))
+        .to eq("system" => "the system prompt", "user" => "the user prompt")
+    end
+
     it "fails when the model runs out of tokens before finishing" do
       stub_request(:post, completions).to_return(body: reply_body("{\"unfinished", finish_reason: "length"))
 
-      expect { answer }.to raise_error(RuntimeError, /16000 tokens without finishing/)
+      expect { answer }
+        .to raise_error(RuntimeError, %r{wrote 16000 tokens without finishing \(max_tokens in config/local_model\.yml\)})
+    end
+
+    # As at House 16 September 2026 #6, where the prompt and 7,681 tokens of reply filled the
+    # server's 131,072-token context.
+    it "says when the server's context ran out before max_tokens did" do
+      stub_request(:post, completions)
+        .to_return(body: reply_body("{\"unfinished", finish_reason: "length", completion_tokens: 7681))
+
+      expect { answer }
+        .to raise_error(RuntimeError, /wrote 7681 tokens without finishing \(the model server's context ran out\)/)
     end
 
     it "fails on an error from the server without calling it unreachable" do

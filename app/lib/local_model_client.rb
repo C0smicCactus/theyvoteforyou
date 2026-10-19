@@ -82,14 +82,15 @@ class LocalModelClient
   # beside it, so a failed draft can still be read and replayed (rake ai:replay_reply).
   def llm_caller(division)
     lambda do |system_prompt, user_prompt|
+      stamp = "division-#{division.id}-#{Time.current.strftime('%Y%m%d-%H%M%S')}"
+      save_prompt(stamp, system_prompt, user_prompt)
       # Temperature 0 to match the Bedrock call. llama-server ignores the model name; Ollama needs it.
       reply = post_json("/v1/chat/completions",
                         model: model_name,
                         messages: [{ role: "system", content: system_prompt }, { role: "user", content: user_prompt }],
                         temperature: 0, max_tokens: max_tokens)
-      saved = save(division, reply, system_prompt, user_prompt)
-      unfinished = "model wrote #{max_tokens} tokens without finishing (max_tokens in config/local_model.yml); see #{saved}"
-      raise unfinished if reply.dig("choices", 0, "finish_reason") == "length"
+      saved = save_reply(stamp, reply)
+      check_completion!(reply, saved)
 
       self.class.answer_text(reply)
     end
@@ -99,15 +100,29 @@ class LocalModelClient
 
   attr_reader :replies_dir
 
-  def save(division, reply, system_prompt, user_prompt)
+  # The draft keeps only the prompt of the reply it used, so a sitting day retry's first prompt
+  # would otherwise be lost. Written before the request, so one that times out still leaves its
+  # prompt to read (KNOWN_ISSUES.md KI-77).
+  def save_prompt(stamp, system_prompt, user_prompt)
     FileUtils.mkdir_p(replies_dir)
-    stamp = "division-#{division.id}-#{Time.current.strftime('%Y%m%d-%H%M%S')}"
+    File.write(replies_dir.join("#{stamp}-prompt.json"), JSON.pretty_generate(system: system_prompt, user: user_prompt))
+  end
+
+  def save_reply(stamp, reply)
     saved = replies_dir.join("#{stamp}.json")
     File.write(saved, JSON.pretty_generate(reply))
-    # The draft keeps only the prompt of the reply it used, so a sitting day retry's first prompt
-    # would otherwise be lost.
-    File.write(replies_dir.join("#{stamp}-prompt.json"), JSON.pretty_generate(system: system_prompt, user: user_prompt))
     saved.relative_path_from(Rails.root).to_s
+  end
+
+  # A reply cut off for length either used up max_tokens or was stopped sooner by the server, when
+  # the prompt and the reply together filled its context (KNOWN_ISSUES.md KI-77). The message says
+  # which, since only the first is changed in config/local_model.yml.
+  def check_completion!(reply, saved)
+    return unless reply.dig("choices", 0, "finish_reason") == "length"
+
+    tokens = reply.dig("usage", "completion_tokens") || max_tokens
+    cause = tokens >= max_tokens ? "max_tokens in config/local_model.yml" : "the model server's context ran out"
+    raise "model wrote #{tokens} tokens without finishing (#{cause}); see #{saved}"
   end
 
   def get_json(path)

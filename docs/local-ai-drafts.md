@@ -148,5 +148,6 @@ Send the zip to the person at They Vote For You who uploads drafts. Leave out `f
 | FROM ... is after TO ... | FROM is the earliest date and TO the latest, since the run goes back from TO |
 | couldn't load this day's divisions | Usually the members aren't loaded: run `bundle exec rake application:load:members`, then run the task again. The day is tried again next time |
 | model wrote 16000 tokens without finishing | The model got stuck on that division. It's in `failed/`; `RETRY_FAILED=1` tries again |
+| model wrote ... tokens without finishing (the model server's context ran out) | The prompt and the reply together filled the server's context (`--ctx-size` for `llama-server`). It's in `failed/`; `RETRY_FAILED=1` tries again, best with a larger context if your machine has the memory |
 
 Drafted with AI assistance (Claude Code, claude-opus-5-5).

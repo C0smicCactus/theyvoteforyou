@@ -186,7 +186,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-74 | Rules | Low | Open | Three House rules the pipeline gets wrong in rare cases: a tie on the ballot closure, the quorum fallback, and Template 1 | See the open entry below. |
 | KI-75 | Rules | Low | Open | Comments, router reasons and template sentences to correct or verify, none of which changes a route | See the open entry below. |
 | KI-76 | Pipeline | Low | Open | The Reviewer Only section leaves out things a reviewer needs | See the open entry below. |
-| KI-77 | Pipeline | Low | Open | The local model tools lose or misreport a reply that does not finish | See the open entry below. |
+| KI-77 | Pipeline | Low | Fixed | The local model tools lose or misreport a reply that does not finish | `local_model_client_spec.rb` "saves the prompt even when the request times out", "fails when the model runs out of tokens before finishing", "says when the server's context ran out before max_tokens did". The prompt is saved before the request; a reply cut off for length is put down to the server's context when its `usage.completion_tokens` is below `max_tokens`, and to `max_tokens` otherwise, including when the server reports no usage. |
 | KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
 | KI-79 | Pipeline | High | Open | A draft said an amendment was agreed to when no amendment was moved or found, and passed validation | See the open entry below. |
 | KI-80 | Pipeline | High | Open | A deferred vote the chair put by name, without restating its question, was drafted as a closure | See the open entry below. |
@@ -1003,21 +1003,6 @@ senators, so the gap looks House-only. Test in `extraction_prompt_spec.rb`.
   phrase, so the list should say it is a prompt for the reviewer, not a complete check.
 - The "Title" row quotes the heading as stored on the Division record, such as "Securing the Ndis
   for Future Generations", though the draft's own title now reads "NDIS" (KI-48).
-
-### KI-77
-
-**The local model tools lose or misreport a reply that does not finish.** Severity: Low. Status:
-Open. **Confirmed**.
-
-`LocalModelClient`, used by `rake ai:draft_local` and `ai:summarize_division_local`, writes the
-prompt and reply to `tmp/llm_replies/` only once the server has answered. A request that times out
-leaves neither, so the runs most worth looking at leave nothing to read: on 1 October 2026 two
-divisions that timed out for one model left no files. Writing the prompt before sending the request
-would fix it. Separately, a reply cut off for length is always reported as "model wrote
-<max_tokens> tokens without finishing (max_tokens in config/local_model.yml)", but at House
-16 September 2026 #6 the model wrote 7,681 tokens and ran out of the server's context instead
-(KI-67), so the message points at the wrong setting. It should give the number of tokens actually
-written and say whether `max_tokens` or the server's context ran out.
 
 ### KI-79
 
