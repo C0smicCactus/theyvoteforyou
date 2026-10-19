@@ -1633,6 +1633,16 @@ describe DivisionSummaryPipeline::TemplateCompiler do
         )
       end
 
+      it "says the question was put before the division when its time is not its own" do
+        rendered = compile_summary(senate_data, template_id: 15, motion_text: "That the Senate notes the report.",
+                                                question_text: "The question is that the motion be agreed to.",
+                                                question_time: nil)
+
+        expect(section(rendered, "Question Put")).to start_with(
+          "Before the division, Senator Robin Castellan, in the chair, put the following question:"
+        )
+      end
+
       it "says so in a fixed sentence when no question was recorded" do
         rendered = compile_summary(senate_data, template_id: 15, motion_text: "That the Senate notes the report.")
 

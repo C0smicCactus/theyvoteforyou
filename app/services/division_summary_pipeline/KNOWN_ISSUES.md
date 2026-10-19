@@ -198,7 +198,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-86 | Pipeline | Low | Open | A unanimous division would read "a large majority" where the division page says "unanimously" | See the open entry below. |
 | KI-87 | Pipeline | Medium-High | Open | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switches off the validator's check of `declines_second_reading`, so whether the draft says the amendment opposed the bill rests on the model alone | See the open entry below. |
 | KI-88 | Pipeline | Low | Open | For a second reading amendment, the quoted reasons can be about the bill rather than the amendment's own terms | See the open entry below. |
-| KI-89 | Pipeline | Low | Open | Question Put gives the chair's question the time of the speech before it | See the open entry below. |
+| KI-89 | Pipeline | Low | Fixed | Question Put gave the chair's question the time of the speech before it | `provenance_validator_spec.rb` "leaves out the time the chair's question takes from the speech before it"; `template_compiler_spec.rb` "says the question was put before the division when its time is not its own". The chair's statement putting the question shares the time of the speech before it at about two in three of the 985 divisions checked, from November 2025 to September 2026, so most drafts now say "Before the division". |
 | KI-90 | Pipeline | Medium | Open | A mover's reasons given before an earlier division in the same debate never reach the model, so "About the Amendment" says "No explanatory claims recorded." | See the open entry below. |
 | KI-91 | Pipeline | Low | Open | Template 2's vote sentence says an amendment "introduced by" a senator "to the" bill, though amendments are moved, and a second reading amendment is to the motion | See the open entry below. |
 | KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
@@ -1213,25 +1213,6 @@ KI-58. The same trap waits where the amendment is moved apart from the speech: a
 14 September 2026 #8 the mover's earlier speech (`uk.org.publicwhip/lords/2026-09-14.28.1`) also
 argues for the committee amendments, so once KI-90 brings it to the model, a draft must not quote
 those sentences as the second reading amendment's purpose.
-
-### KI-89
-
-**"Question Put" gives the chair's question the time of the speech before it.** Severity: Low.
-Status: Open. **Confirmed** by replaying Senate 14 September 2026 #7 on 15 October 2026; the time
-the question was really put is **Inferred**.
-
-At Senate 14 September 2026 #7 the draft says "At 1:04 PM, Senator Leah Blyth, in the chair, put
-the following question". The XML gives the chair's statement
-(`uk.org.publicwhip/lords/2026-09-14.37.2`) `time="13:04"`, the time the minister's summing-up
-(37.1) began; the question came after that speech, before the 13:16 division.
-`EvidenceSections#moment` prints the excerpt's XML time, which is right for a member's own speech
-(KI-29's fix) but, for a chair's interjection, is inherited from the speech it follows. The longer
-that speech, the further out the time.
-
-A fix belongs in `EvidenceSections#question`, which could say "Before the division at ..." or leave
-the time out when the chair's statement shares the previous speech's time. Test in
-`template_compiler_spec.rb` beside "quotes each passage under the time of the speech and the
-mover's name".
 
 ### KI-90
 

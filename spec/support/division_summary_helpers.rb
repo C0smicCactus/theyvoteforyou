@@ -14,14 +14,14 @@ module DivisionSummaryHelpers
   # The interpretation and evidence Stage 5 compiles from. explanations are the mover's own
   # sentences; facts maps a fact name to the text Hansard gives for it.
   def summary_inputs(template_id:, motion_text: nil, question_text: nil, introduction: nil, declines_second_reading: nil,
-                     explanations: [], facts: {}, mover: nil, limitation: nil, circulation: nil)
+                     explanations: [], facts: {}, mover: nil, limitation: nil, circulation: nil, question_time: "13:30")
     interpretation = DivisionSummaryPipeline::ExtractionPayload::Interpretation.new(
       template_id: template_id, declines_second_reading: declines_second_reading, missing: []
     )
     evidence = DivisionSummaryPipeline::Evidence.new(
       introduction: summary_excerpt(introduction),
       motion: summary_excerpt(motion_text),
-      question: summary_excerpt(question_text, speaker: "Robin Castellan", time: "13:30"),
+      question: summary_excerpt(question_text, speaker: "Robin Castellan", time: question_time),
       explanations: explanations.map { |text| summary_excerpt(text, found_by: :model) },
       facts: facts.to_h { |name, text| [name.to_sym, summary_excerpt(text, found_by: :model)] },
       mover: mover,

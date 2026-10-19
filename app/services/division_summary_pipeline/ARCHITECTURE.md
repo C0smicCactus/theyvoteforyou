@@ -162,12 +162,13 @@ Every draft has the same shape:
 ## Reviewer Only              (how the draft was made; removed before publishing)
 ```
 
-Each quote carries the time of the speech it came from, which is not the division's time. A
-section with nothing left in it is left out, heading and all: a Motion Introduction that was only
-"I move:", and when nobody moved anything (the chair put the question itself), the explanation,
-Motion Introduction and Motion Text. House members are named in the site's own form, "Example MP";
-senators, "Senator Example". Nothing publishes itself: the draft is saved as an `AiDivisionSummary`
-for human review.
+Each quote carries the time of the speech it came from, which is not the division's time. The
+chair's question usually has no time of its own in the XML, only that of the speech before it, so
+then it is said to be put "Before the division" (KI-89). A section with nothing left in it is
+left out, heading and all: a Motion Introduction that was only "I move:", and when nobody moved
+anything (the chair put the question itself), the explanation, Motion Introduction and Motion
+Text. House members are named in the site's own form, "Example MP"; senators, "Senator Example".
+Nothing publishes itself: the draft is saved as an `AiDivisionSummary` for human review.
 
 ## 4. The five stages
 
