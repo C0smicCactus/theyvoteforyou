@@ -112,13 +112,9 @@ module DivisionSummaryPipeline
                "\"operative_motion\" or \"mover_speech\" as missing."
       end
 
-      instruction = "If the terms of the motion or amendment being decided are in <hansard_context>, list the IDs of " \
-                    "the paragraphs that hold them, in order, in references.motion. If they are not, leave it empty and " \
-                    "report \"operative_motion\" as missing."
-      return instruction unless packet.limitation_statement.present? && packet.mover.nil?
-
-      "#{instruction} Under the limitation of debate the chair put this question with nobody moving it, so do not " \
-        "report \"mover_speech\" as missing."
+      "If the terms of the motion or amendment being decided are in <hansard_context>, list the IDs of the paragraphs " \
+        "that hold them, in order, in references.motion. If they are not, leave it empty and report \"operative_motion\" " \
+        "as missing."
     end
 
     def system_prompt

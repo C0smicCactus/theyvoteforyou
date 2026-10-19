@@ -177,6 +177,33 @@ describe DivisionSummarizer do
       end
     end
 
+    # KI-70: under a guillotine the chair first puts what was already moved (Senate S.O. 142(4)), so
+    # with no mover found, the mover's speech is worth looking for.
+    context "when a question put under a limitation of debate has no mover found" do
+      let(:division) { create(:division, house: "senate", date: Date.new(2026, 8, 18), number: 1) }
+      let(:xml_content) do
+        <<~XML
+          <debates>
+            <major-heading id="h1" url="x">BILLS</major-heading>
+            <minor-heading id="h2" url="x">Example Bill 2026; Limitation of Debate</minor-heading>
+            <speech id="s1" speakername="Casey Whitlow" time="20:00:00" url="x"><p>Pursuant to the order agreed to this morning, the time allocated for the remaining stages of this bill has expired. The question is that the bill be now read a second time.</p></speech>
+            <division divdate="2026-08-18" divnumber="1" id="d1" time="20:05:00" url="x"><divisioncount ayes="12" noes="27" pairs="0" tellerayes="0" tellernoes="0"/></division>
+          </debates>
+        XML
+      end
+
+      it "widens the context when the model reports the mover's speech missing" do
+        packets = []
+        extractor = scripted_extractor([reply(template_id: 29, explanation: [], missing: ["mover_speech"]),
+                                        reply(template_id: 29, explanation: [])], packets)
+        described_class.new(division, models: models, client: stubbed_client, xml_content: xml_content, extractor: extractor)
+                       .summarize_with(model_id)
+
+        expect(packets.first.limitation_statement).to be_present
+        expect(packets.map(&:context_level)).to eq(%i[subdebate sitting_day])
+      end
+    end
+
     context "when no Hansard XML is available" do
       let(:division) { create(:division, motion: "That this House bans the thing") }
       let(:summarizer) { described_class.new(division, models: models, client: stubbed_client) }

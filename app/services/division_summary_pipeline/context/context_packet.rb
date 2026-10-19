@@ -90,5 +90,12 @@ module DivisionSummaryPipeline
       speech = mover_speech
       speech.present? && transcript.last_move_units(speech, :motion).any?
     end
+
+    # Nobody moved what the chair put: a question that is the whole motion, or amendments circulated
+    # and put, with no mover found. A guillotine alone does not mean that, since the chair first
+    # puts whatever was already moved (Senate S.O. 142(4); KNOWN_ISSUES.md KI-70).
+    def put_without_mover?
+      mover.nil? && (question_states_motion? || circulation.present?)
+    end
   end
 end

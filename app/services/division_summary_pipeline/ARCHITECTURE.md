@@ -241,7 +241,8 @@ for human review.
   It keeps raw text for publication and retrieves exact runs of units; `Transcript#anchor` finds a
   short phrase inside one unit and returns Hansard's own characters for it.
 - `DivisionFacts` is the one reader of a `Division` record or a Hash of division data.
-- `MoverFinder` finds the mover from the chair's "moved by ..." or the latest "I move", and records
+- `MoverFinder` finds the mover from the chair's "moved by ..." (for a question on a sheet of
+  amendments, perhaps said earlier in the run of divisions) or the latest "I move", and records
   how (`found_by`). An unnamed move counts only when its terms could be what the question puts
   (amendments for a question on amendments, the same reading for a reading), and the chair putting
   other questions in between does not push it out of the window. `MemberResolver` resolves members

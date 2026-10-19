@@ -148,7 +148,7 @@ module DivisionSummaryPipeline
       earlier_speeches = earlier.speeches.reject { |speech| speeches.any? { |s| s[:id] == speech[:id] } }
       mover = MoverFinder.find(question: speaker_question, putting: chair&.putting_text,
                                speeches: earlier_speeches + speeches, house: facts.house, date: facts.date,
-                               circulated: chair&.circulated_by.present?)
+                               circulated: chair&.circulated_by.present?, run_statements: division_xml.run_statements)
       earlier_speeches = moves_only(without_other_stages(earlier_speeches, mover), mover)
       transcript = Transcript.build(heading: heading, speeches: speeches, earlier_speeches: earlier_speeches,
                                     question_speech_id: question_speech_id, chair_statement: chair)

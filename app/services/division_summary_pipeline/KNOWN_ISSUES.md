@@ -141,7 +141,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-29 | Pipeline | Medium | Partly fixed | Findings from the same audit | See the open entry below: one finding is still open, and each fixed one names its spec. |
 | KI-30 | Pipeline | Low | Open | The router's bill-title stripping can take a capitalised "Amendment" that is not in a title | See the open entry below. |
 | KI-31 | Rules | Medium | Fixed | "That the remaining stages of the bill be agreed to, and the bill be now passed" fell to the general motion fallback | `procedural_router_spec.rb` "routes the remaining stages being agreed to and the bill passed to Template 6". A model that took the fallback's default compiled a valid draft that never said the bill passed. |
-| KI-32 | Pipeline | Medium | Fixed | A question that is the whole motion sent the pipeline to read the whole sitting day | `extraction_prompt_spec.rb` "tells the model there are no terms to find when the question is the whole motion"; `division_summarizer_spec.rb` "when the question is the whole motion and the model reports its terms missing". The prompt told the model to report the terms missing whatever the question, and the retry read about 70,000 tokens that could not contain them. `ContextPacket::QUESTION_IS_THE_MOTION` lists the templates this applies to. Extended in September 2026, after two models reported the mover's speech missing for such a question and one retry read 78,535 tokens: a mover's speech reported missing is no reason to widen when nobody moved anything (the question is the whole motion, the amendments were circulated and put, or a limitation of debate applies and no mover was found), nor are terms Stage 1 found by rule, and the prompt says so (`division_summarizer_spec.rb` "does not widen for a mover's speech reported missing either"; `extraction_prompt_spec.rb`). |
+| KI-32 | Pipeline | Medium | Fixed | A question that is the whole motion sent the pipeline to read the whole sitting day | `extraction_prompt_spec.rb` "tells the model there are no terms to find when the question is the whole motion"; `division_summarizer_spec.rb` "when the question is the whole motion and the model reports its terms missing". The prompt told the model to report the terms missing whatever the question, and the retry read about 70,000 tokens that could not contain them. `ContextPacket::QUESTION_IS_THE_MOTION` lists the templates this applies to. Extended in September 2026, after two models reported the mover's speech missing for such a question and one retry read 78,535 tokens: a mover's speech reported missing is no reason to widen when nobody moved anything (the question is the whole motion, or the amendments were circulated and put, and no mover was found; a limitation of debate alone stopped counting with KI-70), nor are terms Stage 1 found by rule, and the prompt says so (`division_summarizer_spec.rb` "does not widen for a mover's speech reported missing either"; `extraction_prompt_spec.rb`). |
 | KI-33 | Pipeline | Medium | Fixed | A failed sitting day retry threw away a first reply that would have compiled | `division_summarizer_spec.rb` "when the retry over the whole sitting day fails"; `reviewer_report_spec.rb`. The draft is now built from the first reply and the Reviewer Only report says why. |
 | KI-34 | Rules | Low | Fixed | Template 6 said "a motion introduced by a member" and "third reading" for the remaining stages question the chair puts | `template_compiler_spec.rb` "names every remaining stage, and no mover, when the question takes the remaining stages together". Its Bill Timeline still explains the third reading, which the remaining stages end with. |
 | KI-35 | Pipeline | Medium | Fixed | A lead-in sentence before the chair's question could decide the route, and so could the amendments Hansard prints after it, or an earlier question in the same statement | `chair_statement_spec.rb` "#question"; `division_xml_spec.rb` "#operative_question"; `context_builder_spec.rb` "when the chair puts amendments nobody moved in the chamber"; `procedural_router_spec.rb` "routes the chair's question sentence, whatever the rest of the statement said". `ChairStatement` reads the statement once: the division's question is the last question sentence of the chair's own words ("The question is", "now is", "first", "immediate", "next"), after any question closed by "Question agreed to." and the like. Comparing routes over the 121 loaded divisions of May to September 2026 moved 42, every one a correction: seven questions had been settled on words in the chair's lead-in (three as closures because it said "I'll now put the question", one as a guillotine because it said "time allotted") and a dozen statements put and closed one question before putting the division's. MoverFinder reads the paragraphs that put the question, where the chair often names the mover. |
@@ -179,7 +179,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-67 | Pipeline | Medium | Open | The sitting-day retry has no limit on its size | See the open entry below. |
 | KI-68 | Rules | High | Open | Six question forms are routed as their opposites, so a draft would report the reverse of the vote | See the open entry below. |
 | KI-69 | Rules | High | Open | A Senate division without a quorum is reported as decided | See the open entry below. |
-| KI-70 | Rules | Medium-High | Open | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | See the open entry below. |
+| KI-70 | Rules | Medium-High | Fixed | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | `context_builder_spec.rb` "credits the rest of a sheet's amendments to the mover the chair named earlier in the run, and only them"; `extraction_prompt_spec.rb` "does not tell the model nobody moved a question put under a limitation of debate"; `division_summarizer_spec.rb` "when a question put under a limitation of debate has no mover found". `ContextPacket#put_without_mover?` now decides it for the validator and the retry: no mover found, and a question that is the whole motion or amendments circulated and put. The prompt no longer tells the model nobody moved a question just because a limitation of debate applies. A guillotine alone no longer counts, since the chair first puts what was already moved (Senate S.O. 142(4), p. 82). A "moved by" earlier in the run counts only in a sentence naming this question's sheet. At Senate 18 August 2026 #14 the motion found is the whole sheet, including the two amendments division 13 had already decided. |
 | KI-71 | Pipeline | Medium | Open | The prompt does not connect a House mover's name with the seat or office the chair calls them by | See the open entry below. |
 | KI-72 | Rules | Medium | Open | Senate rescission: the standing order and the guide disagree on the majority, and the code's pattern is too broad | See the open entry below. |
 | KI-73 | Rules | Medium | Open | Explainer and vote sentences that state one chamber's rule as general, or say more than the rules do (Templates 5, 7, 14, 25 and 26) | See the open entry below. |
@@ -427,40 +427,6 @@ be optional", so the senators present are the recorded votes, plus the chair if 
 vote. S.O. 147(3), p. 84, says what happens to a committee of the whole interrupted for want of a
 quorum: its resumption is "an order of the day for the next day of sitting". The Senate (Quorum)
 Act 1991 has not been checked.
-
-### KI-70
-
-**Amendments a senator moved before a guillotine fell are described as moved by nobody, and three
-parts of the pipeline decide "nobody moved" differently.** Severity: Medium-High. Status: Open.
-**Confirmed** (the prompt, by routing the division and reading the code); **Read** (the
-disagreement).
-
-Senate S.O. 142(4), p. 82: when the time expires the chair puts "the question on any amendment or
-motion already proposed from the chair", and only then the circulated ones. At Senate 18 August
-2026, 8:00 PM, the chair said "I'll first deal with the amendments moved by Senator ... on sheet
-3832", and division 14 (8:09 PM, `uk.org.publicwhip/lords/2026-08-18.209.1`) then put "the remaining
-amendments on sheet 3832". Stage 1 finds a limitation of debate and no mover for division 14, so
-`ExtractionPrompt#no_motion_instruction` tells the model "Under the limitation of debate the chair
-put this question with nobody moving it", and the draft would name no mover for amendments a
-senator moved.
-
-The same idea is decided in three places, and they already disagree:
-
-- `DivisionSummarizer#nobody_moved?`, which stops the sitting-day retry for a missing mover's
-  speech, counts a question that states the whole motion, amendments circulated and put, or a
-  limitation of debate with no mover found.
-- `ExtractionPrompt#no_motion_instruction` and `#circulated_note` tell the model nobody moved in
-  the same three cases.
-- `ProvenanceValidator#put_without_mover?`, which decides whether the draft leaves out its Motion
-  Introduction and Motion Text sections, counts only the first two. Under a guillotine with no
-  mover found, the draft prints "No motion introduction recorded." while the prompt told the model
-  nobody moved.
-
-Division 14 supports the validator's narrower test. A fix would decide this once, on
-`ContextPacket`, saying "nobody moved" only when the question states its own terms or a circulator
-was found, and would look for "moved by" in the earlier statements of the same run of divisions
-(`DivisionXml#run_statements`). Test in `extraction_prompt_spec.rb`, `division_summarizer_spec.rb`
-and `provenance_validator_spec.rb`, with division 14 as the case.
 
 ### KI-72
 
