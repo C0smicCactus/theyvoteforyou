@@ -144,8 +144,9 @@ class Person < ApplicationRecord
     offices.order(from_date: :desc).select { |o| o.to_date == Date.new(9999, 12, 31) }
   end
 
+  # Conditions as a hash, not SQL: MariaDB has a TO_DATE function, so it rejects a bare to_date column.
   def offices_on_date(date)
-    offices.where("? >= from_date AND ? <= to_date", date, date)
+    offices.where(from_date: ..date, to_date: date..)
   end
 
   # Was this person a member of parliament in the right house on the day of the division?

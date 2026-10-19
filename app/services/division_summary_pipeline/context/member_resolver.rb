@@ -2,10 +2,10 @@
 
 module DivisionSummaryPipeline
   # ResolvedMember carries the TVFY database facts for a politician a template wants to
-  # name: their canonical name, party, electorate and profile path. Every attribute other
-  # than member is nil when the database has no match, so callers can fall back to plain
-  # text rather than publishing broken links or guessed details.
-  ResolvedMember = Struct.new(:member, :name, :party, :electorate, :link, keyword_init: true)
+  # name: their canonical name, party, electorate, offices held on the date given, and profile
+  # path. Every attribute other than member is nil when the database has no match, so callers
+  # can fall back to plain text rather than publishing broken links or guessed details.
+  ResolvedMember = Struct.new(:member, :name, :party, :electorate, :offices, :link, keyword_init: true)
 
   # MemberResolver turns a name or electorate extracted from Hansard into authoritative
   # TVFY member facts, for the templates that must name a second person (who a censure
@@ -75,6 +75,7 @@ module DivisionSummaryPipeline
         name: member.name,
         party: member.party_name,
         electorate: member.senator? ? nil : member.electorate,
+        offices: (member.person.offices_on_date(date).pluck(:position) if date.present?),
         link: member_path(member.url_params)
       )
     end

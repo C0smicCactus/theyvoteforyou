@@ -180,7 +180,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-68 | Rules | High | Open | Six question forms are routed as their opposites, so a draft would report the reverse of the vote | See the open entry below. |
 | KI-69 | Rules | High | Open | A Senate division without a quorum is reported as decided | See the open entry below. |
 | KI-70 | Rules | Medium-High | Open | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | See the open entry below. |
-| KI-71 | Pipeline | Medium | Open | The prompt does not connect a House mover's name with the seat or office the chair calls them by | See the open entry below. |
+| KI-71 | Pipeline | Medium | Fixed | The prompt did not connect a House mover's name with the seat or office the chair calls them by | `extraction_prompt_spec.rb` "gives a House mover's seat and offices, which the chair calls them by", `member_resolver_spec.rb` "gives the offices the member held on the date". A House Member is referred to by office or seat, never by name (House S.O. 64, p. 40). A Senate mover is still given by name alone, since the Senate chair names senators. |
 | KI-72 | Rules | Medium | Open | Senate rescission: the standing order and the guide disagree on the majority, and the code's pattern is too broad | See the open entry below. |
 | KI-73 | Rules | Medium | Open | Explainer and vote sentences that state one chamber's rule as general, or say more than the rules do (Templates 5, 7, 14, 25 and 26) | See the open entry below. |
 | KI-74 | Rules | Low | Open | Three House rules the pipeline gets wrong in rare cases: a tie on the ballot closure, the quorum fallback, and Template 1 | See the open entry below. |
@@ -967,25 +967,6 @@ and KI-59. Each of those was fixed by stopping one trigger, and nothing yet boun
 A fix could give the sitting-day tier a character budget, as `EarlierDebate::MAX_CHARS` does for
 earlier days, or skip the retry and tell the reviewer when the packet would exceed one. It would be
 tested in `context_builder_spec.rb` and `division_summarizer_spec.rb`.
-
-### KI-71
-
-**The prompt does not connect a House mover's name with the seat or office the chair calls them
-by.** Severity: Medium. Status: Open. **Confirmed** (the gap and the rule); that it caused a
-failure is **Inferred** from the model's reasoning.
-
-House S.O. 64 (as at 23 July 2025, p. 40) bars referring to a Member by name: a Member is referred
-to by their ministerial office, their parliamentary office or their electoral division. So the
-House chair puts "the amendment moved by the honourable member for [division]", while the prompt's
-`<motion_as_moved>` gives the mover only by name ("Moved by: [name] (speech S[n])."). Stage 1
-already knows they are the same person, since `MoverFinder` resolved the member. On 1 October 2026
-the contradiction sent Qwen3.5-9B into a loop at House 18 August 2026 #3, going by its reasoning,
-and its draft failed validation. The same gap was in the sitting-day retry for House 16 September
-2026 #6 on 13 October 2026, where the chair named "the honourable member for Kooyong" and the
-prompt gave the member's name. A fix would add the seat or office to the "Moved by" line for House
-divisions ("Moved by: [name], the member for [division]"), and offices as well as seats, since "the
-Minister for ..." or "the Leader of the House" confuses in the same way. The Senate chair names
-senators, so the gap looks House-only. Test in `extraction_prompt_spec.rb`.
 
 ### KI-76
 
