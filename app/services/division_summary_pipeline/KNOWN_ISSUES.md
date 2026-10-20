@@ -116,7 +116,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-4 | Rules | High | Partly fixed | Real question forms fall through to Template 15 | See the open entry below. |
 | KI-5 | Rules | High | Fixed | Absolute-majority questions were reported on a simple-majority test | `template_compiler_spec.rb` "constitutional and parliamentary procedures" and "Template 17, the purpose a suspension states for itself". The pipeline flags the doubt rather than resolving it: the question alone does not say how a suspension was moved. Corrected in September 2026 against House S.O. 47 as at 23 July 2025: a House suspension without notice is also carried by a majority of those present if the Leader of the House and the Manager of Opposition Business agree, and "by leave" is said only of the House, where the House Guide (p. 2) supports it; neither Senate source mentions it ("gives each chamber's own ways to carry a suspension on a simple majority"). The House Guide (2019) predates S.O. 47's amendments of 23 March 2020 and 27 July 2022, and the current S.O. 47 (p. 33) does not mention leave: **Verify** that a House suspension moved by leave still needs only a majority. S.O. 47(c)(ii)'s alternative is "a majority of Members present", where the notice says "a majority of those voting". |
 | KI-6 | Rules | Medium | Fixed | Deferred and successive divisions defeated the context window | `context_builder_spec.rb` "context warnings". The S.O. 133 time windows are this code's own estimate, not a figure from either guide; they only raise a warning. Corrected in September 2026 against House S.O. 133 as at 23 July 2025: the Tuesday window after the matter of public importance was S.O. 133's own rule when the House Guide was written (p. 58) and is not in the current S.O. 133, so it is gone ("does not warn about a Tuesday afternoon"). S.O. 133(b) now defers evening divisions from Monday to Wednesday "until the first opportunity the next sitting day", which fixes no time; a window for it caught only programmed questions, so it rests on the chair's words, as a deferral on another day already did. The Senate's half is open: the chair's words are read both too narrowly and too widely there (KI-81). |
-| KI-7 | Rules | Medium | Partly fixed | Template 24 stated the wrong suspension period and the House wording in the Senate | See the open entry below: the House is fixed, the Senate is not. |
+| KI-7 | Rules | Medium | Fixed | Template 24 stated the wrong suspension period and the House wording in the Senate | `template_compiler_spec.rb` "Template 24, suspension periods and the two chambers' wording", "uses the Senate's form of words and its own suspension periods". The House periods follow House S.O. 94(d) as at 23 July 2025, the Senate's S.O. 204(1) and (2) (July 2025, p. 102), all three given since the data does not say which occasion it was. The explainer says the Chair "has named them", no longer "for disorderly conduct": Senate S.O. 203(1) (p. 102) lists five offences, and Senate Guide No. 2 (p. 6) calls the report to the Senate a naming. |
 | KI-8 | Rules | Medium | Fixed | House quorum hardcoded against a 2019 date | `template_compiler_spec.rb` "constitutional and parliamentary procedures". Chamber size comes from the member records on the day; the dated constant is only the fallback. |
 | KI-9 | Rules | Medium | Fixed | Template 2 overstated what carrying a reasoned amendment does | Template 2's explainer (no spec). |
 | KI-10 | Rules | Medium | Fixed | Template 17 asserted a purpose the question usually does not support | `template_compiler_spec.rb` "Template 17, the purpose a suspension states for itself". |
@@ -243,31 +243,6 @@ validation (KI-79). With no settled route, `ContextPacket#question_states_motion
 prompt told the model to report the terms missing if it could not find them, it did, and the
 pipeline read the whole sitting day looking for terms this question does not have (KI-67). A
 template for this form would have settled the route and avoided both.
-
-### KI-7
-
-**Template 24 states no Senate suspension periods, and uses the House's wording for the Senate.**
-Severity: Medium. Status: **Partly fixed**. **Confirmed** against the Senate standing orders of July
-2025.
-
-Fixed for the House, against House S.O. 94(d) as at 23 July 2025: the first suspension is the 24
-hours from the time of suspension, and only the second and third leave out the day
-(`template_compiler_spec.rb` "Template 24, suspension periods and the two chambers' wording").
-
-Still open for the Senate. This entry asked for Senate S.O. 204 to be checked in the current
-edition before its periods were stated. The July 2025 edition (p. 102) has them as the June 2009
-one did: a suspension "on the first occasion shall be for the remainder of that day's sitting, on
-the second occasion for 7 sitting days, and on the third or any subsequent occasion for 14 sitting
-days", where they fall in the same calendar year, and a suspended senator may not enter the
-chamber (S.O. 204(2)). The Senate sentence in `summary_wording.rb` still says "The Senate names a
-senator under standing order 203 and sets the period of suspension under standing order 204; the
-Senate's own guide does not state those periods", but under S.O. 203(1) the President "may report
-to the Senate that the senator has committed an offence". Template 24's explainer says a member is
-suspended after the Chair "has named them for disorderly conduct", which is only one of the five
-offences S.O. 203(1) lists. A fix would state all three periods, since the data does not say which
-occasion it was, say that the President reports the senator, and not limit the offence to
-disorderly conduct. Test in `template_compiler_spec.rb` "Template 24, suspension periods and the
-two chambers' wording".
 
 ### KI-13
 

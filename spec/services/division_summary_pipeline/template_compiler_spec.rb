@@ -1100,7 +1100,7 @@ describe DivisionSummaryPipeline::TemplateCompiler do
         expect(rendered).not_to include("in each case not counting the day")
       end
 
-      it "uses the Senate's form of words and does not assert its suspension periods" do
+      it "uses the Senate's form of words and its own suspension periods" do
         rendered = compile_summary(
           suspension_of_member("senate"),
           template_id: 24,
@@ -1109,7 +1109,9 @@ describe DivisionSummaryPipeline::TemplateCompiler do
         )
 
         expect(rendered).to include("be suspended from the sitting of the Senate")
-        expect(rendered).to include("standing order 204")
+        expect(rendered).to include("A first suspension in a calendar year runs for the rest of the day's sitting, " \
+                                    "a second for 7 sitting days, and a third or later one for 14 sitting days.")
+        expect(rendered).not_to include("disorderly conduct")
         expect(rendered).not_to include("24 hours from the time of suspension")
       end
     end
