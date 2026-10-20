@@ -202,7 +202,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-90 | Pipeline | Medium | Open | A mover's reasons given before an earlier division in the same debate never reach the model, so "About the Amendment" says "No explanatory claims recorded." | See the open entry below. |
 | KI-91 | Pipeline | Low | Open | Template 2's vote sentence says an amendment "introduced by" a senator "to the" bill, though amendments are moved, and a second reading amendment is to the motion | See the open entry below. |
 | KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
-| KI-93 | Rules | Low | Open | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | See the open entry below. |
+| KI-93 | Rules | Low | Fixed | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | `template_compiler_spec.rb` "Template 8, an order for the production of documents", "names the chamber, says tabled documents become public, and gives the writer no instruction". The writing instruction is gone, and the explainer says the order is the chamber's (Senate S.O. 164(1), p. 90; House S.O. 200, p. 84, since the router does not limit Template 8 to the Senate), that it makes the government table the documents, that an order usually sets a deadline (Senate Guide No. 10, p. 25), and that tabled documents become public (Guide No. 10, p. 26; House S.O. 203, p. 85). |
 | KI-94 | Pipeline | Low | Open | "No explanatory claims recorded." prints as a block quote, in the pipeline's own term, whatever the reason there is nothing to quote | See the open entry below. |
 
 ---
@@ -749,37 +749,6 @@ they never reach a draft.
 A decision is needed, not a fix: whether a draft should note such a statement, in Hansard's words and
 with no count. If it should, the tests belong in `division_xml_spec.rb`, for finding the statement
 after the division, and `template_compiler_spec.rb`, for the note.
-
-### KI-93
-
-**Template 8's explainer speaks to the writer, calls a Senate order a power of "the parliament", and
-doesn't say that the documents become public only when tabled.** Severity: Low. Status: Open.
-**Confirmed** by replaying Senate 14 September 2026 #10 on 15 October 2026; the text is fixed, so it
-is in all 107 Template 8 drafts of the 2026 run.
-
-At Senate 14 September 2026 #10, an order for documents on the Intergenerational Trust Fund for the
-People of the Republic of Nauru, carried 35 to 19, the explainer reads:
-
-- "This is a vote about access to the documents. It is not a vote about the subject the documents
-  deal with, and the summary should not suggest otherwise." The last clause is an instruction to
-  whoever writes the summary, printed in the public text. The first two sentences are a choice
-  (KI-78).
-- "An Order for the Production of Documents is a power the parliament uses to make the government
-  hand over papers ...". The order is the Senate's: "Documents may be ordered to be laid on the
-  table" (Senate S.O. 164(1), p. 90), a power the Senate has "through section 49 of the
-  Constitution" (Senate Guide No. 12, p. 30).
-- "hand over": the order is that documents be laid on the table, and "When returned the documents
-  shall be laid on the table by the Clerk" (S.O. 164(2), p. 90); tabled documents become public
-  (Senate Guide No. 10, p. 26). The explainer says governments "sometimes resist an order", but not
-  that the documents become public only once they are tabled, so a reader of "requiring the
-  Government to produce documents, which means it was successful" can take them as already
-  released.
-
-Nothing in a draft is false, which is why this is Low. A fix belongs in
-`templates/8_production_of_documents.md`: drop "and the summary should not suggest otherwise", say
-"the Senate", and say that the documents are to be tabled, and so made public, by the date the order
-sets. Test in `template_compiler_spec.rb` with a Template 8 compile whose explainer has no "summary"
-and says "the Senate".
 
 ## Open: pipeline
 

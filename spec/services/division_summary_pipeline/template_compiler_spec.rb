@@ -560,6 +560,19 @@ describe DivisionSummaryPipeline::TemplateCompiler do
       end
     end
 
+    # The order is the chamber's, its documents are tabled, and they are public only once they
+    # are (KI-93).
+    describe "Template 8, an order for the production of documents" do
+      it "names the chamber, says tabled documents become public, and gives the writer no instruction" do
+        rendered = compile_summary({ time: "11:45 AM", house: "senate", result: "passed", mover_name: "Fictional Senator" },
+                                   template_id: 8, motion_text: "That there be laid on the table by the Minister a report.")
+
+        expect(rendered).to include("a power the Senate uses to make the government table papers")
+        expect(rendered).to include("documents become public once they are tabled")
+        expect(rendered).not_to include("the summary should not suggest")
+      end
+    end
+
     describe "constitutional and parliamentary procedures" do
       def quorum_division_data(date:)
         {
