@@ -381,5 +381,24 @@ describe DataLoader::DivisionXml do
 
       expect(division.context_speeches.pluck(:speaker)).to eq(["Robin Carrow", "Jess Harlow"])
     end
+
+    # KNOWN_ISSUES.md KI-67: read whole, a long sitting day made a prompt a local model took 18
+    # minutes to read.
+    it "cuts the sitting day to its budget, nearest the division first, keeping the division's own debate" do
+      division = divisions(<<~XML).first
+        <minor-heading id="h0">Example Bill 2026; Second Reading</minor-heading>
+        <speech id="o1" speakername="Sam Okafor"><p>An earlier speech in another debate.</p></speech>
+        <speech id="o2" speakername="Sam Okafor"><p>A later speech in that debate.</p></speech>
+        #{heading}
+        <speech id="m1" speakername="Robin Carrow"><p>I move:</p><p class="italic">That the debate be adjourned.</p></speech>
+        <speech id="a1" speakername="Jess Harlow"><p>We oppose adjourning it.</p></speech>
+        <division divnumber="1" id="d1"/>
+      XML
+
+      stub_const("DataLoader::DivisionXml::SITTING_DAY_MAX_CHARS", 100)
+      expect(division.context_speeches(:sitting_day).pluck(:id)).to eq(%w[o2 m1 a1])
+      stub_const("DataLoader::DivisionXml::SITTING_DAY_MAX_CHARS", 40)
+      expect(division.context_speeches(:sitting_day).pluck(:id)).to eq(%w[m1 a1])
+    end
   end
 end

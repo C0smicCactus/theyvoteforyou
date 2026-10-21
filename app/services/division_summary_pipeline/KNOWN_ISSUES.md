@@ -176,7 +176,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-64 | Pipeline | Medium | Open | The model rarely pointed at the mover's reasons, leaving "About the Motion" empty | See the open entry below. |
 | KI-65 | Pipeline | Low | Open | A motion moved at another senator's request is described as the mover's own | See the open entry below. |
 | KI-66 | Pipeline | Low | Fixed | A motion's lettered and numbered paragraphs were all quoted at one level, so "(i)" under "(a)" read as though it sat beside it | `quote_outline_spec.rb`; `template_compiler_spec.rb` "an outlined motion". Hansard's XML gives every paragraph as a flat `<p>`, so the depth comes from the labels: each new label style is one level further in, and going back to a style already open goes back to its level. "(i)", "(v)" and "(x)" are read as letters or numerals by what they continue. A paragraph without a label stays at the outer level. Only Motion Text is outlined, not the mover's quoted sentences. Checked on Senate 17 September 2026 #8, #9 and #10. |
-| KI-67 | Pipeline | Medium | Open | The sitting-day retry has no limit on its size | See the open entry below. |
+| KI-67 | Pipeline | Medium | Fixed | The sitting-day retry had no limit on its size | `division_xml_spec.rb` "cuts the sitting day to its budget, nearest the division first, keeping the division's own debate". `DivisionXml#context_speeches` now cuts the sitting day's speeches to 100,000 characters, nearest the division first, but never cuts into the division's own debate, which the first call read whole; that debate's earlier moves still come from `EarlierDebate`. A limit on the tier covers the sitting-day packet built before the first call, when the question only refers to a motion Stage 1 could not find, as well as the retry. Over the 910 divisions of 19 January to 30 September 2026, from the cached XML on 21 October 2026: House 16 September 2026 #6's prompt fell from 453,534 characters to 109,516, with the same mover, and the largest from 517,377 to 210,157; no first-call prompt changed; 44 packets keep more of the same debate's earlier moves; 48 lose a proposer taken from a matter of urgency elsewhere that day; and Senate 26 March 2026 #12 loses a mover taken from another debate's third reading. House 25 June 2026 #4, a closure of a matter of public importance, now finds Template 17 as the debate cut short, from a 28 May suspension under another "Budget" heading; its sentence does not print it. |
 | KI-68 | Rules | High | Open | Six question forms are routed as their opposites, so a draft would report the reverse of the vote | See the open entry below. |
 | KI-69 | Rules | High | Open | A Senate division without a quorum is reported as decided | See the open entry below. |
 | KI-70 | Rules | Medium-High | Open | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | See the open entry below. |
@@ -941,32 +941,6 @@ introduction, so a reader can see who it belonged to; #5 quotes nothing that sho
 put names the senator whose business it was in both, so the information is in the packet.
 `MoverFinder` already reads "in the name of" for its weaker `notice_owner` sign, which is where a
 fix would start.
-
-### KI-67
-
-**The sitting-day retry has no limit on its size.** Severity: Medium. Status: Open. **Confirmed**
-from the prompt and reply saved for the retry.
-
-The retry's packet takes the last 200 speeches before the division whole
-(`DataLoader::DivisionXml::CONTEXT_SPEECH_LIMITS`), however long they are, and `EarlierDebate`
-searches earlier sitting days exhaustively. At House 16 September 2026 #6 that came to a user
-prompt of 453,534 characters: 123,391 tokens to Qwen3.6-35B-A3B (UD-Q4_K_M), against 3,308 for the
-first call. Through llama.cpp on a local machine it took 18 minutes to read. The model then
-repeated one sentence until the prompt and its reply filled the server's 131,072-token context,
-and gave no answer. The draft was built from the first reply, as
-`DivisionSummarizer#widened_attempt` intends, so the cost was 26 minutes for a retry that could not
-have helped, since this question has no separate terms (KI-4). A model with a smaller context
-window would refuse a prompt this size outright, and on Bedrock every model run pays to read it.
-
-The packet also named an amendment moved at 5:38 PM as this question's motion, and told the model
-"The motion is settled": the latest "I move" before the question taken as its motion, as in KI-62.
-The retry gave no answer, so this did not reach the draft.
-
-This is the fourth retry found reading the whole day when it could not help, after KI-32, KI-44
-and KI-59. Each of those was fixed by stopping one trigger, and nothing yet bounds the retry itself.
-A fix could give the sitting-day tier a character budget, as `EarlierDebate::MAX_CHARS` does for
-earlier days, or skip the retry and tell the reviewer when the packet would exceed one. It would be
-tested in `context_builder_spec.rb` and `division_summarizer_spec.rb`.
 
 ### KI-71
 

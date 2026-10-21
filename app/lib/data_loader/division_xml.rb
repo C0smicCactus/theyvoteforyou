@@ -8,6 +8,11 @@ module DataLoader
     # tier when building an LLM prompt (see #context_speeches). Not used by the loader itself.
     CONTEXT_SPEECH_LIMITS = { immediate: 5, subdebate: 25, sitting_day: 200 }.freeze
 
+    # The sitting day's speeches are also cut to this many characters, nearest the division
+    # first. Read whole, 200 of them made a prompt of 453,534 characters that a local model took
+    # 18 minutes to read (KNOWN_ISSUES.md KI-67).
+    SITTING_DAY_MAX_CHARS = 100_000
+
     # The chair putting a question, or saying one was deferred, as against a member debating it
     # (see #preceded_by_division?). Current Hansard names the member in the chair like any other
     # speaker, so the words are all there is to go on; the length cap keeps a member's speech
@@ -214,7 +219,8 @@ module DataLoader
         selected = [earlier_move, *selected] if earlier_move
       end
 
-      selected.map { |speech| SpeechText.context_speech(speech) }
+      selected = selected.map { |speech| SpeechText.context_speech(speech) }
+      level == :sitting_day ? within_sitting_day_budget(selected) : selected
     end
 
     # The title of the debate this division sits in: the nearest preceding minor heading
@@ -407,6 +413,17 @@ module DataLoader
         previous_element = previous_element.previous_element
       end
       speeches.reverse
+    end
+
+    # Never fewer than the division's own debate, which the first call read whole: the same
+    # debate's moves from before it are found apart from this (EarlierDebate), but not those
+    # inside it, which that leaves to these speeches.
+    def within_sitting_day_budget(speeches)
+      own = previous_speeches.size
+      chars = 0
+      speeches.reverse.take_while.with_index do |speech, index|
+        (chars += speech[:text].size) <= SITTING_DAY_MAX_CHARS || index < own
+      end.reverse
     end
 
     def speech_text(speech)
