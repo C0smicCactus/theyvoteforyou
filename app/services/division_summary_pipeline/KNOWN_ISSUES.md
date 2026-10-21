@@ -115,7 +115,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-3 | Pipeline | High | Fixed | Template 22 contradicted itself for "the business of the day be called on" | `template_compiler_spec.rb` "Template 22, the three questions that arrive as a closure". A template per closure form would be tidier; that is a catalogue decision. |
 | KI-4 | Rules | High | Partly fixed | Real question forms fall through to Template 15 | See the open entry below. |
 | KI-5 | Rules | High | Fixed | Absolute-majority questions were reported on a simple-majority test | `template_compiler_spec.rb` "constitutional and parliamentary procedures" and "Template 17, the purpose a suspension states for itself". The pipeline flags the doubt rather than resolving it: the question alone does not say how a suspension was moved. Corrected in September 2026 against House S.O. 47 as at 23 July 2025: a House suspension without notice is also carried by a majority of those present if the Leader of the House and the Manager of Opposition Business agree, and "by leave" is said only of the House, where the House Guide (p. 2) supports it; neither Senate source mentions it ("gives each chamber's own ways to carry a suspension on a simple majority"). The House Guide (2019) predates S.O. 47's amendments of 23 March 2020 and 27 July 2022, and the current S.O. 47 (p. 33) does not mention leave: **Verify** that a House suspension moved by leave still needs only a majority. S.O. 47(c)(ii)'s alternative is "a majority of Members present", where the notice says "a majority of those voting". |
-| KI-6 | Rules | Medium | Fixed | Deferred and successive divisions defeated the context window | `context_builder_spec.rb` "context warnings". The S.O. 133 time windows are this code's own estimate, not a figure from either guide; they only raise a warning. Corrected in September 2026 against House S.O. 133 as at 23 July 2025: the Tuesday window after the matter of public importance was S.O. 133's own rule when the House Guide was written (p. 58) and is not in the current S.O. 133, so it is gone ("does not warn about a Tuesday afternoon"). S.O. 133(b) now defers evening divisions from Monday to Wednesday "until the first opportunity the next sitting day", which fixes no time; a window for it caught only programmed questions, so it rests on the chair's words, as a deferral on another day already did. The Senate's half is open: the chair's words are read both too narrowly and too widely there (KI-81). |
+| KI-6 | Rules | Medium | Fixed | Deferred and successive divisions defeated the context window | `context_builder_spec.rb` "context warnings". The S.O. 133 time windows are this code's own estimate, not a figure from either guide; they only raise a warning. Corrected in September 2026 against House S.O. 133 as at 23 July 2025: the Tuesday window after the matter of public importance was S.O. 133's own rule when the House Guide was written (p. 58) and is not in the current S.O. 133, so it is gone ("does not warn about a Tuesday afternoon"). S.O. 133(b) now defers evening divisions from Monday to Wednesday "until the first opportunity the next sitting day", which fixes no time; a window for it caught only programmed questions, so it rests on the chair's words, as a deferral on another day already did. The Senate's half also rests on the chair's words, and is partly open (KI-81). |
 | KI-7 | Rules | Medium | Partly fixed | Template 24 stated the wrong suspension period and the House wording in the Senate | See the open entry below: the House is fixed, the Senate is not. |
 | KI-8 | Rules | Medium | Fixed | House quorum hardcoded against a 2019 date | `template_compiler_spec.rb` "constitutional and parliamentary procedures". Chamber size comes from the member records on the day; the dated constant is only the fallback. |
 | KI-9 | Rules | Medium | Fixed | Template 2 overstated what carrying a reasoned amendment does | Template 2's explainer (no spec). |
@@ -190,7 +190,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
 | KI-79 | Pipeline | High | Open | A draft said an amendment was agreed to when no amendment was moved or found, and passed validation | See the open entry below. |
 | KI-80 | Pipeline | High | Open | A deferred vote the chair put by name, without restating its question, was drafted as a closure | See the open entry below. |
-| KI-81 | Pipeline | Low | Open | The deferral warning misses Senate wordings, and in both chambers fires on text that isn't the chair's | See the open entry below. |
+| KI-81 | Pipeline | Low | Partly fixed | The deferral warning missed Senate wordings, and in both chambers fired on text that wasn't the chair's; a deferred vote put with no word of deferral is still missed | See the open entry below. |
 | KI-82 | Rules | Low | Open | A draft can't say that its division was deferred from an earlier day, or that it replaced an earlier decision | See the open entry below. |
 | KI-83 | Rules | Low | Open | The absolute majority is worked out from the members on the day, not the fixed figure the rules give: 38 in a Senate vacancy, and 75 in the House in March 2026 | See the open entry below. |
 | KI-84 | Pipeline | High | Open | A deferred second reading was credited to the mover of a second reading amendment negatived before it, and the amendment was printed as its motion | See the open entry below. |
@@ -1067,38 +1067,37 @@ fix would route on that motion, and would be tested with this form of words.
 
 ### KI-81
 
-**The deferral warning misses Senate wordings, and in both chambers fires on text that isn't the
-chair's.** Severity: Low. Status: Open. **Confirmed** by running the pattern against each chair's
-statement, and by replaying Senate 4 March 2026 #4 and House 18 August 2026 #10 on 15 October 2026.
+**A deferred vote the chair puts with no word of deferral raises no deferral warning, and the
+warning reaches questions put after the deferred ones in the same run.** Severity: Low. Status:
+**Partly fixed**. **Confirmed** by reading each division's run of chair's statements over the 910
+divisions from January to September 2026, before and after the fix, on 21 October 2026.
 
-`ContextBuilder::DEFERRED_STATEMENT` misses three ways the Senate takes a deferred vote: "a division
-on amendment (1) on sheet 3472 moved by Senator Shoebridge was deferred"
-(`uk.org.publicwhip/lords/2026-03-03.13.3`, Senate 3 March 2026 #2); "the votes on the amendments
-moved by Senator Shorebridge and Senator Bell were deferred" (Hansard's spelling,
-`uk.org.publicwhip/lords/2026-08-20.65.2`, Senate 20 August 2026 #14 and #15); and a deferred vote
-put with no mention of deferral (`uk.org.publicwhip/lords/2026-03-25.17.3`, deferred at
-`uk.org.publicwhip/lords/2026-03-23.216.2`; that division failed to draft). And because
-`#deferred_by_chair?` reads every speech in the packet, not just the chair's statements, it fires on
-a motion's own terms (Senate 4 March 2026 #4, whose motion at
-`uk.org.publicwhip/lords/2026-03-04.23.1` mentions "the deferred vote") and, on the sitting-day
-retry, on any deferred vote earlier in the day (Senate 5 February 2026 #10 and #11, from
-`uk.org.publicwhip/lords/2026-02-05.36.2`). A false warning tells the model that the speeches beside
-the division are not its debate. Where the warning was missed, the earlier debate was still added
-for 3 March #2 and 20 August #15, because nothing beside the division moved anything and the
-question mentioned an amendment: right, but not because the deferral was seen.
+Fixed: `#deferred_by_chair?` read every speech in the packet, so a motion's own terms (Senate 4
+March 2026 #4, "the deferred vote", `uk.org.publicwhip/lords/2026-03-04.23.1`; House 18 August 2026
+#10, "standing order 133(b) (deferred divisions) being suspended") and, on the sitting-day retry,
+any deferred vote put earlier in the day raised it. It now reads only the chair's statements in the
+division's run (`DataLoader::DivisionXml#run_statements`, which ends with the one putting this
+question), and `DEFERRED_STATEMENT` allows words between "division" or "votes" and "deferred", as at
+Senate 3 March 2026 #2 ("a division on amendment (1) on sheet 3472 moved by Senator Shoebridge was
+deferred") and 20 August 2026 #14 and #15 ("the votes on the amendments moved by Senator Shorebridge
+and Senator Bell were deferred"). `context_builder_spec.rb` "reads the Senate chair's deferral with
+words between the vote and "deferred"" and "does not read a deferral from the terms of the motion
+being put". The default packet now warns at those three and at 20 August #16 and #17 (below), and
+no longer at 4 March #4; the sitting-day retry warns at the same 25 divisions, not 109.
 
-The Senate rightly has no time window to fall back on: S.O. 57(3), p. 47, takes the division "at a
-time fixed by the Senate". A fix would read only the chair's statements putting this question and
-its run, and allow words between "division" or "votes" and "deferred". Test in
-`context_builder_spec.rb` "context warnings". This is the Senate half of KI-6.
+Still open:
 
-The House has the same false warnings, from the same reading of every speech: House 10 February
-2026 #2, 5 March 2026 #5, and 19 August 2026 #5 and #7 took it on the sitting-day retry from a
-deferred question put that morning (`uk.org.publicwhip/debate/2026-02-10.3.3`, `2026-03-05.6.3`,
-`2026-08-19.4.3`), and House 18 August 2026 #10 took it from a suspension motion's own terms, "(7)
-standing order 133(b) (deferred divisions) being suspended" (`uk.org.publicwhip/debate/2026-08-18.95.3`).
-The retry prompt for 18 August #10 carries the false warning in its context warnings. The eight
-House deferrals of 2026 were all found, so KI-6's fix holds for finding them.
+- A deferred vote the chair puts with no word of deferral is not seen: Senate 25 March 2026 #1
+  ("The question is that the amendment moved by Senator Waters be agreed to.",
+  `uk.org.publicwhip/lords/2026-03-25.17.3`, deferred at `2026-03-23.216.2`), and Senate 4 March
+  2026 #9, on a motion whose division was deferred on 3 March (`2026-03-03.168.1`). The Senate
+  takes such a division "at a time fixed by the Senate" (S.O. 57(3), p. 47), so there is no time
+  window to fall back on; only the earlier day's statement deferring it shows it.
+- Only the first question of a run says it was deferred, so the warning is carried along the run
+  (KI-6), and at Senate 20 August 2026 #16 and #17 it reaches questions that were not deferred: the
+  chair put the two deferred votes first (`2026-08-20.65.2`, "I will put those questions first
+  before dealing with the remaining amendments") and the rest under the limitation of debate, which
+  has its own warning.
 
 ### KI-84
 
