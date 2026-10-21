@@ -124,7 +124,6 @@ module DivisionSummaryPipeline
         "mover_link" => mover[:link],
         "mover_party" => mover[:party],
         "mover_clause" => mover[:clause],
-        "proposer_clause" => proposer_clause(facts, evidence),
         "bill_name" => facts.bill_name.presence || "bill",
         "bill_link" => facts.bill_link,
         "chamber" => facts.chamber,
@@ -223,7 +222,7 @@ module DivisionSummaryPipeline
         return { name: "", link: "", party: "", title: "", suffix: "", clause: "", label: nil }
       end
 
-      details.merge(clause: " introduced by #{member_phrase(details)}",
+      details.merge(clause: " introduced by #{member_phrase(details)}#{proposer_clause(facts, evidence)}",
                     label: "#{details[:title]} #{details[:name]}#{details[:suffix]}".strip)
     end
 
@@ -234,8 +233,8 @@ module DivisionSummaryPipeline
       "#{title}[#{details[:name]}](#{details[:link]})#{details[:suffix]} (#{details[:party]})"
     end
 
-    # " on behalf of Senator [Name](link) (Party)", for a matter of urgency moved by someone other
-    # than its proposer, when a mover is named at all.
+    # " on behalf of Senator [Name](link) (Party)", added to the mover's clause for a matter of
+    # urgency or a notice that someone other than its proposer moved (KNOWN_ISSUES.md KI-55, KI-65).
     def proposer_clause(facts, evidence)
       return "" unless evidence.proposer && evidence.mover
 

@@ -162,15 +162,16 @@ module DivisionSummaryPipeline
         context_warnings: warnings, source: :hansard_xml, division_xml_id: division_xml.division_xml.attr(:id),
         limitation_statement: limitation, circulation: circulation(chair, transcript, mover),
         closed_template_id: (closed_template_id(earlier_speeches + speeches, mover, heading) if closure),
-        facts: closure ? with_followup(division_xml) : facts, proposer: proposer(earlier_speeches + speeches, mover)
+        facts: closure ? with_followup(division_xml) : facts,
+        proposer: proposer(earlier_speeches + speeches, mover, speaker_question, chair&.putting_text)
       )
     end
 
-    # Who proposed a matter of urgency, when someone else moved it, found by rule in the chair's
-    # words: a draft said only that Senator Hodgins-May moved "Senator McKim's motion"
-    # (KI-55).
-    def proposer(speeches, mover)
-      name = speeches.reverse.lazy.filter_map { |speech| speech[:text].to_s[PROPOSER, 1] }.first
+    # Who proposed a matter of urgency, or whose notice it was, when someone else moved it, found
+    # by rule: a draft said only that Senator Hodgins-May moved "Senator McKim's motion" (KI-55).
+    def proposer(speeches, mover, question, putting)
+      name = speeches.reverse.lazy.filter_map { |speech| speech[:text].to_s[PROPOSER, 1] }.first ||
+             notice_owner(mover, question, putting)
       mover_name = mover&.member&.name.presence || mover&.speech&.dig(:speaker)
       return nil if name.nil? || MemberResolver.same_speaker?(mover_name, name)
 
@@ -180,6 +181,20 @@ module DivisionSummaryPipeline
                    MemberResolver.by_surname(name, house: facts.house_key, date: facts.date.presence)
                  end
       resolved&.name.present? ? resolved : MemberResolver.named(name)
+    end
+
+    # The senator whose notice the chair names ("business of the Senate No. 2 standing in the name
+    # of Senator Example"), when the mover's own words name them too: a senator may move another's
+    # notice at their request (Senate S.O. 83(1), p. 61; KNOWN_ISSUES.md KI-65). Without the mover's
+    # words, a senator who moved an amendment to the notice, if taken for its mover, would be said
+    # to have moved it for the owner.
+    def notice_owner(mover, question, putting)
+      owner = (putting.presence || question)[MoverFinder::NOTICE_OWNER_HINT, 1]
+      speech = mover&.speech
+      return nil if owner.nil? || speech.nil? || question.match?(MoverFinder::AMENDMENT_QUESTION)
+
+      words = speech[:paragraphs].reject { |paragraph| %i[motion quotation].include?(paragraph[:kind]) }
+      owner if words.any? { |paragraph| paragraph[:text].match?(/\b#{Regexp.escape(owner.split.last)}\b/) }
     end
 
     # What a closure cut short: the last move before the closure's own, in the same debate, by

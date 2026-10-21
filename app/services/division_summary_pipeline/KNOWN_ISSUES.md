@@ -174,7 +174,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-62 | Pipeline | High | Open | The mover of a closure was taken as the mover of the question it brought on, so a second reading draft quoted "That the question be now put" as its motion | See the open entry below. |
 | KI-63 | Pipeline | High | Open | A motion moved in an earlier section of the same debate was not found, so a suspension of standing orders was routed as a censure | See the open entry below. |
 | KI-64 | Pipeline | Medium | Open | The model rarely pointed at the mover's reasons, leaving "About the Motion" empty | See the open entry below. |
-| KI-65 | Pipeline | Low | Open | A motion moved at another senator's request is described as the mover's own | See the open entry below. |
+| KI-65 | Pipeline | Low | Fixed | A motion moved at another senator's request is described as the mover's own | `context_builder_spec.rb` "finds whose notice it was when the mover says so" and "does not say a senator who moved an amendment to the notice moved it for its owner"; `template_compiler_spec.rb` "names whose notice it was when someone else moved it". A senator may move another's notice at their request (Senate S.O. 83(1), p. 61). The draft names the notice's owner, "on behalf of" as for KI-55, when the chair names them and the mover's own words do too: 69 of the 910 divisions of 2026, Senate 17 September 2026 #4 and #5 among them. Still open: a request the chair doesn't repeat (Senate 23 March 2026 #14), and an amendment moved at another's request (Senate 1 July 2026 #5), are not named. |
 | KI-66 | Pipeline | Low | Fixed | A motion's lettered and numbered paragraphs were all quoted at one level, so "(i)" under "(a)" read as though it sat beside it | `quote_outline_spec.rb`; `template_compiler_spec.rb` "an outlined motion". Hansard's XML gives every paragraph as a flat `<p>`, so the depth comes from the labels: each new label style is one level further in, and going back to a style already open goes back to its level. "(i)", "(v)" and "(x)" are read as letters or numerals by what they continue. A paragraph without a label stays at the outer level. Only Motion Text is outlined, not the mover's quoted sentences. Checked on Senate 17 September 2026 #8, #9 and #10. |
 | KI-67 | Pipeline | Medium | Open | The sitting-day retry has no limit on its size | See the open entry below. |
 | KI-68 | Rules | High | Open | Six question forms are routed as their opposites, so a draft would report the reverse of the vote | See the open entry below. |
@@ -927,20 +927,6 @@ for the case rather than remarks aimed at others, may have made the model too ca
 Senate 17 September 2026 #9 and #10 are among the second reading amendments moved straight after
 another division, where the mover's earlier speech never reaches the model (KI-90), so check them
 against that cause first.
-
-### KI-65
-
-**A motion moved at another senator's request is described as the mover's own.** Severity: Low.
-Status: Open. **Confirmed** from the drafts and the day's ParlParse XML.
-
-At Senate 17 September 2026 #4 and #5 one senator moved two references to committees standing in
-other senators' names: one "At the request of" the senator whose business it was, the other a
-notice standing in another senator's name, as amended. Both drafts open with "a motion introduced
-by" the senator who moved it. #4 quotes "At the request of Senator ..., I move:" as its
-introduction, so a reader can see who it belonged to; #5 quotes nothing that shows it. The question
-put names the senator whose business it was in both, so the information is in the packet.
-`MoverFinder` already reads "in the name of" for its weaker `notice_owner` sign, which is where a
-fix would start.
 
 ### KI-67
 

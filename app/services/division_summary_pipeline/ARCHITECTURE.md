@@ -91,7 +91,8 @@ small packet:
   moved them with; or, when the chair put amendments nobody moved, their terms as the chair's
   statement prints them and who circulated them (Circulation);
 - for a closure, what the debate it ended was on, and the division that then put that question;
-  for a matter of urgency, who proposed it when someone else moved it.
+  for a matter of urgency or a senator's notice, who proposed it or gave the notice when someone
+  else moved it.
 
 ### Step 2: Route the vote (ProceduralRouter)
 

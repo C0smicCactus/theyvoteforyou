@@ -274,6 +274,50 @@ describe DivisionSummaryPipeline::ContextBuilder do
         expect(packet.proposer.name).to eq("Morgan Treloar")
       end
 
+      # KI-65: as at Senate 17 September 2026 #4 and #5, senators' notices moved by another senator.
+      context "with a notice another senator moved" do
+        before do
+          create(:member, person: create(:person), gid: "uk.org.publicwhip/lord/900150", first_name: "Morgan",
+                          last_name: "Treloar", constituency: "Tasmania", party: "Example Party", house: "senate",
+                          entered_house: "2020-01-01", left_house: "9999-12-31")
+        end
+
+        def notice_division(body)
+          xml = debates("2026-09-17", <<~XML)
+            <minor-heading id="h2" url="x">Example References Committee; Reference</minor-heading>
+            #{body}
+            <speech id="s9" speakerid="uk.org.publicwhip/lord/900102" speakername="Casey Whitlow" time="12:02:00" url="x"><p>The question is that general business notice of motion No. 2 standing in the name of Senator Treloar be agreed to.</p></speech>
+            #{division_element(4, '12:03:00')}
+          XML
+          described_class.build({ id: 4, house: "senate", date: "2026-09-17", number: 4, clock_time: "12:03 PM" },
+                                xml_content: xml)
+        end
+
+        it "finds whose notice it was when the mover says so" do
+          at_request = notice_division(<<~XML)
+            <speech id="s1" speakerid="uk.org.publicwhip/lord/900103" speakername="Sam Okafor" time="11:59:00" url="x"><p>At the request of Senator Treloar, I move:</p><p class="italic">That the matter be referred.</p></speech>
+          XML
+          as_amended = notice_division(<<~XML)
+            <speech id="s1" speakerid="uk.org.publicwhip/lord/900103" speakername="Sam Okafor" time="11:59:00" url="x"><p>I seek leave to amend general business notice of motion No. 2 standing in the name of Senator Treloar.</p><p>Leave granted.</p><p>I move the motion as amended:</p><p class="italic">That the matter be referred.</p></speech>
+          XML
+
+          expect([at_request, as_amended].map { |packet| [packet.mover.speech[:speaker], packet.proposer&.name] })
+            .to eq([["Sam Okafor", "Morgan Treloar"], ["Sam Okafor", "Morgan Treloar"]])
+        end
+
+        # As at Senate 3 March 2026 #4, where the move just before the question was an amendment
+        # to the notice, and was taken for the notice's own move.
+        it "does not say a senator who moved an amendment to the notice moved it for its owner" do
+          packet = notice_division(<<~XML)
+            <speech id="s1" speakerid="uk.org.publicwhip/lord/900101" speakername="Jo Marlowe" time="11:50:00" url="x"><p>At the request of Senator Treloar, I move:</p><p class="italic">That the matter be referred.</p></speech>
+            <speech id="s2" speakerid="uk.org.publicwhip/lord/900103" speakername="Sam Okafor" time="11:51:00" url="x"><p>I move:</p><p class="italic">Omit all words after "That", substitute "the Senate notes the matter".</p></speech>
+          XML
+
+          expect(packet.mover.speech[:speaker]).to eq("Sam Okafor")
+          expect(packet.proposer).to be_nil
+        end
+      end
+
       # KI-54: as at Senate 13 August 2026 #7, a minister's closure of a
       # suspension debate, followed straight away by the suspension itself.
       context "with a closure" do
