@@ -1062,6 +1062,16 @@ describe DivisionSummaryPipeline::TemplateCompiler do
 
         expect(rendered).not_to include("Notice: a motion to suspend standing orders moved without notice")
       end
+
+      # KNOWN_ISSUES.md KI-83: the figure is a majority of the seats, and a vacancy does not lower it.
+      it "does not lower the absolute majority during a vacancy" do
+        motion = "That so much of the standing orders be suspended as would prevent a motion being moved."
+        house = suspension_division.merge(aye_votes: 75, no_votes: 68, chamber_size: 149)
+        senate = suspension_division.merge(house: "senate", aye_votes: 38, no_votes: 30, chamber_size: 75)
+
+        expect(compile_suspension(house, motion)).to include("at least 76")
+        expect(compile_suspension(senate, motion)).to include("at least 39")
+      end
     end
 
     # House S.O. 94(d) sets escalating periods, not "the remainder of the sitting", and the

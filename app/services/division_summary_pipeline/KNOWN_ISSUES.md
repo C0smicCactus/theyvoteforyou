@@ -192,7 +192,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-80 | Pipeline | High | Open | A deferred vote the chair put by name, without restating its question, was drafted as a closure | See the open entry below. |
 | KI-81 | Pipeline | Low | Open | The deferral warning misses Senate wordings, and in both chambers fires on text that isn't the chair's | See the open entry below. |
 | KI-82 | Rules | Low | Open | A draft can't say that its division was deferred from an earlier day, or that it replaced an earlier decision | See the open entry below. |
-| KI-83 | Rules | Low | Open | The absolute majority is worked out from the members on the day, not the fixed figure the rules give: 38 in a Senate vacancy, and 75 in the House in March 2026 | See the open entry below. |
+| KI-83 | Rules | Low | Fixed | The absolute majority was worked out from the members on the day, not the fixed figure the rules give: 38 in a Senate vacancy, and 75 in the House in March 2026 | `template_compiler_spec.rb` "does not lower the absolute majority during a vacancy". It is now always 76 in the House and 39 in the Senate. The rules give these as fixed figures ("Absolute majority 39", Senate standing orders p. vi; "more than half of all possible votes (39)", Senate Guide No. 3, p. 9; "currently 76 Members", House Guide p. 2). For the Senate, Odgers' Australian Senate Practice (14th edition, chapter 11, "Special majorities") says "No account is taken of any vacancy in the Senate in determining whether there is an absolute majority". For the House that is read from the quorum, also a share of the whole House, which "is not reduced by the death or resignation of a Member" (House Guide p. 17) (**Inferred**); House of Representatives Practice has not been checked on the absolute majority itself. |
 | KI-84 | Pipeline | High | Open | A deferred second reading was credited to the mover of a second reading amendment negatived before it, and the amendment was printed as its motion | See the open entry below. |
 | KI-85 | Rules | Medium-High | Open | A House division with six or fewer on a side (S.O. 127) may be reported as decided by no one, or the wrong way round | See the open entry below. |
 | KI-86 | Pipeline | Low | Open | A unanimous division would read "a large majority" where the division page says "unanimously" | See the open entry below. |
@@ -683,29 +683,6 @@ debate" (House S.O. 133(d), p. 60), and no draft says the vote was deferred. The
 a division: after "That the House divide again", "the result of the subsequent division shall be the
 decision of the House" (S.O. 132(b), p. 60). The division that miscarried stays in TVFY and would be
 drafted as a decision. None in 2026.
-
-### KI-83
-
-**The absolute majority is worked out from the members on the day, not the fixed figure the rules
-give.** Severity: Low. Status: Open. **Read**; **Verify** before changing anything.
-
-`ParliamentaryOutcome#absolute_majority` is half the senators current in They Vote For You's member
-records on the day, plus one, falling back to 39, and its comment says a known member count
-"supersedes" the guides' figure. Senate Guide No. 3, p. 9, gives an absolute majority as "more than
-half of all possible votes (39)"; the standing orders' front matter, p. vi, gives "Absolute majority
-39"; and S.O. 209(1), p. 104, says "an absolute majority of the whole number of senators". During a
-vacancy the code would ask for 38. The member records have 76 senators on every Senate division date
-of 2026, so no draft was affected: it is right for now only because no seat was vacant. Whether a
-vacancy lowers "the whole number of senators" should be checked in Odgers' Australian Senate
-Practice first. This is the Senate counterpart of KI-74's House quorum point, where the advice is
-the same: prefer the number of seats to the number of members on the day. Test in
-`template_compiler_spec.rb` "constitutional and parliamentary procedures".
-
-The House is the same, and there it has happened. The member records have 149 members from 2 March
-to 1 April 2026, so the code gives 75 on those nine sitting days, against 76 in a House of 150 (House
-Guide pp. 2 and 77; House S.O. 2, p. 7, "a majority of the membership of the House (including the
-Speaker)"). No House division in that period had exactly 75 ayes, so no draft was affected.
-**Verify** whether a vacancy lowers the figure, in House of Representatives Practice.
 
 ### KI-85
 
