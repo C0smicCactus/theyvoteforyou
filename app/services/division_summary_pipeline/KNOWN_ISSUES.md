@@ -161,7 +161,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-49 | Rules | Medium | Fixed | Subject rules outranked the bill-stage rules, so a reasoned amendment read out as the question was settled as whatever it named: a select committee, or a censure | `procedural_router_spec.rb` "routes the form proposing a select committee to Template 2", "routes a Budget amendment worded as a censure to Template 2", "leaves the same form amending an ordinary motion to the other rules". `reasoned_amendment_form` settles Template 2 when the question reads out an amendment's own form in a second reading debate, before any subject rule. None of the 121 loaded divisions changed route; since KI-35, the Senate's questions no longer carry the amendments' words, so this is for a House chair reading an amendment out. KI-13's note that the Budget case already worked was wrong and has been corrected. |
 | KI-50 | Rules | Medium-High | Partly fixed | A motion whose first paragraph Hansard sets as "That—" alone was routed on that one word; it is now read whole, but the limitation of debate it sets is routed only as advice | See the open entry below. |
 | KI-51 | Rules | Low | Fixed | The plain second reading question ("That the bill be now read a second time") was fenced between Templates 2 and 29 though it names no amendment | `procedural_router_spec.rb` "settles the plain second reading question on Template 29", "fences a second reading question that is not in the plain form". Settled as Template 29 in that form with no amendment wording and not "as amended"; anything else still fenced. Three of the 121 loaded divisions moved from the fence to 29, each a plain second reading. |
-| KI-52 | Rules | Medium | Partly fixed | A House question put "immediately" under a resolution agreed earlier read as an ordinary debated vote; two more forms of a question put when allotted time has expired are still missed | See the open entry below. |
+| KI-52 | Rules | Medium | Partly fixed | A House question put under a resolution agreed earlier, "immediately" or once the time it allotted had expired, read as an ordinary debated vote; more forms are still missed | See the open entry below. |
 | KI-53 | Pipeline | Medium | Fixed | A divided question was summarised, and its motion printed, as though the whole motion had been put | `chair_statement_spec.rb` ".divided_parts"; `template_compiler_spec.rb` "a divided question". When the chair's question puts a motion "minus" or "except" some of its parts, the draft says the vote was on the motion without them, in the chair's words, and the Reviewer Only report says the question was divided. Senate forms only: the House, where a member may move that a question be divided (House S.O. 119), had none in its Hansard from May to September 2026, so none is assumed. A divided question put on the separated part itself is not recognised. |
 | KI-54 | Pipeline | Medium | Fixed | A closure's draft said only that "the debate" ended, and never linked the division that then put the underlying question | `context_builder_spec.rb` "with a closure"; `template_compiler_spec.rb` "says what the debate it ended was on". Stage 1 routes the move the closure cut short (the last one before the closure's own, in the same debate, by someone else) and keeps the template when that settles one, which the sentence names: "to end the debate on a motion to suspend standing orders". The follow-up division is the next that day in the same debate, unless it is a closure itself, looked up in the database. ARCHITECTURE.md section 15's `followup_link` item is built. |
 | KI-55 | Pipeline | Low | Fixed | A matter of urgency did not say whose proposal it was; words incorporated in Hansard were quoted as "Senator X said:"; and a question the chair put with nobody moving it printed empty Motion Introduction and Motion Text sections | `context_builder_spec.rb` "finds who proposed a matter of urgency someone else moved"; `template_compiler_spec.rb` "what a draft says about who moved what"; `transcript_spec.rb` "marks the words of a speech incorporated by leave"; `provenance_validator_spec.rb` "records when the chair put a question that is the whole motion with nobody moving it". The proposer comes from the chair's "Senator X has submitted a proposal" and a surname is linked only when one senator on the day has it; incorporated words are introduced as "Senator X's speech, incorporated in Hansard, reads:"; and when nobody moved anything the sections are left out, and the Question Put section quotes the question. |
@@ -347,7 +347,7 @@ rule that motion text is only advice, is a decision for the team. Test in
 
 ### KI-52
 
-**Two forms of a question put when a debate's allotted time has expired are not recognised.**
+**Some forms of a question put when a debate's allotted time has expired are not recognised.**
 Severity: Medium. Status: **Partly fixed**. **Read** (the House form); **Verify** (the Senate form
 and the House's urgent-bill wording).
 
@@ -358,22 +358,25 @@ the Speaker putting the question immediately under a resolution, across the run 
 earlier"). It is kept as its own kind: the House programming a bill by suspending standing orders
 is not a guillotine (House Guide p. 75), so the draft says "This question was put without further
 debate, under an arrangement the House of Representatives agreed on 12 August 2026", the date from
-the Speaker's words, and quotes them.
+the Speaker's words, and quotes them. The Speaker saying "In accordance with the resolution agreed
+to on 23 June 2026, the time allotted for this debate has expired." is read the same way (House 24
+June 2026 #1, `division_xml_spec.rb` "finds the Speaker saying the time a resolution allotted has
+expired").
 
 Still open:
 
-- At House 24 June 2026 the Speaker said "In accordance with the resolution agreed to on 23 June
-  2026, the time allotted for this debate has expired. The question is that the amendment be agreed
-  to.", and divisions 1 and 2 (5:35 and 5:43 PM) followed under "; Second Reading".
-  `DivisionXml#limitation_expiry?` accepts a statement that matches `PUT_IMMEDIATELY` ("In
-  accordance with the resolution agreed to on <date> ... put the question immediately"), or one
-  that matches `TIME_EXPIRED` and also cites an order ("pursuant to order", `ORDER_CITED`) or sits
-  under a "Limitation of Debate" heading. This statement matches only `TIME_EXPIRED`, so both
-  drafts would read as ordinary debated votes. A fix would take "In accordance with the resolution
-  agreed to on <date>" followed by the time allotted having expired as the same resolution kind,
-  keeping the "not a guillotine" wording, and update the comment above `PUT_IMMEDIATELY` that says
-  only the 18 August 2026 forms have been seen. Test in `division_xml_spec.rb` with those two
-  divisions.
+- House 24 June 2026 #2 is still missed. The Speaker put it with "The question before the House is
+  that the bill be read a second time." (`uk.org.publicwhip/debate/2026-06-24.112.1`), which
+  `DivisionXml::CHAIR_STATEMENT` does not take for the chair's, and the Deputy Speaker had said the
+  time expired, so the walk back from #2 takes the Speaker for a second member and stops. "The
+  question before the House is" occurs 31 times in the House's 2026 Hansard, and
+  `ChairStatement::QUESTION` does not read it either, so this is wider than this entry.
+- "In accordance with the resolution agreed to earlier, the time allotted for this debate has
+  expired" (before House 30 March 2026 #1, 31 March 2026 #1 and 23 June 2026 #2:
+  `uk.org.publicwhip/debate/2026-03-30.120.2`, `2026-03-31.105.2`, `2026-06-23.93.15`) gives no date.
+  `SummaryWording#limitation_lead` names the resolution by its date and, without one, calls the
+  question a guillotine, so a fix needs a sentence for a resolution without a date: a wording
+  decision.
 - In the Senate on 25 June 2026 the chair said "Pursuant to order agreed to on Tuesday ... I'm now
   required to put the questions", with no "time allotted ... has expired". Senate Guide No. 17
   (p. 51) allows a guillotine to set "a set time in a day (e.g. 'all remaining stages to conclude by
