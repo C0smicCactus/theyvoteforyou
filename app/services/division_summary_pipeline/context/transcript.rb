@@ -238,8 +238,8 @@ module DivisionSummaryPipeline
       lines = ["DEBATE: #{TextNormaliser.clean_text(heading)}", ""]
       earlier, current = speeches.partition(&:earlier)
       unless earlier.empty?
-        lines << "EARLIER IN THIS DEBATE (only the speeches that moved something or put a question, " \
-                 "from #{earlier_dates.join(', ')}):"
+        lines << "EARLIER IN THIS DEBATE (only the speeches that moved something or put a question, and the " \
+                 "mover's own if they moved this without giving reasons, from #{earlier_dates.join(', ')}):"
         lines << ""
         earlier.each { |speech| lines.concat(speech_lines(speech)) }
         lines << "THE SPEECHES BEFORE THIS DIVISION:"

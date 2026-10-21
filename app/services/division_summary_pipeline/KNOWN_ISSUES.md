@@ -199,7 +199,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-87 | Pipeline | Medium-High | Open | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switches off the validator's check of `declines_second_reading`, so whether the draft says the amendment opposed the bill rests on the model alone | See the open entry below. |
 | KI-88 | Pipeline | Low | Open | For a second reading amendment, the quoted reasons can be about the bill rather than the amendment's own terms | See the open entry below. |
 | KI-89 | Pipeline | Low | Open | Question Put gives the chair's question the time of the speech before it | See the open entry below. |
-| KI-90 | Pipeline | Medium | Open | A mover's reasons given before an earlier division in the same debate never reach the model, so "About the Amendment" says "No explanatory claims recorded." | See the open entry below. |
+| KI-90 | Pipeline | Medium | Partly fixed | A mover's reasons given before an earlier division in the same debate never reach the model, so "About the Amendment" says "No explanatory claims recorded." | See the open entry below: the same sitting day is fixed, an earlier one is not. |
 | KI-91 | Pipeline | Low | Open | Template 2's vote sentence says an amendment "introduced by" a senator "to the" bill, though amendments are moved, and a second reading amendment is to the motion | See the open entry below. |
 | KI-92 | Rules | Low | Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
 | KI-93 | Rules | Low | Open | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | See the open entry below. |
@@ -1236,10 +1236,10 @@ mover's name".
 ### KI-90
 
 **A mover's reasons given before an earlier division in the same debate never reach the model, so
-"About the Amendment" says "No explanatory claims recorded."** Severity: Medium. Status: Open.
-**Confirmed** by replaying Senate 14 September 2026 #8 on 15 October 2026: the packet holds only the
-move and the chair's question, and "Earlier debate added" is "none". How often it happens is
-**Inferred** from the 2026 drafts and the cached XML.
+"About the Amendment" says "No explanatory claims recorded."** Severity: Medium. Status: **Partly
+fixed**. **Confirmed** by replaying Senate 14 September 2026 #8 on 15 October 2026: the packet
+holds only the move and the chair's question, and "Earlier debate added" is "none". How often it
+happens is **Inferred** from the 2026 drafts and the cached XML.
 
 At Senate 14 September 2026 #8 Senator O'Sullivan gave the opposition's case in his second reading
 speech (`uk.org.publicwhip/lords/2026-09-14.28.1`, 11:25). Two hours later, after the minister's
@@ -1263,12 +1263,28 @@ movers spoke on an earlier day, was not checked. Senate 17 September 2026 #9 and
 asks about, are among the seven. KI-64 looks at the model; this cause is in Stage 1, and may account
 for part of KI-64's count.
 
-A fix belongs in Stage 1: when the mover is found and the window starts at an earlier division under
-the same heading, add the mover's own earlier speeches in that debate (`EarlierDebate` already finds
-the same debate's speeches). `ARCHITECTURE.md` section 3 should say that the subdebate stops at the
-previous division. Once fixed, KI-88 applies. Test in `context_builder_spec.rb`: a member speaks,
-another member's amendment is divided on, then the first member moves theirs without a speech, and
-the packet holds the first member's speech.
+Fixed for the same sitting day: when the question is on an amendment and the packet holds none of
+its mover's own words, `ContextBuilder#mover_reasons` adds the mover's speeches from earlier under
+the same heading that day, which can only be before an earlier division, and the transcript's
+"EARLIER IN THIS DEBATE" heading and the prompt's rule 10 say that it holds them
+(`context_builder_spec.rb` "adds the mover's own speech from before that division"). Over the 910
+divisions of 2026 this adds a speech to six packets, and changes no route, mover or warning: the
+four above; House 30 March 2026 #2, where the member for Lyne moved without a word and then spoke in
+a speech of its own (`uk.org.publicwhip/debate/2026-03-30.110.4`) before the division on an
+amendment to hers; and Senate 4 February 2026 #32, where the speech added asks only that motions be
+put separately. KI-88 now applies: at Senate 14 September 2026 #8 the speech added argues for the
+committee amendments.
+
+Still open: a mover who argued on an earlier sitting day. At Senate 17 September 2026 #9 and #10
+Senators Pocock and Whitten moved without a word straight after a division, and had foreshadowed
+their amendments in second reading speeches on 16 September
+(`uk.org.publicwhip/lords/2026-09-16.19.1` and `2026-09-16.21.1`). A fix would have `EarlierDebate`
+look for the mover's speeches on earlier days too, once the mover is known. Whether models quote
+what is added is still to be seen: on 19 October 2026 a local model given the same speeches, under a
+heading that said the section held only speeches that moved something, quoted them at Senate 31
+March 2026 #15, 7 September 2026 #2 and 14 September 2026 #8, but not at 31 March #21, where its
+reasoning cited rule 10's "use it to find a motion" and rule 5's "the speech is only the move".
+**Verify** with a Bedrock run on #21.
 
 ### KI-91
 

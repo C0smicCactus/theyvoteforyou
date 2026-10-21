@@ -219,7 +219,9 @@ module DivisionSummaryPipeline
            An empty list means you found what the template needs. Do not report "mover_speech" just because
            the mover gave no explanation; report it when only a reference to their speech is here.
            An "EARLIER IN THIS DEBATE" section holds speeches from earlier in the same debate that moved
-           something or put a question; use it to find a motion moved before the division was taken.
+           something or put a question; use it to find a motion moved before the division was taken. If the
+           mover moved this without giving reasons, it also holds their own earlier speeches, and their
+           explanation can come from those.
            A <context_warnings> block lists reasons the speeches here may not be the debate about this
            division. Check them against <speaker_question>, and report what is missing when they do not match.
 

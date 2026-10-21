@@ -520,6 +520,41 @@ describe DivisionSummaryPipeline::ContextBuilder do
           expect(circulated(4).mover.speech[:speaker]).to eq("Jo Marlowe")
         end
       end
+
+      # KI-90: as at Senate 14 September 2026 #8, a senator argues in the second reading debate,
+      # another senator's amendment is divided on, and only then does the first move theirs.
+      context "when an amendment is moved straight after another amendment's division" do
+        let(:chair) { "speakerid=\"uk.org.publicwhip/lord/900102\" speakername=\"Casey Whitlow\"" }
+
+        def second_amendment(moving_words)
+          xml = debates("2026-09-14", <<~XML)
+            <minor-heading id="h2" url="x">Example Bill 2026; Second Reading</minor-heading>
+            <speech id="s1" speakerid="uk.org.publicwhip/lord/900101" speakername="Morgan Treloar" time="11:25:00" url="x"><p>Small businesses cannot absorb these costs.</p></speech>
+            <speech id="s2" speakerid="uk.org.publicwhip/lord/900103" speakername="Jo Marlowe" time="11:40:00" url="x"><p>I move:</p><p class="italic">At the end of the motion, add ", but the Senate notes the delay".</p></speech>
+            <speech id="s3" #{chair} time="12:00:00" url="x"><p>The question is that the amendment moved by Senator Marlowe be agreed to.</p></speech>
+            #{division_element(7, '12:05:00')}
+            <speech id="s4" speakerid="uk.org.publicwhip/lord/900101" speakername="Morgan Treloar" time="12:10:00" url="x">#{moving_words}<p>I move:</p><p class="italic">At the end of the motion, add ", but the Senate notes the cost".</p></speech>
+            <speech id="s5" #{chair} time="12:11:00" url="x"><p>The question is that the amendment moved by Senator Treloar be agreed to.</p></speech>
+            #{division_element(8, '12:15:00')}
+          XML
+          described_class.build({ id: 8, house: "senate", date: "2026-09-14", number: 8, clock_time: "12:15 PM" },
+                                xml_content: xml)
+        end
+
+        it "adds the mover's own speech from before that division" do
+          packet = second_amendment("")
+
+          expect(packet.transcript.speeches.select(&:earlier).map(&:id)).to eq(["s1"])
+          expect(packet.transcript.prompt_text).to include("Small businesses cannot absorb these costs.")
+          expect(packet.context_warnings.join).not_to include("not moved in the speeches beside it")
+        end
+
+        it "adds nothing when the mover gives reasons as they move" do
+          packet = second_amendment("<p>The cost falls on small business.</p>")
+
+          expect(packet.transcript.speeches.none?(&:earlier)).to be(true)
+        end
+      end
     end
   end
 end
