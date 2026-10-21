@@ -178,7 +178,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-66 | Pipeline | Low | Fixed | A motion's lettered and numbered paragraphs were all quoted at one level, so "(i)" under "(a)" read as though it sat beside it | `quote_outline_spec.rb`; `template_compiler_spec.rb` "an outlined motion". Hansard's XML gives every paragraph as a flat `<p>`, so the depth comes from the labels: each new label style is one level further in, and going back to a style already open goes back to its level. "(i)", "(v)" and "(x)" are read as letters or numerals by what they continue. A paragraph without a label stays at the outer level. Only Motion Text is outlined, not the mover's quoted sentences. Checked on Senate 17 September 2026 #8, #9 and #10. |
 | KI-67 | Pipeline | Medium | Open | The sitting-day retry has no limit on its size | See the open entry below. |
 | KI-68 | Rules | High | Open | Six question forms are routed as their opposites, so a draft would report the reverse of the vote | See the open entry below. |
-| KI-69 | Rules | High | Open | A Senate division without a quorum is reported as decided | See the open entry below. |
+| KI-69 | Rules | High | Fixed | A Senate division without a quorum was reported as decided | `template_compiler_spec.rb` "flags a want of quorum against the Senate's 19" and "says nothing about a quorum when 18 senators voted". Senate S.O. 52(1), p. 43: a division showing "that a quorum is not present" decides nothing (S.O. 147(2), p. 84, in committee). The quorum is the standing orders' fixed 19 (p. vi), not a share of the members on the day. Exactly 18 votes is reported as the figures show: the President, or the Chair of Committees in committee, need not vote (S.O. 101(5), p. 67), so 18 votes may be 19 senators present. Odgers' Australian Senate Practice (14th edition, chapter 8, "Quorum") gives the same figure from the Senate (Quorum) Act 1991, "one quarter of the senators, that is, 19 out of 76 senators"; the Act's own text was not read. None of the 712 Senate divisions from 19 January to 17 September 2026 had fewer than 31 votes. |
 | KI-70 | Rules | Medium-High | Open | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | See the open entry below. |
 | KI-71 | Pipeline | Medium | Open | The prompt does not connect a House mover's name with the seat or office the chair calls them by | See the open entry below. |
 | KI-72 | Rules | Medium | Open | Senate rescission: the standing order and the guide disagree on the majority, and the code's pattern is too broad | See the open entry below. |
@@ -405,28 +405,6 @@ requests", "heard now" and "further heard" away from the rules that catch them, 
 part" form to the fallback or invert it as Template 28 does. Search the loaded divisions for any of
 these forms before relying on made-up questions. Test in `procedural_router_spec.rb`, with a route
 snapshot before and after.
-
-### KI-69
-
-**A Senate division without a quorum is reported as decided.** Severity: High. Status: Open.
-**Read**: the code was read, not run, against the rule quoted below.
-
-Senate S.O. 52(1), p. 43: if a division shows "that a quorum is not present ... no decision of the
-Senate shall be considered to have been arrived at by such division". S.O. 147(2), p. 84, says the
-same in committee of the whole, and the standing orders' front matter gives the quorum as 19.
-`ParliamentaryOutcome#quorum_threshold` returns nil for the Senate, and its comment says that is on
-purpose because "the Guides to Senate Procedure set out no rule voiding a Senate division for want
-of a quorum". The guides are silent, but the standing order is not. A fix would apply the House
-logic with the Senate's quorum and cite S.O. 52(1), and would be tested in
-`template_compiler_spec.rb` "constitutional and parliamentary procedures". Uncertain: whether the
-President, who may vote, counts towards the figure the tellers report. The standing order does not
-say, so a division with exactly 18 recorded votes is safer as a reviewer warning than a verdict.
-S.O. 101(5), p. 67, narrows this: "Every senator present when the question is stated shall vote,
-except the President, or the Chair of Committees in the chair of a committee, for whom voting shall
-be optional", so the senators present are the recorded votes, plus the chair if the chair did not
-vote. S.O. 147(3), p. 84, says what happens to a committee of the whole interrupted for want of a
-quorum: its resumption is "an order of the day for the next day of sitting". The Senate (Quorum)
-Act 1991 has not been checked.
 
 ### KI-70
 
