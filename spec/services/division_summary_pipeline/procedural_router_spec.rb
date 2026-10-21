@@ -41,6 +41,16 @@ describe DivisionSummaryPipeline::ProceduralRouter do
         expect(decision.rule_name).to eq("FIRST_READING")
       end
 
+      # House S.O. 141(a): the House reads a bill a first time without a question (KNOWN_ISSUES.md KI-74).
+      it "does not settle a House question on a first reading" do
+        decision = described_class.route(
+          speaker_question: "The question is that this bill be now read a first time.",
+          chamber: "House of Representatives"
+        )
+        expect(decision).not_to be_deterministic
+        expect(decision.rule_name).not_to eq("FIRST_READING")
+      end
+
       it "traps Disallowance Motion (Template 9)" do
         decision = described_class.route(
           speaker_question: "The question is that the regulation be disallowed."

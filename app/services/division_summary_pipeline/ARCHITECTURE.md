@@ -302,8 +302,8 @@ for human review.
 ### Stage 5: Compilation (`compilation/`)
 
 - `ParliamentaryOutcome` decides meaning: success (and the Template 28 inversion), tied votes
-  (Constitution ss 23 and 40), want of quorum (House S.O. 58, with the quorum from the member
-  records on the day), absolute majorities (section 128, Senate S.O. 87, suspensions), the message
+  (Constitution ss 23 and 40), want of quorum (House S.O. 58, with the quorum from the House's
+  seats on the day), absolute majorities (section 128, Senate S.O. 87, suspensions), the message
   forms, the three closures, the bill stage, the suspension's stated purpose and the urgency
   matter. It reads the motion Stage 1 found, falling back to the question.
 - `SummaryWording` holds the human-authored sentences each outcome chooses.

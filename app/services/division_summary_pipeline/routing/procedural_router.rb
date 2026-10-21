@@ -267,9 +267,11 @@ module DivisionSummaryPipeline
     end
 
     # Template 1: first reading, the formal introduction of a bill. Carries no view on the bill's
-    # merits, which is exactly what a reader is liable to assume it does.
+    # merits, which is exactly what a reader is liable to assume it does. Not in the House, where a
+    # bill "shall be read a first time without a question being put" (House S.O. 141(a)), so a
+    # House question naming a first reading is about something else (KNOWN_ISSUES.md KI-74).
     def first_reading
-      return unless says?("read a first time", "first reading")
+      return if house? || !says?("read a first time", "first reading")
 
       settle(1, "FIRST_READING", "Question is for the bill to be read a first time.")
     end

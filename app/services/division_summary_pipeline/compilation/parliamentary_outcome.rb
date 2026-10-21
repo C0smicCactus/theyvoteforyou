@@ -12,9 +12,9 @@ module DivisionSummaryPipeline
   # (Evidence), never anything the model wrote, and the question stands in only where no motion
   # was recorded.
   class ParliamentaryOutcome
-    # The House grew from 150 to 151 seats at the 2019 election, which moved the quorum (one
-    # fifth of the House) from 30 to 31. Only used when the member records cannot say.
-    HOUSE_OF_151_FROM = Date.new(2019, 7, 1)
+    # The House had 151 seats from the 2019 election to the 2025 election, which made the quorum
+    # (one fifth of the House) 31 rather than 30.
+    HOUSE_OF_151 = Date.new(2019, 7, 1)...Date.new(2025, 5, 3)
 
     # More than half of all the members of the chamber. The House guide gives 76 for a House of
     # 150 and the Senate guide gives 39 of 76; a known member count supersedes them.
@@ -88,19 +88,18 @@ module DivisionSummaryPipeline
     end
 
     # The quorum is "at least one fifth of the whole number of the Members of the House" (House
-    # of Representatives (Quorum) Act 1989), so it tracks the size of the House (KI-8). House
-    # S.O. 58 is what makes it worth reporting: if a division shows fewer than a quorum voting,
-    # the House has not made a decision. nil when neither the member count nor the date is known,
+    # of Representatives (Quorum) Act 1989) and "is not reduced by the death or resignation of a
+    # Member" (House Guide p. 17), so it follows the seats, not the members on the day (KI-8,
+    # KNOWN_ISSUES.md KI-74). House S.O. 58 is what makes it worth reporting: if a division shows
+    # fewer than a quorum voting, the House has not made a decision. nil when the date is not known,
     # because getting this wrong means telling a reader a decision parliament did make was never
     # made. There is no Senate equivalent on purpose: the Guides to Senate Procedure set out no
     # rule voiding a Senate division for want of a quorum, and a citation we cannot check is not
     # one to publish.
     def quorum_threshold
       return nil if facts.senate?
-      return (member_count / 5.0).ceil if member_count
 
-      date = Date.parse(facts.date.to_s)
-      date >= HOUSE_OF_151_FROM ? 31 : 30
+      HOUSE_OF_151.cover?(Date.parse(facts.date.to_s)) ? 31 : 30
     rescue ArgumentError, TypeError
       nil
     end

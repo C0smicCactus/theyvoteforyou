@@ -1,4 +1,4 @@
-**Bill Timeline:** *This is the very first step in the legislative process. The bill is formally introduced to the parliament so members can read it before debating it at a later date. This vote is about procedure only. It is not a vote on what the bill would do. Divisions at this stage are rare, and rarer again in the House of Representatives, where the Clerk reads a bill a first time without any question being put and no debate occurs. The Senate can debate the first reading of a bill it is not permitted to amend, which is where most first reading divisions come from.*
+**Bill Timeline:** *This is the very first step in the legislative process. The bill is formally introduced to the parliament so members can read it before debating it at a later date. In most cases this vote is about procedure only. It is not a vote on what the bill would do. Divisions at this stage are rare, and happen only in the Senate. In the House of Representatives the Clerk reads a bill a first time without any question being put, and no debate occurs. The Senate can debate the first reading of a bill it is not permitted to amend.*
 
 ---
 
