@@ -181,7 +181,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-69 | Rules | High | Open | A Senate division without a quorum is reported as decided | See the open entry below. |
 | KI-70 | Rules | Medium-High | Open | Amendments a senator moved before a guillotine fell are described as moved by nobody, and three parts of the pipeline decide "nobody moved" differently | See the open entry below. |
 | KI-71 | Pipeline | Medium | Open | The prompt does not connect a House mover's name with the seat or office the chair calls them by | See the open entry below. |
-| KI-72 | Rules | Medium | Open | Senate rescission: the standing order and the guide disagree on the majority, and the code's pattern is too broad | See the open entry below. |
+| KI-72 | Rules | Medium | Partly fixed | Senate rescission: the standing order and the guide disagree on the majority; the code's pattern was too broad | See the open entry below. |
 | KI-73 | Rules | Medium | Open | Explainer and vote sentences that state one chamber's rule as general, or say more than the rules do (Templates 5, 7, 14, 25 and 26) | See the open entry below. |
 | KI-74 | Rules | Low | Open | Three House rules the pipeline gets wrong in rare cases: a tie on the ballot closure, the quorum fallback, and Template 1 | See the open entry below. |
 | KI-75 | Rules | Low | Open | Comments, router reasons and template sentences to correct or verify, none of which changes a route | See the open entry below. |
@@ -464,9 +464,8 @@ and `provenance_validator_spec.rb`, with division 14 as the case.
 
 ### KI-72
 
-**Senate rescission: the standing order and the guide disagree on the majority, and the code's
-pattern is too broad.** Severity: Medium. Status: Open. **Read** (code); **Verify** (the
-threshold).
+**Senate rescission: the standing order and the guide disagree on the majority.** Severity: Medium.
+Status: **Partly fixed**. **Read** (code); **Verify** (the threshold).
 
 Senate S.O. 87, p. 62: an order "may be rescinded, but not during the same session unless 7 days'
 notice is given and at least one-half of the whole number of senators vote in favour", which is 38
@@ -474,12 +473,15 @@ of 76. Senate Guide No. 3, p. 9, says rescission needs an absolute majority, whi
 half of all possible votes (39)". The standing order is the rule and the guide explains it, so the
 threshold should be 38, and only within the same session. The standing order's exception, "to
 correct irregularities or mistakes one day's notice shall be sufficient", shortens the notice and,
-on its words, leaves the majority as it is. Separately,
-`ParliamentaryOutcome#absolute_majority_requirement` returns `:always` for any Senate motion whose
-words include "rescind", "rescinded" or "rescinding", so a motion that calls on the Government to
-rescind its own decision is flagged as needing a special majority. A fix would match only a motion
-to rescind an order, resolution or vote of the Senate. How the Senate applies S.O. 87 should be
-checked in Odgers' Australian Senate Practice before the threshold changes.
+on its words, leaves the majority as it is. How the Senate applies S.O. 87 should be checked in
+Odgers' Australian Senate Practice before the threshold changes.
+
+Fixed: `ParliamentaryOutcome#absolute_majority_requirement` returned `:always` for any Senate motion
+whose words included "rescind", "rescinded" or "rescinding", so a motion calling on the Government
+to rescind its own decision was flagged as needing a special majority. It now takes only a motion
+that an order, resolution or vote "be rescinded" (`template_compiler_spec.rb` "flags a Senate
+rescission carried without an absolute majority, but not a call on the government to rescind").
+No Senate motion from November 2025 to September 2026 used either form, so no draft changes.
 
 ### KI-73
 

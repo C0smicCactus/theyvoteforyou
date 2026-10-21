@@ -132,7 +132,9 @@ module DivisionSummaryPipeline
     #
     # :always - section 128 of the Constitution on the third reading of a Constitution
     #   Alteration bill (House S.O. 173, Guide p. 77; Senate Guide No. 3), and rescinding an
-    #   order of the Senate (Senate S.O. 87).
+    #   order, resolution or vote of the Senate (Senate S.O. 87), moved as "That the order ... be
+    #   rescinded". A motion calling on the government to rescind a decision is not one
+    #   (KNOWN_ISSUES.md KI-72).
     # :conditional - a suspension of standing orders, where it depends on how the motion was
     #   moved: without notice it needs the absolute majority (House S.O. 47(c), Senate
     #   S.O. 209), but on notice or under a contingent notice a simple majority is enough, as it is
@@ -142,7 +144,7 @@ module DivisionSummaryPipeline
     #   to avoid the higher bar. The question alone does not say which applied.
     def absolute_majority_requirement
       return :always if template_id == 6 && constitution_bill?
-      return :always if facts.senate? && operative_text.match?(/\brescind(?:ed|ing)?\b/i)
+      return :always if facts.senate? && operative_text.match?(/\b(?:order|resolution|vote)\b.*?\bbe\s+rescinded\b/i)
       return :conditional if template_id == 17
 
       nil
