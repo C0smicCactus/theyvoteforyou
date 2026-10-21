@@ -28,6 +28,10 @@ module DivisionSummaryPipeline
     # an opponent rather than the case for the motion (KI-58). A prompt for
     # the reviewer only: whether it is the mover's case is a judgement for a person.
     POINTED = /\b(?i:you(?:r|rs)?)\b|\bSenator\s+[A-Z]|\bmember\s+for\s+[A-Z]|\bPrime\s+Minister\b|\bMinister\s+[A-Z]/
+    # No pattern catches every such sentence: one about another member that names nobody is
+    # missed (KNOWN_ISSUES.md KI-76), so the list says what it is.
+    POINTED_NOTE = "*Quoted sentences that speak to someone or name another member, which may be aimed at others " \
+                   "rather than give the mover's case. A prompt, not a complete check.*"
 
     # The public site, written in rather than taken from the mailer's host, which is localhost in
     # development: a draft made on someone's own machine is checked against the live page.
@@ -68,8 +72,8 @@ module DivisionSummaryPipeline
         section("Routing", routing_rows),
         section("Model decisions", decision_rows),
         evidence_section,
-        section("Mover", mover_rows),
-        list_section("Explanation sentences to look at twice", pointed_explanations),
+        section("Mover", mover_rows + proposer_rows),
+        list_section("Explanation sentences to look at twice", pointed_explanations, note: POINTED_NOTE),
         list_section("Fallbacks used", fallbacks.map { |name| "`#{name}`: #{FALLBACKS.fetch(name)}" }),
         list_section("Validation errors", validation&.errors || []),
         list_section("Validation warnings", validation&.warnings || [])
@@ -83,6 +87,7 @@ module DivisionSummaryPipeline
     delegate :facts, :transcript, to: :packet
 
     def source_rows
+      heading = DraftTitle.bill_cased(TextNormaliser.clean_text(packet.heading), facts.bill_titles)
       rows = [
         ["Model", "`#{model_id}`"],
         ["Division", "#{facts.chamber}, #{facts.date}, division #{facts.number}, #{facts.time}"],
@@ -94,7 +99,7 @@ module DivisionSummaryPipeline
         ["Limitation of debate", limitation_note],
         ["Question routed on", packet.speaker_question.to_s],
         ["Question divided", divided_note],
-        ["Title", "#{title} (from the heading \"#{TextNormaliser.clean_text(packet.heading)}\" and the template)"]
+        ["Title", "#{title} (from the heading \"#{heading}\" and the template)"]
       ]
       return rows unless widening_failure
 
@@ -162,6 +167,15 @@ module DivisionSummaryPipeline
       ]
     end
 
+    # Who proposed what someone else moved (ContextPacket#proposer): the "on behalf of" in the summary.
+    def proposer_rows
+      proposer = packet.proposer
+      return [] unless proposer
+
+      matched = proposer.member ? " (#{proposer.party})" : ", not matched to a TVFY member"
+      [["Proposer", "#{proposer.name}#{matched}"]]
+    end
+
     def divided_note
       parts = ChairStatement.divided_parts(packet.speaker_question)
       parts ? "yes: without \"#{parts}\"" : "no"
@@ -207,9 +221,9 @@ module DivisionSummaryPipeline
       "### #{heading}\n\n| | |\n|---|---|\n#{table}"
     end
 
-    def list_section(heading, items)
+    def list_section(heading, items, note: nil)
       body = items.empty? ? "None." : items.map { |item| "- #{item.to_s.gsub(/\s+/, ' ')}" }.join("\n")
-      "### #{heading}\n\n#{body}"
+      ["### #{heading}", note, body].compact.join("\n\n")
     end
 
     def list(values)

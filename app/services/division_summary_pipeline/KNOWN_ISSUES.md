@@ -185,7 +185,7 @@ Every entry has one kind, so every issue has one place, and the open entries are
 | KI-73 | Rules | Medium | Open | Explainer and vote sentences that state one chamber's rule as general, or say more than the rules do (Templates 5, 7, 14, 25 and 26) | See the open entry below. |
 | KI-74 | Rules | Low | Open | Three House rules the pipeline gets wrong in rare cases: a tie on the ballot closure, the quorum fallback, and Template 1 | See the open entry below. |
 | KI-75 | Rules | Low | Open | Comments, router reasons and template sentences to correct or verify, none of which changes a route | See the open entry below. |
-| KI-76 | Pipeline | Low | Open | The Reviewer Only section leaves out things a reviewer needs | See the open entry below. |
+| KI-76 | Pipeline | Low | Partly fixed | The Reviewer Only section left out things a reviewer needs; a local draft still does not name the reply it was built from | See the open entry below: three of its four points are fixed, each naming its spec. |
 | KI-77 | Pipeline | Low | Open | The local model tools lose or misreport a reply that does not finish | See the open entry below. |
 | KI-78 | Rules | Low | Open | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | See the open entry below. |
 | KI-79 | Pipeline | High | Open | A draft said an amendment was agreed to when no amendment was moved or found, and passed validation | See the open entry below. |
@@ -989,20 +989,27 @@ senators, so the gap looks House-only. Test in `extraction_prompt_spec.rb`.
 
 ### KI-76
 
-**The Reviewer Only section leaves out things a reviewer needs.** Severity: Low. Status: Open.
-**Confirmed** from drafts, except where marked.
+**The Reviewer Only section leaves out things a reviewer needs.** Severity: Low. Status: **Partly
+fixed**. **Confirmed** from drafts, except where marked.
 
-- A draft from `rake ai:draft_local` does not name the saved reply it was built from, or say
-  whether that reply was cut off, so matching a draft to its reply means opening the saved prompts.
-  The reply files are named by database id, which differs between machines.
-- The "Mover" table has no row for an urgency motion's proposer, so a reviewer cannot see where "on
-  behalf of Senator ..." came from (`ReviewerReport#mover_rows`). **Read.**
+Still open: a draft from `rake ai:draft_local` does not name the saved reply it was built from, or
+say whether that reply was cut off, so matching a draft to its reply means opening the saved
+prompts. The reply files are named by database id, which differs between machines.
+
+Fixed (`reviewer_report_spec.rb`):
+
+- The "Mover" table had no row for an urgency motion's proposer, so a reviewer could not see where
+  "on behalf of Senator ..." came from. It now has a "Proposer" row ("names who proposed what
+  someone else moved, and only when someone did").
 - "Explanation sentences to look at twice" (`ReviewerReport::POINTED`) looks for "you", "Senator X",
   "member for X", "Prime Minister" or "Minister X", so at Senate 20 August 2026 #23 it missed a
   sentence that described another member without naming them. No pattern can catch every such
-  phrase, so the list should say it is a prompt for the reviewer, not a complete check.
-- The "Title" row quotes the heading as stored on the Division record, such as "Securing the Ndis
-  for Future Generations", though the draft's own title now reads "NDIS" (KI-48).
+  phrase, so the list now says it is a prompt for the reviewer, not a complete check ("flags a
+  quoted explanation that speaks to someone or names another member, for the reviewer only").
+- The "Title" row quoted the heading as stored on the Division record, such as "Securing the Ndis
+  for Future Generations", though the draft's own title reads "NDIS" (KI-48). It now prints a
+  bill's title in the heading as the title does ("quotes the heading with the bill's title as the
+  title prints it").
 
 ### KI-77
 
