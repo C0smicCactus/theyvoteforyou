@@ -51,6 +51,13 @@ module DataLoader
     # Where an inline motion starts in the rest of an "I move" paragraph ("I move: That ...").
     INLINE_MOTION_START = /\A[\s:,-]*(?=that\b)/i
 
+    # Hansard sets a motion in italic, but now and then in a plain paragraph after an "I move"
+    # paragraph that ends at its colon (8 times in about 1,850 in 2026; KI-95). With no italic to
+    # show where it ends, only a single paragraph that is a whole motion is taken: it starts
+    # "That", and doesn't end in a colon or dash introducing parts to follow.
+    MOVE_ENDS_AT_COLON = /\A[\s—–-]*:[\s—–-]*\z/
+    PLAIN_MOTION = /\AThat\b.*[^:—–-]\s*\z/m
+
     # The line Hansard puts before a speech incorporated by leave. Its wording varies: "The
     # speech", "The speeches", "The incorporated speech" (the House), and "The speech es" where
     # one notice is split across three tags, sometimes after a leftover "() ():" of the
@@ -192,6 +199,10 @@ module DataLoader
         elsif (blocks = inline_move_blocks(paragraph_text(element), moves))
           roles[index] = { kind: :inline_move, blocks: blocks }
           moves += blocks.count { |block| block[:kind] == :motion }
+        elsif (plain = plain_motion_after(elements, index, set_apart))
+          roles[index] = { kind: :move, move: moves }
+          roles[plain] = { kind: :motion, move: moves }
+          moves += 1
         end
       end
       elements.each_index do |i|
@@ -239,6 +250,17 @@ module DataLoader
       following = ((index + 1)...elements.size).drop_while { |i| elements[i].text.strip.empty? }
       following.take_while { |i| set_apart.exclude?(i) && (motion_element?(elements[i]) || elements[i].text.strip.empty?) }
                .reject { |i| elements[i].text.strip.empty? }
+    end
+
+    # The index of a motion set in a plain paragraph after this "I move" paragraph, or nil.
+    def plain_motion_after(elements, index, set_apart)
+      move = paragraph_text(elements[index]).match(MOVE_PATTERN)
+      return nil unless move&.post_match&.match?(MOVE_ENDS_AT_COLON)
+
+      following = ((index + 1)...elements.size).find { |i| !elements[i].text.strip.empty? }
+      return nil if following.nil? || set_apart.include?(following) || elements[following].name != "p"
+
+      following if paragraph_text(elements[following]).match?(PLAIN_MOTION)
     end
 
     # The offset in an "I move" paragraph where an inline motion begins, or nil.
