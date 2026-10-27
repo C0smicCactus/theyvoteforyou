@@ -131,10 +131,11 @@ module DivisionSummaryPipeline
       [named, circulated].compact.map { |sentence| "#{sentence} " }.join
     end
 
-    # What carrying a reasoned amendment does is settled in neither chamber. The House guide
-    # records the one time it happened (House Guide pp. 69-70, KI-9); the Senate guide lists what
-    # such an amendment may do (Senate Guide No. 16) but not what carrying one does, so a Senate
-    # summary says nothing rather than borrow the House's answer.
+    # Both chambers' standing orders say the main question is then put as amended (House S.O.
+    # 118(a), Senate S.O. 91(4)), but the House's are "silent on the effect of carrying a reasoned
+    # amendment", and the House guide records the one time it happened (House Guide pp. 69-70,
+    # KI-9). That account is the House's, so a Senate summary doesn't borrow it, and doesn't yet
+    # say what its result leads to either (KI-75).
     def carried_amendment_note
       return "" if senate?
 
@@ -142,6 +143,12 @@ module DivisionSummaryPipeline
         "Procedures (2017) records it happening once, in 2016, when standing orders were then suspended so the bill " \
         "could be restored, and puts it no higher than that carriage \"would likely be regarded as preventing further " \
         "progress on the bill\"."
+    end
+
+    # The House's name for an amendment under House S.O. 145, which can't add words to the question
+    # (House Guide p. 68). A Senate second reading amendment often does, so it isn't one.
+    def reasoned_amendment_aside
+      senate? ? "" : " (often called a 'reasoned amendment' in the House of Representatives)"
     end
 
     # Template 2's vote sentence, which says the opposite thing depending on whether the
@@ -482,8 +489,9 @@ module DivisionSummaryPipeline
 
     # Section 128 requires a Constitution Alteration bill to pass each house by an absolute
     # majority. The House always rings the bells for a division at the third reading "even when
-    # this question is carried on the voices" (House S.O. 173), and the Senate records the names
-    # even if no division is called, so a division with no votes against is the rule working.
+    # this question is carried on the voices" (House Guide p. 77, on S.O. 173), and the Senate
+    # records the names even if no division is called, so a division with no votes against is the
+    # rule working.
     def constitution_alteration_clause
       requirement = "Because this is a Constitution Alteration bill, Section 128 of the Constitution requires it to " \
                     "pass by an absolute majority, meaning a majority of all the members of the chamber and not just " \

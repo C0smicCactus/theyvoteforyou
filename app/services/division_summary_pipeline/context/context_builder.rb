@@ -27,8 +27,8 @@ module DivisionSummaryPipeline
     # until the adjournment is deferred "until the first opportunity the next sitting day". The
     # Speaker then puts the deferred questions successively, without amendment or further debate,
     # so the speeches beside such a division belong to whatever business the House had reached.
-    # (This once had a Tuesday window after the matter of public importance, taken from the House
-    # Guide; the current standing order has no such rule, which was S.O. 55(c), on quorum counts.)
+    # (This once had a Tuesday window after the matter of public importance, which the House Guide
+    # (p. 58) gives as S.O. 133's own rule; the current standing order has none.)
     #
     # The standing order fixes when a deferral ends but not when the run of questions is put or
     # how long it takes, so the hour-long window below is this code's own estimate. It only raises

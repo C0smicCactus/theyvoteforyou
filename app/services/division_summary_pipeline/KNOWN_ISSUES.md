@@ -160,6 +160,7 @@ Colours: **Severity** 🔴 High, 🟠 Medium-High or Medium, 🔵 Low. **Status*
 | KI-72 | Rules | 🟠 Medium | 🟠 Partly fixed | Senate rescission: the standing order and the guide disagree on the majority; the code's pattern was too broad | See the open entry below. |
 | KI-73 | Rules | 🟠 Medium | 🔴 Open | Explainer and vote sentences that state one chamber's rule as general, or say more than the rules do (Templates 5, 7, 14, 25 and 26) | See the open entry below. |
 | KI-74 | Rules | 🔵 Low | 🟢 Fixed | Three House rules the pipeline got wrong in rare cases: a tie on the ballot closure, the quorum fallback, and Template 1 | `template_compiler_spec.rb` "reports an equal vote on the ballot closure as lost", "takes the quorum from the seats, not the members on the day", "explains the first reading in the guides' own terms"; `procedural_router_spec.rb` "does not settle a House question on a first reading". A tie on "That the ballot be taken now" is lost (House S.O. 11(h), p. 17; House Guide p. 5). The quorum is 31 from 1 July 2019 to 3 May 2025 and 30 otherwise, whatever the member records say on the day (House Guide pp. 16 to 17, which foresees 151 Members "in the 46th Parliament"; S.O. 54, p. 37, 30 as at 23 July 2025). The 151 seats to 2025 rest on the member records, which give 151 on the first sitting days of the 2019 and 2022 Parliaments and 150 from the 2025 election; House of Representatives Practice and the Votes and Proceedings were not checked. The router no longer settles Template 1 for the House, where a bill is "read a first time without a question being put" (S.O. 141(a), p. 64), and the explainer no longer says such divisions are only "rarer" there. House S.O. 2 gives the count out as "currently 31 Members" (p. 7) against 30 in its quorum definition (p. 10) and S.O. 54; the 31 looks left over from the House of 151. |
+| KI-75 | Rules | 🔵 Low | 🟠 Partly fixed | Comments, router reasons and template sentences to correct or verify, none of which changes a route | See the open entry below: the comments, router reasons and most citations are corrected, and so are Templates 2, 13 and 19 (`template_compiler_spec.rb` "Template 2's explainer in each chamber"); the other template sentences, a citation in the prompt and the claims to verify are open. |
 | KI-76 | Pipeline | 🔵 Low | 🟠 Partly fixed | The Reviewer Only section left out things a reviewer needs; a local draft still does not name the reply it was built from | See the open entry below: three of its four points are fixed, each naming its spec. |
 | KI-77 | Pipeline | 🔵 Low | 🟢 Fixed | The local model tools lose or misreport a reply that does not finish | `local_model_client_spec.rb` "saves the prompt even when the request times out", "fails when the model runs out of tokens before finishing", "says when the server's context ran out before max_tokens did". The prompt is saved before the request; a reply cut off for length is put down to the server's context when its `usage.completion_tokens` is below `max_tokens`, and to `max_tokens` otherwise, including when the server reports no usage. |
 | KI-78 | Rules | 🔵 Low | 🟢 Fixed | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | Comments (no spec), citing KI-78 where the code makes each choice, and `ARCHITECTURE.md` section 8 for the template sentences. "X MP", the Monday deferral window, the divided question forms, the fallback constants, `MoverFinder`'s window, the validator's word lists and routing on the chair's question were already marked as the code's own or gave its reasons, so are unchanged. |
@@ -362,6 +363,52 @@ says a decision is needed:
 | Template 14 (Selection of Bills) | the committee "decides which newly introduced bills need to be sent to other committees"; an amendment to the motion adopting its report is settled on 14 and printed as voting on "a motion ... to adopt the report" | Senate S.O. 24A(1), p. 26: the committee reports on bills to be referred; Senate Guide No. 13, p. 34: it "makes recommendations to the Senate about bills to be referred", and adopting the report does the referring | "recommends", and a vote sentence for an amendment |
 | Template 7 and `SECTION_53_NOTE` | section 53 "stops the Senate amending a bill at all", naming only tax and ordinary annual services bills | House Guide p. 88 and Senate Guide No. 16, p. 49: the Senate also may not amend a bill "so as to increase any proposed charge or burden on the people", though the House Guide (p. 89) says what that covers has not been "conclusively determined" | Add the limb, carefully |
 | Template 7, the effect of a message vote | "goes back to it for further negotiation" and "proceeds without them" | House: a return to the Senate goes through a motion with written reasons and "That the reasons be adopted" (S.O. 161(c), p. 70), and S.O. 162 and 169 (pp. 70 to 72) leave the House other courses, such as further or alternative amendments, laying the bill aside, or insisting. Senate: not insisting "and" making alternative amendments in their place is not "proceeds without them" (Senate Guide No. 18, p. 54), and a bill may be laid aside (S.O. 126(6), p. 75) | Neutral wording for the House until a source says more, and detect the compound "not insist" forms before printing an effect. KI-2's omit-clause case is separate |
+
+### KI-75
+
+**Comments, router reasons and template sentences to correct or verify, none of which changes a
+route.** Severity: Low. Status: **Partly fixed**. **Confirmed** against the rules named in each
+line, except the last, which is **Verify**.
+
+Corrected in October 2026, as the lines then removed from this entry record: every comment,
+router reason and citation it listed apart from the prompt's below, Template 2's "reasoned amendment"
+aside (now printed in the House only), "permanent" in Template 13, and Template 19's adjourning to a
+later time. Still open:
+
+- A Senate draft for Template 2 never says what its result leads to: at Senate 14 September 2026 #7
+  the draft ends at "The text of the bill is unchanged either way.", where "When amendments have
+  been proposed but not made the question shall be put as originally proposed" (S.O. 91(5), p. 63),
+  and when they are made it "shall be put as amended" (S.O. 91(4)).
+- The prompt's rule 7 cites Senate S.O. 114 (p. 71) for its forms, but S.O. 114 has only "this day
+  6 months" and "Other amendments ... provided that they are relevant to the bill"; the Senate forms
+  the prompt lists, such as "the Senate rejects the bill", are in neither S.O. 114 nor Senate Guide
+  No. 16.
+- Template 23 says of the gag that "the Senate has no equivalent, and its own guide says there is no
+  ability to gag a senator". That is true of "no longer heard" (Senate Guide No. 2, p. 6), but
+  Senate S.O. 196 (p. 100) has "be further heard" (KI-68).
+- Senate wording: Template 20 should say a Senate order of the day is "discharged" (S.O. 97(4), p.
+  65) and a motion once moved "cannot be withdrawn without leave" (S.O. 83(3), p. 61); Template 3's
+  amendment effect is wrong for a request; and the suspension effect clause's "immediately"
+  overstates Senate Guide No. 5 (p. 13), which says a suspension "allows the senator to take the
+  course of action to which the motion was directed".
+- Template 9's notice and disallowance periods (Senate Guide No. 19, pp. 57 to 58) are right for the
+  usual case, but the guide notes exempt and unusual instruments (p. 58). A constitution alteration
+  bill's "will go to the [other chamber]" depends on where the bill started, the same problem as
+  KI-1.
+- `SummaryWording#constitution_alteration_clause`, for a third reading carried with fewer
+  ayes than an absolute majority, says whether the bill passed "does not follow from the division
+  figures alone". Senate S.O. 135, p. 79, says what follows: "the bill shall be forthwith laid aside
+  without any question being put". The House sentence is the same, and House S.O. 173, p. 73, says
+  that if an absolute majority "does not agree to the third reading of a bill which proposes an
+  alteration of the Constitution, the bill shall be laid aside immediately and may not be revived
+  during the same session of Parliament". The Senate sentence, and the absolute majority notices,
+  also say "members" of the Senate where the Senate says senators (Senate Guide No. 3, p. 9).
+- **Verify** against House of Representatives Practice, Odgers' or the Act itself, since neither the
+  guides nor the standing orders cover them: Template 10's "Neither has any legal effect and neither
+  forces anyone to resign", Template 12's account of a select committee's dissolution after its
+  final report, the Legislation Act 2003 for Template 9, and the
+  House of Representatives (Quorum) Act 1989 and the Senate (Quorum) Act 1991. The Parliament Act
+  1974 for Template 21 is KI-19.
 
 ### KI-82
 

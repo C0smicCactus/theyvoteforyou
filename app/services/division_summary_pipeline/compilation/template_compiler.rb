@@ -141,6 +141,7 @@ module DivisionSummaryPipeline
         "limitation_of_debate_section" => limitation_of_debate_section(sections, wording),
         "amendment_effect_clause" => wording.amendment_effect_clause,
         "carried_amendment_note" => wording.carried_amendment_note,
+        "reasoned_amendment_aside" => wording.reasoned_amendment_aside,
         "stand_as_printed_effect_clause" => wording.stand_as_printed_effect_clause,
         "stand_as_printed_parts_sentence" => wording.stand_as_printed_parts_sentence,
         "second_reading_clause" => wording.second_reading_clause,

@@ -330,13 +330,14 @@ module DivisionSummaryPipeline
       settle(9, "DISALLOWANCE_MOTION", "Question explicitly moves to disallow a delegated legislative instrument.")
     end
 
-    # Template 8: production of documents, the chamber ordering the government to hand over papers
-    # it holds. These votes are about access to the documents, never about their subject, so a
-    # missed match misroutes badly, and the wording varies: "papers" as well as "documents", "laid
-    # upon" as well as "laid on the table". "Laid on the table" is enough on its own, since the
-    # Senate's usual order reads "That there be laid on the table by the Minister ..., by no later
-    # than ...:" and then lists what is wanted ("a copy of the report entitled ...", "all
-    # ministerial submissions ..."), often without ever saying "documents" or "papers".
+    # Template 8: production of documents, the chamber ordering documents to be produced, which
+    # need not exist yet (Senate Guide No. 12, p. 30). These votes are about access to the
+    # documents, never about their subject, so a missed match misroutes badly, and the wording
+    # varies: "papers" as well as "documents", "laid upon" as well as "laid on the table". "Laid on
+    # the table" is enough on its own, since the Senate's usual order reads "That there be laid on
+    # the table by the Minister ..., by no later than ...:" and then lists what is wanted ("a copy
+    # of the report entitled ...", "all ministerial submissions ..."), often without ever saying
+    # "documents" or "papers".
     def production_of_documents
       return unless says?("production of documents", "production of papers", "order for the production",
                           "produce documents", "laid on the table", "laid upon the table")
@@ -387,11 +388,12 @@ module DivisionSummaryPipeline
       return unless says?("selection committee") && house?
 
       settle(19, "REARRANGEMENT_OF_BUSINESS",
-             "Question adopts determinations of the House Selection Committee rearranging business.")
+             "Question relates to a report of the House Selection Committee rearranging business.")
     end
 
     # Template 16: matter of urgency, the Senate's device for setting aside time to debate an issue
-    # immediately. Decides that the debate happens, not the issue.
+    # immediately. The question, put when the time for debate expires, is the motion itself: "That in
+    # the opinion of the Senate the following is a matter of urgency" (Senate S.O. 75(1)(b), (7)).
     def matter_of_urgency
       return unless says?("matter of urgency", "urgency motion")
 
@@ -485,7 +487,8 @@ module DivisionSummaryPipeline
                     (says?("guillotine") && !substantive_amendment?)
 
       reason = if urgent
-                 "Question declares the bill urgent, which brings the House's time limits for urgent bills into force."
+                 "Question declares the bill urgent, in either chamber the first step to limiting its debate " \
+                   "(House S.O. 82; Senate S.O. 142(1))."
                else
                  "Question is the limitation of debate (time allocation) itself."
                end

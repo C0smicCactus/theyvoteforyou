@@ -189,7 +189,7 @@ module DivisionSummaryPipeline
         7. TEMPLATE 2 (SECOND READING AMENDMENT):
            If template_id is 2, set 'declines_second_reading' to true or false, never null. Decide from the
            words of the amendment itself, not from its tone. The standard forms (House of Representatives
-           Guide to Procedures; House S.O. 146; Senate S.O. 114):
+           Guide to Procedures; House S.O. 145, 146; Senate S.O. 114):
              declines_second_reading = true
                - "the House declines to give the bill a second reading as it is of the opinion that ..."
                - "the bill be withdrawn and redrafted to provide for ..."
