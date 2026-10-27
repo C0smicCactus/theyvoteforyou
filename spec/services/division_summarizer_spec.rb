@@ -61,7 +61,7 @@ describe DivisionSummarizer do
         expect(result.error).to be_nil
         expect(result.title).to eq("Bills - Example Bill 2026; Consideration in Detail Amendment")
         expect(result.description).to start_with("**Bill Timeline:**")
-        expect(result.description).to include("introduced by Robin Carrow MP",
+        expect(result.description).to include("moved by Robin Carrow MP",
                                               "At 10:00 AM, Robin Carrow MP said:\n\n> This change protects small business.",
                                               "> That the words \"the Minister\" be omitted.",
                                               "At 10:05 AM, Casey Whitlow MP, in the chair, put the following question:")
