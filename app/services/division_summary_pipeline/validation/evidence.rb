@@ -35,8 +35,10 @@ module DivisionSummaryPipeline
   class Evidence
     # found_by: :rule (Stage 1 found it) or :model (a model reference that resolved).
     # incorporated: the words were incorporated in Hansard by leave, not spoken in the chamber.
-    Excerpt = Data.define(:text, :unit_ids, :speaker, :speaker_gid, :time, :date, :found_by, :incorporated) do
-      def initialize(incorporated: false, **fields)
+    # shared_time: the time is the speech before's, which the record gives these words too (KI-89).
+    Excerpt = Data.define(:text, :unit_ids, :speaker, :speaker_gid, :time, :date, :found_by, :incorporated,
+                          :shared_time) do
+      def initialize(incorporated: false, shared_time: false, **fields)
         super
       end
 

@@ -140,9 +140,12 @@ module DivisionSummaryPipeline
       excerpt.unit_ids.first.to_s[/\AS\d+/]
     end
 
-    # "At 1:27 PM", or "On 12 May 2026 at 5:40 PM" for a speech from an earlier sitting day.
+    # "At 1:27 PM", or "On 12 May 2026 at 5:40 PM" for a speech from an earlier sitting day, or
+    # "Before the division, at 1:27 PM" for words that only share the speech before's time (KI-89).
     def moment(excerpt)
       time = ClockTime.display(excerpt.time)
+      return "Before the division, at #{time}" if excerpt.shared_time && time.present?
+
       day = "On #{Date.parse(excerpt.date).strftime('%-d %B %Y')}" if excerpt.date.present? && excerpt.date != facts.date
       return day ? "#{day} at #{time}" : "At #{time}" if time.present?
 

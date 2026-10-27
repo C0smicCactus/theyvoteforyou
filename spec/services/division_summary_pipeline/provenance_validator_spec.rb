@@ -54,6 +54,13 @@ describe DivisionSummaryPipeline::ProvenanceValidator do
       expect(evidence.limitation).to be_nil
     end
 
+    it "marks the time the chair's question takes from the speech before it as shared" do
+      speeches = [mover_speech, other_speech, chair_speech.merge(time: other_speech[:time])]
+      question = validate(extraction, packet(speeches: speeches)).evidence.question
+
+      expect([question.time, question.shared_time]).to eq([other_speech[:time], true])
+    end
+
     # Stage 1 finds it outside the transcript, since the rest of the chair's statement usually
     # puts a question on another bill, so there is nothing for the model to point at.
     it "takes the chair's sentence saying a limitation of debate's time had expired from Stage 1" do

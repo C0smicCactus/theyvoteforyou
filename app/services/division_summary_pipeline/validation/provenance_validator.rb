@@ -156,7 +156,21 @@ module DivisionSummaryPipeline
                     "summary cannot quote it."
         return nil
       end
-      passage(units.map(&:id), found_by: :rule)
+      excerpt = passage(units.map(&:id), found_by: :rule)
+      inherited_question_time? ? excerpt&.with(shared_time: true) : excerpt
+    end
+
+    # The XML usually gives the chair's statement putting the question no time of its own, but the
+    # time the speech before it began, which can be many minutes before the question was put
+    # (KNOWN_ISSUES.md KI-89). Question Put then says it was put "Before the division, at" that
+    # time: not when the chair spoke, but the time the record shows beside the chair's words, which
+    # a reader needs to find them.
+    def inherited_question_time?
+      speeches = transcript.speeches
+      index = speeches.index(transcript.question_speech)
+      return false unless index&.positive?
+
+      ClockTime.normalise(speeches[index - 1].time) == ClockTime.normalise(speeches[index].time)
     end
 
     def introduction
