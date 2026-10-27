@@ -16,8 +16,10 @@ module DivisionSummaryPipeline
     # (one fifth of the House) 31 rather than 30.
     HOUSE_OF_151 = Date.new(2019, 7, 1)...Date.new(2025, 5, 3)
 
-    # More than half of all the members of the chamber. The House guide gives 76 for a House of
-    # 150 and the Senate guide gives 39 of 76; a known member count supersedes them.
+    # More than half of all the seats in the chamber, not of the members on the day, which fall
+    # during a vacancy. The rules give fixed figures: "currently 76 Members" (House Guide p. 2), as
+    # much for a House of 151 as of 150, and "more than half of all possible votes (39)" (Senate
+    # Guide No. 3, p. 9). See KNOWN_ISSUES.md KI-83.
     HOUSE_ABSOLUTE_MAJORITY = 76
     SENATE_ABSOLUTE_MAJORITY = 39
 
@@ -123,8 +125,6 @@ module DivisionSummaryPipeline
     end
 
     def absolute_majority
-      return (member_count / 2) + 1 if member_count
-
       facts.senate? ? SENATE_ABSOLUTE_MAJORITY : HOUSE_ABSOLUTE_MAJORITY
     end
 
