@@ -503,6 +503,16 @@ without AWS credentials (`lib/tasks/local_llm.rake`). Any server with an OpenAI-
 model id `local.<model name>`. It always re-runs, overwrites that model's saved draft, and keeps
 every reply under `tmp/llm_replies/`, with the prompt that produced it beside it (`...-prompt.json`).
 
+```bash
+rake ai:draft_local HOUSE=senate FROM=2026-08-01 TO=2026-09-30
+```
+
+Drafts divisions for upload with the same local model, newest first, one sitting day at a time,
+loading each day's divisions only when it reaches them (`LocalDraftRun`). Each draft is written to
+a file under `local_runs/` named after the division's URL (`LocalDraftFile`; `docs/adr/0007`), not
+saved to the database, and a division that already has a file is skipped so a run can be stopped
+and restarted. `docs/local-ai-drafts.md` is the how-to.
+
 Three more development tasks in the same file check a change without a model:
 
 ```bash
