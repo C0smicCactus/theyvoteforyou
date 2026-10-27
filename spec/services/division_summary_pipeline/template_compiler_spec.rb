@@ -590,6 +590,19 @@ describe DivisionSummaryPipeline::TemplateCompiler do
         compile_summary(data, template_id: 15, motion_text: "That the House take the next item of business.")
       end
 
+      # Senate S.O. 87, p. 62 (KNOWN_ISSUES.md KI-72).
+      it "flags a Senate rescission carried without an absolute majority, but not a call on the government to rescind" do
+        data = { time: "12:30 PM", result: "passed", house: "senate", aye_votes: 35, no_votes: 30, date: "2024-06-05" }
+
+        rescission = compile_summary(data, template_id: 15,
+                                           motion_text: "That the order of the Senate of 14 March 2024 relating to the Example Inquiry be rescinded.")
+        call = compile_summary(data, template_id: 15,
+                                     motion_text: "That the Senate calls on the Government to rescind its decision on the Example Grant.")
+
+        expect(rescission).to include("Notice: this question needed an absolute majority")
+        expect(call).not_to include("absolute majority")
+      end
+
       it "explains the absolute majority a Constitution Alteration bill needs at the third reading" do
         division_data = {
           time: "05:00 PM",
