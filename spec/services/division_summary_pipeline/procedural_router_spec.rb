@@ -318,7 +318,8 @@ describe DivisionSummaryPipeline::ProceduralRouter do
 
       # "That the bill stand as printed" is the final question in committee of the whole when
       # no amendments have been agreed to, the counterpart of "That the bill, as amended, be
-      # agreed to". It omits nothing, so it must not pick up Template 28's inversion.
+      # agreed to". It omits nothing, so it must not pick up Template 28's inversion: it is
+      # Template 30's.
       it "keeps 'that the bill stand as printed' away from Template 28" do
         decision = described_class.route(
           speaker_question: "The question is that the bill stand as printed.",
@@ -790,6 +791,66 @@ describe DivisionSummaryPipeline::ProceduralRouter do
         expect(decision).to be_deterministic
         expect(decision.template_id).to eq(2)
         expect(decision.rule_name).to eq("SECOND_READING_AMENDMENT_DIRECT")
+      end
+    end
+
+    # KNOWN_ISSUES.md KI-4: at the end of the detail stage the chair puts one question on the whole
+    # bill (House S.O. 149 and 150(c), 153; Senate Guide No. 16). With no template for it, all 11
+    # such divisions of 2026 reached the fallback, and 7 drafts said an amendment had been agreed to.
+    describe "Template 30, the question on the whole bill at the end of its detail stage" do
+      it "settles each form the chambers used in 2026" do
+        [["representatives", "Consideration in Detail", "The question is that the bill, as amended, be agreed to."],
+         ["representatives", "Consideration in Detail", "The question is that the bill be agreed to."],
+         ["representatives", "Consideration in Detail", "The question is the bill be agreed to."],
+         ["representatives", "Consideration in Detail", "The question now is that the bill, as amended, be agreed to."],
+         ["representatives", "Consideration in Detail", "The question is that this bill, as amended, be agreed to."],
+         ["representatives", "Report from Federation Chamber", "The question is that the bill be agreed to."],
+         ["senate", "in Committee", "The question now is that the bill stand as printed."],
+         ["senate", "in Committee", "The TEMPORARY CHAIR: The question is that the bill stand as printed."],
+         ["senate", "in Committee", "The question is that the bill, as amended, be agreed to."],
+         ["senate", "in Committee", "The question is that the bills, as amended, be agreed to."]].each do |chamber, stage, question|
+          decision = described_class.route(speaker_question: question, chamber: chamber,
+                                           debate_heading: "Bills - Example Bill 2026; #{stage}")
+
+          expect(decision).to be_deterministic, question
+          expect(decision.template_id).to eq(30), question
+          expect(decision.rule_name).to eq("WHOLE_BILL_QUESTION"), question
+        end
+      end
+
+      it "settles it when the chair names the bill by its title" do
+        decision = described_class.route(
+          speaker_question: "The question is that the Example Amendment (Fictional Measures) Bill 2026, as amended, be agreed to.",
+          chamber: "representatives"
+        )
+
+        expect(decision.template_id).to eq(30)
+      end
+
+      it "settles it under a Limitation of Debate heading, where it is a vote on the bill and never Template 18" do
+        ["The question is that the bill stand as printed.", "The question is that the bills, as amended, be agreed to."]
+          .each do |question|
+          decision = described_class.route(speaker_question: question, chamber: "senate",
+                                           debate_heading: "Bills - Example Bill 2026; Limitation of Debate")
+
+          expect(decision.template_id).to eq(30), question
+        end
+      end
+
+      it "leaves to their own rules the questions that only contain its words" do
+        [["senate", "The question is that the remaining stages of the bill be agreed to and the bill be now passed.", 6],
+         ["representatives", "The question is that the amendments made by the Federation Chamber be agreed to.", 5],
+         ["senate", "The question is that the clause stand as printed.", 28]].each do |chamber, question, template_id|
+          expect(described_class.route(speaker_question: question, chamber: chamber).template_id).to eq(template_id), question
+        end
+
+        ["The question is that the amendments to the bill be agreed to.", "The question is that the bill be reported.",
+         "The question is that the report of the committee be adopted.",
+         "The question is that clause 5, as amended, be agreed to."].each do |question|
+          decision = described_class.route(speaker_question: question, chamber: "senate")
+
+          expect(decision.allowed_templates).not_to include(30), question
+        end
       end
     end
 

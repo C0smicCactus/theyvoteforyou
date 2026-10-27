@@ -72,6 +72,7 @@ module DivisionSummaryPipeline
       :second_reading_amendment,
       :second_reading,
       :stand_as_printed,
+      :whole_bill,
       :amendment_stage,
       :committee_referral
     ].freeze
@@ -119,6 +120,15 @@ module DivisionSummaryPipeline
     # Ends the reason of an open route that forbids Template 18 because of the heading.
     HEADING_LOCKOUT_NOTE = " Heading was 'Limitation of Debate', so Template 18 is locked out."
 
+    # The chair's question on the whole bill at the end of its detail stage, read with punctuation
+    # dropped and each title as "bill": "That the bill (as amended) be agreed to" in the House
+    # (S.O. 149(b) and (c), p. 66, 150(c), p. 67, and 153, p. 68, as at 23 July 2025; House Guide
+    # pp. 71-73), and "That the bill, as amended, be agreed to" or, with no amendments agreed to,
+    # "That the bill stand as printed" in the Senate (Senate Guide No. 16, p. 48). Anchored on
+    # "that" or "is" just before the bill, since "the remaining stages of the bill be agreed to" and
+    # "the amendments to the bill be agreed to" contain the same words and are other questions.
+    WHOLE_BILL_QUESTION = /\b(?:that|is)\s(?:the|this)\sbills?\s(?:(?:as\samended\s)?be\sagreed\sto|stand\sas\sprinted)\b/
+
     # motion_text is the first paragraph of the motion as moved (ContextBuilder, via
     # MoverFinder), used only when the question itself matched no rule. The chair often puts a
     # question by reference - "the motion moved by the member for Exampleton be agreed to",
@@ -154,6 +164,12 @@ module DivisionSummaryPipeline
       FIXED_MOTION_OPENINGS.any? { |pattern| opening.match?(pattern) }
     end
 
+    # The chair proposes the question on the whole bill with nobody moving it, so MoverFinder asks
+    # here rather than keeping its own copy of the forms.
+    def self.whole_bill_question?(question)
+      new(question, "", "", "").whole_bill_question?
+    end
+
     private_class_method :new
 
     def initialize(question, chamber, heading, context)
@@ -173,6 +189,10 @@ module DivisionSummaryPipeline
         return matched if matched
       end
       general_motion_fallback
+    end
+
+    def whole_bill_question?
+      @text_outside_titles.match?(WHOLE_BILL_QUESTION)
     end
 
     private
@@ -581,6 +601,19 @@ module DivisionSummaryPipeline
              "to omit that unit and a vote against the question is what removes it.")
     end
 
+    # Template 30: the question on the whole bill once its amendments have been dealt with
+    # (WHOLE_BILL_QUESTION). It decides the bill's text as it then stands, not an amendment, and
+    # does not pass the bill: the third reading does that. Without its own template it fell to the
+    # fallback, and the model chose an amendment template from the "Consideration in Detail"
+    # heading and said an amendment had changed the bill (KNOWN_ISSUES.md KI-4, KI-79).
+    def whole_bill
+      return unless whole_bill_question?
+
+      settle(30, "WHOLE_BILL_QUESTION",
+             "Question is the chair's final question on the whole bill at the end of its detail stage, which nobody " \
+             "moves and which decides the bill's text as it then stands.")
+    end
+
     # An amendment with no stage named. Each chamber amends at its own stage (the Senate in
     # committee, the House in consideration in detail), so the chamber narrows the shortlist and
     # a stage named in the surrounding debate settles it outright. The chair often puts a second
@@ -682,13 +715,16 @@ module DivisionSummaryPipeline
 
     # "That the bill stand as printed" is the final question in committee when no amendments have
     # been agreed to, the counterpart of "That the bill, as amended, be agreed to" (Senate Guide
-    # No. 16). It omits nothing and carries no inversion, so it is not a unit standing as printed.
+    # No. 16). It omits nothing and carries no inversion, so it is not a unit standing as printed:
+    # it is Template 30's.
     def unit_stands_as_printed?
-      says?("stand as printed") && !text.match?(/\bbill stand as printed\b/)
+      says?("stand as printed") && !text.match?(/\bbills? stand as printed\b/)
     end
 
+    # Only a unit standing as printed decides an amendment, so the bill's own question passes the
+    # guillotine guardrail to its own rule.
     def substantive_amendment?
-      names_amendment? || says?("words after", "words be omitted", "stand as printed")
+      names_amendment? || says?("words after", "words be omitted") || unit_stands_as_printed?
     end
 
     def guillotine_heading?
