@@ -80,10 +80,11 @@ module DivisionSummaryPipeline
 
     # An amendment's own forms, as the question reads them out with punctuation dropped: "Omit all
     # words after "That", substitute ...", "That all words after "That" be omitted with a view to
-    # substituting ...", "At the end of the motion, add ...", and the House's older "That the words
-    # proposed to be omitted stand part of the question".
+    # substituting ..." and "At the end of the motion, add ...". Not the House's older "That the words
+    # proposed to be omitted stand part of the question": agreeing to it disposes of the amendment
+    # (House Guide p. 52), so it is the amendment's opposite (KNOWN_ISSUES.md KI-68).
     AMENDMENT_FORMS = ["omit all words after", "all words after that be omitted", "leave out all words after",
-                       "at the end of the motion add", "words proposed to be omitted"].freeze
+                       "at the end of the motion add"].freeze
 
     # Openings that settle what a motion does however the rest of it reads: a suspension of
     # standing orders, a referral to a committee, an order for the production of documents and
@@ -202,8 +203,11 @@ module DivisionSummaryPipeline
     # debate, which is usually put in a separate division moments later. Also covers calling on
     # the business of the day to terminate an MPI (House S.O. 46(e)), and the "That the ballot
     # be taken now" form used to closure debate during the election of a Speaker (House
-    # S.O. 11(h), Guide p. 41).
+    # S.O. 11(h), Guide p. 41). Not the Senate's previous question, "That this question be not now
+    # put", which is its opposite: carried, it disposes of the question without putting it (Senate
+    # S.O. 94 and 95, KNOWN_ISSUES.md KI-68).
     def closure_of_debate
+      return if says?("not now put")
       return unless says?("question be now put", "question be put", "now put", "ballot be taken now",
                           "business of the day be called on")
 
@@ -217,7 +221,7 @@ module DivisionSummaryPipeline
       settle(22, "CLOSURE_OF_DEBATE", reason)
     end
 
-    # Template 23: member be no longer heard (or heard now, or further heard). This closure-like
+    # Template 23: member be no longer heard. This closure-like
     # gag exists only in the House of Representatives, so a match inside the Senate means the
     # chamber metadata or the question is wrong somewhere. Fence it for the extractor rather than
     # asserting it, and say why in the reason.
@@ -232,7 +236,7 @@ module DivisionSummaryPipeline
     def member_no_longer_heard
       return unless member_heard?
 
-      settle(23, "MEMBER_NO_LONGER_HEARD", "Question explicitly asks whether the member be heard or no longer heard.")
+      settle(23, "MEMBER_NO_LONGER_HEARD", "Question explicitly asks that the member be no longer heard.")
     end
 
     # Template 24: disciplinary naming and suspension of a member (House S.O. 94, Senate S.O. 203).
@@ -504,10 +508,17 @@ module DivisionSummaryPipeline
     # proceedings on the bill" (Senate Guide No. 17, Debating legislation under time limits). It
     # is the same final vote, so it is settled here too. Unmatched, it fell to the general motion
     # fallback, and a draft built on that never said the bill had passed.
+    #
+    # Two forms with those words are not the bill passing (KNOWN_ISSUES.md KI-68): reading it "this
+    # day 6 months", which disposes of it, and passing it "without requests" or "subject to the
+    # requests", the committee's question on each clause or item of a bill the Senate may not amend
+    # (Senate S.O. 140(3)).
     def third_reading
+      return if disposes_of_bill?
+
       if says?("read a third time", "third reading")
         settle(6, "THIRD_READING_PASSING", "Question is that the bill be read a third time (passing the chamber).")
-      elsif says?("be now passed", "now be passed")
+      elsif says?("be now passed", "now be passed") && !says?("without requests", "subject to the requests")
         settle(6, "REMAINING_STAGES_PASSING",
                "Question is that the bill be now passed, taking any remaining stages together (passing the chamber).")
       end
@@ -529,6 +540,7 @@ module DivisionSummaryPipeline
 
     def second_reading
       return unless second_reading?
+      return if disposes_of_bill?
 
       plain = text.match?(/\b(?:be\s+(?:now\s+)?|now\s+be\s+)read\s+a\s+second\s+time\b/) && !says?("as amended")
       if plain
@@ -572,6 +584,7 @@ module DivisionSummaryPipeline
     # section heading still names the stage.
     def amendment_stage
       return unless names_amendment?
+      return if says?("stand part") # see AMENDMENT_FORMS
 
       stages = if heading.include?("second reading")
                  [2]
@@ -636,12 +649,20 @@ module DivisionSummaryPipeline
       @text_outside_titles.include?("amendment")
     end
 
+    # Only the gag. A member "be heard now" (House S.O. 65(c)) or "be further heard" (House S.O. 75(b),
+    # Senate S.O. 196) is a vote to let the member speak, its opposite (KNOWN_ISSUES.md KI-68).
     def member_heard?
-      says?("no longer heard", "be no longer heard", "be heard now", "be further heard")
+      says?("no longer heard")
     end
 
     def second_reading?
       says?("read a second time", "second reading")
+    end
+
+    # The amendment that reads a bill "this day 6 months" finally disposes of it if carried (Senate
+    # S.O. 114(2), 122(3)).
+    def disposes_of_bill?
+      says?("this day 6 months", "this day six months")
     end
 
     # "That the bill stand as printed" is the final question in committee when no amendments have
