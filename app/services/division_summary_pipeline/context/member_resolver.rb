@@ -71,6 +71,7 @@ module DivisionSummaryPipeline
         name: member.name,
         party: member.party_name,
         electorate: member.senator? ? nil : member.electorate,
+        offices: (member.person.offices_on_date(date).pluck(:position) if date.present?),
         link: member_path(member.url_params)
       )
     end

@@ -71,7 +71,7 @@ module DivisionSummaryPipeline
 
       introduction = packet.transcript.last_move_units(speech, :move).map(&:id)
       terms = packet.transcript.last_move_units(speech, :motion).map(&:id)
-      lines = ["Moved by: #{name} (speech S#{speech.number})."]
+      lines = ["Moved by: #{mover_designation(packet, name)} (speech S#{speech.number})."]
       lines << "Introduced in: #{introduction.join(', ')}." if introduction.any?
       lines << if terms.any?
                  "Terms moved: #{terms.join(', ')}. The motion is settled; leave references.motion empty."
@@ -80,6 +80,17 @@ module DivisionSummaryPipeline
                end
       lines << "An explanation can only be sentences #{name} spoke."
       lines.join("\n")
+    end
+
+    # A House Member is called by their office or seat, never by name (House S.O. 64), so the chair
+    # puts "the amendment moved by the member for ..." or "by the Minister for ...". Told only the
+    # mover's name, a model was left to work out that this is the same person (KNOWN_ISSUES.md KI-71).
+    def mover_designation(packet, name)
+      resolved = packet.mover&.member
+      return name if packet.facts.senate? || resolved.nil?
+
+      seat = "the member for #{resolved.electorate}" if resolved.electorate
+      [name, seat, *resolved.offices].compact.join(", ")
     end
 
     # Amendments the chair put that nobody moved: a model told only that no move was found went

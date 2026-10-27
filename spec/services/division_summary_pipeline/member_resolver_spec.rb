@@ -28,6 +28,17 @@ describe DivisionSummaryPipeline::MemberResolver do
       expect(resolved.link).to eq("/people/representatives/brightwater/alex_downey")
     end
 
+    it "gives the offices the member held on the date (KNOWN_ISSUES.md KI-71)" do
+      person = create(:person)
+      create(:office, person: person, position: "Minister for Ponies", from_date: "2026-01-01", to_date: "2026-12-31")
+      create(:office, person: person, position: "Shadow Minister for Ponies", from_date: "2022-06-01", to_date: "2025-12-31")
+      create_downey_member(person: person)
+
+      resolved = described_class.resolve(name: "Alex Downey", house: "representatives", date: "2026-08-19")
+
+      expect(resolved.offices).to eq(["Minister for Ponies"])
+    end
+
     # Hansard's speaker id is exact, so it is trusted over a name that may be spelt differently.
     it "resolves a Hansard speaker id to the member, whatever name is given" do
       create_downey_member(gid: "uk.org.publicwhip/member/900501")

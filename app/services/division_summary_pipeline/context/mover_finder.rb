@@ -240,7 +240,7 @@ module DivisionSummaryPipeline
     end
 
     def member_for_speech(speech)
-      resolved = MemberResolver.resolve(gid: speech[:speaker_gid]) if speech[:speaker_gid].present?
+      resolved = MemberResolver.resolve(gid: speech[:speaker_gid], date: date) if speech[:speaker_gid].present?
       return resolved if resolved&.member
 
       MemberResolver.named(speech[:speaker])

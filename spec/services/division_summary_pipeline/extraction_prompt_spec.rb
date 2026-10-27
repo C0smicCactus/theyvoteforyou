@@ -32,6 +32,24 @@ describe DivisionSummaryPipeline::ExtractionPrompt do
                                     "Terms moved: S1.3. The motion is settled", "An explanation can only be sentences Morgan Treloar spoke.")
     end
 
+    it "gives a House mover's seat and offices, which the chair calls them by (KNOWN_ISSUES.md KI-71)" do
+      person = create(:person)
+      create(:member, person: person, gid: "uk.org.publicwhip/member/900501", first_name: "Alex", last_name: "Downey",
+                      constituency: "Brightwater", house: "representatives")
+      create(:office, person: person, position: "Minister for Ponies", from_date: "2026-01-01", to_date: "2026-12-31")
+      put = "The question is that the amendment moved by the honourable member for Brightwater be agreed to."
+      speeches = [summary_speech("<p>I move:</p><p class=\"italic\">At the end of the motion, add \"and notes the cost\".</p>",
+                                 id: "s1", name: "Alex Downey", gid: "uk.org.publicwhip/member/900501", time: "10:15"),
+                  summary_speech("<p>#{put}</p>", id: "s2", name: "Robin Castellan", gid: "uk.org.publicwhip/member/900502",
+                                                  time: "10:25")]
+      packet = summary_packet(speeches: speeches, question: put, routing: routing,
+                              facts: { house: "representatives", date: "2026-08-19", number: 1, clock_time: "10:30" })
+      mover = DivisionSummaryPipeline::MoverFinder.find(question: put, speeches: speeches, date: "2026-08-19")
+
+      expect(described_class.user_prompt(packet.with(mover: mover)))
+        .to include("Moved by: Alex Downey, the member for Brightwater, Minister for Ponies (speech S1).")
+    end
+
     it "asks for the motion's paragraphs only when Stage 1 could not find it" do
       silent = summary_speech("<p>Rural students pay more to study.</p>", id: "s1", name: "Morgan Treloar",
                                                                           gid: "uk.org.publicwhip/lord/900001", time: "13:20")
