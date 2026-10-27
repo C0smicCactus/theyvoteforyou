@@ -53,7 +53,7 @@ September 2026, after three local models all quoted the same passage as the move
 then comparing Stage 1 before and after the fix over the 3,856 speeches in the ParlParse XML for
 Senate 18 to 20 August 2026 and the eight test divisions' sitting days.
 
-KI-40 onwards came from running four local models over ten divisions from 12 to 20 August 2026 on
+KI-40 to KI-61 came from running four local models over ten divisions from 12 to 20 August 2026 on
 30 September 2026, reviewing every draft against Hansard, and checking the proposed changes against
 the chambers' standing orders and guides. That check found that some of the pipeline's House
 procedure had been written from the House Guide (2017, amended June 2019), which predates every
@@ -62,9 +62,39 @@ July 2025" outrank it. The Senate standing orders consulted then were the June 2
 July 2025 edition replaced them on 1 October 2026, and every Senate standing order the pipeline
 cites kept its number and substance.
 
+KI-62 to KI-65 came from the first run of `rake ai:draft_local`, with Qwen3.6-35B-A3B (UD-Q4_K_M)
+through llama.cpp, over the 13 divisions of 17 September 2026 on 12 October 2026, comparing each
+draft's mover and motion with the day's ParlParse XML.
+
+KI-67 and KI-79 came from the same task's run over 16 September 2026 on 13 October 2026: the draft
+for House 16 September 2026 #6, and the prompt and reply saved for its sitting-day retry.
+
+KI-68 to KI-78, and the changes to KI-4, KI-5, KI-6, KI-7, KI-13, KI-44, KI-47, KI-50, KI-52 and
+KI-58, came from a second local model run on 1 October 2026, four models over the same ten
+divisions from 12 to 20 August 2026 with every draft checked against Hansard, and from checking
+about 190 of the pipeline's procedural claims against the House standing orders as at 23 July
+2025, the House Guide, the Senate standing orders of July 2025 and the June 2025 Senate guides.
+Every rule those entries cite, and the Hansard each one quotes, was checked again on 13 October
+2026.
+
+KI-80 to KI-94, and the changes to existing entries made with them, came from a review, begun on
+15 October 2026, of the drafts from `rake ai:draft_local`'s run over the 910 divisions from 19
+January to 17 September 2026 (712 Senate, 198 House). The drafts were made with Qwen3.6-35B-A3B
+(UD-Q4_K_M) through llama.cpp between 12 and 15 October 2026: 867 compiled, and the 43 that failed
+were reviewed as failures, without a retry. The review first studied each kind of vote in each
+chamber from the House standing orders as at 23 July 2025, the House Guide, the Senate standing
+orders of July 2025 and the June 2025 Senate guides, and then, for each division, worked out from
+the day's ParlParse XML and those rules what a correct draft would say before comparing the draft,
+and the pipeline's route to it, with that.
+
+KI-95 came from checking, on 16 October 2026, every mover a change to `MoverFinder` would have
+altered across those 910 divisions.
+
 This register was compiled with AI assistance (Claude Code: claude-opus-5[1m] for KI-1 to KI-19,
-claude-opus-5-5 for KI-20 to KI-39 and later, and for condensing the fixed entries). The procedural
-citations should be checked against the guides named above.
+claude-opus-5-5 for KI-20 onwards and for condensing the fixed entries; the 1 October 2026 review
+behind KI-68 to KI-78 also used helper agents on claude-opus-5-5 and claude-sonnet-5, and the
+review behind KI-80 to KI-94 used helper agents on claude-opus-5-5). The procedural citations should
+be checked against the documents named above.
 
 ## How findings were verified
 
