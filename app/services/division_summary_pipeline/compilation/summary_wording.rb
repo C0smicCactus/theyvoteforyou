@@ -55,6 +55,7 @@ module DivisionSummaryPipeline
       if outcome.want_of_quorum?
         return "not decided, because fewer than a quorum of #{senate? ? 'senators' : 'members'} voted"
       end
+      return "unsuccessful" if outcome.tied? && outcome.closure_variant == :ballot
       return "not decided by the division figures, which were equal" if outcome.tied? && !senate?
 
       outcome.successful? ? "successful" : "unsuccessful"
@@ -417,6 +418,10 @@ module DivisionSummaryPipeline
         "Notice: only #{facts.turnout} members voted, fewer than the quorum of #{outcome.quorum_threshold}. Under " \
           "House Standing Order 58 the House does not make a decision on a question when a division shows fewer " \
           "than a quorum voting.\n"
+      elsif outcome.tied? && outcome.closure_variant == :ballot
+        # House S.O. 11(h) and House Guide p. 5 (KNOWN_ISSUES.md KI-74).
+        "Because the votes were equally divided, the question was lost. House Standing Order 11(h) says an equal " \
+          "vote defeats this question, and until a Speaker is elected there is no casting vote.\n"
       elsif outcome.tied? && senate?
         "Because the votes were equally divided, the question was lost. The President of the Senate votes as an " \
           "ordinary senator and has no casting vote, so under Section 23 of the Constitution an equally divided " \

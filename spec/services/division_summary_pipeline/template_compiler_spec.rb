@@ -96,6 +96,17 @@ describe DivisionSummaryPipeline::TemplateCompiler do
       expect(rendered).to include("### About the Bill\n\n> No Bill Digest found.")
     end
 
+    # KNOWN_ISSUES.md KI-74: "in most cases a purely procedural step" (Senate Guide No. 16, p. 45),
+    # and never put to a vote in the House (House S.O. 141(a)).
+    it "explains the first reading in the guides' own terms" do
+      senate = { time: "12:39 PM", result: "passed", house: "senate" }
+      rendered = compile_summary(senate, template_id: 1, motion_text: "That this bill be now read a first time.")
+
+      expect(rendered).to include("In most cases this vote is about procedure only.")
+      expect(rendered).to include("happen only in the Senate")
+      expect(rendered).not_to include("where most first reading divisions come from")
+    end
+
     it "compiles Template 22 with a link to the follow-up division when one is supplied" do
       division_data = {
         time: "10:15 AM",
@@ -743,6 +754,16 @@ describe DivisionSummaryPipeline::TemplateCompiler do
         expect(rendered).to include("fewer than the quorum of 31")
       end
 
+      # KNOWN_ISSUES.md KI-74: a vacancy does not lower the quorum (House Guide p. 17), and the House
+      # went back to 150 seats at the 2025 election.
+      it "takes the quorum from the seats, not the members on the day" do
+        during_vacancy = compile_quorum(quorum_division_data(date: "2022-03-30").merge(chamber_size: 150))
+        since_2025 = compile_quorum(quorum_division_data(date: "2025-08-01"))
+
+        expect(during_vacancy).to include("fewer than the quorum of 31")
+        expect(since_2025).to include("fewer than the quorum of 30")
+      end
+
       it "says nothing about a quorum when the date is unknown" do
         rendered = compile_quorum(quorum_division_data(date: nil))
 
@@ -1037,6 +1058,16 @@ describe DivisionSummaryPipeline::TemplateCompiler do
 
         expect(rendered).to include("to end the debate and take the ballot immediately")
         expect(rendered).to include("then proceeded to the ballot")
+      end
+
+      # House S.O. 11(h): "If the votes are equal the question shall be negatived" (KNOWN_ISSUES.md KI-74).
+      it "reports an equal vote on the ballot closure as lost" do
+        rendered = compile_summary(closure_division(result: "negatived").merge(aye_votes: 50, no_votes: 50),
+                                   template_id: 22, motion_text: "That the ballot be taken now.")
+
+        expect(rendered).to include("which means it was unsuccessful. Debate on the election continued.")
+        expect(rendered).to include("House Standing Order 11(h) says an equal vote defeats this question")
+        expect(rendered).not_to include("casting vote of the occupant of the Chair")
       end
 
       it "says the debate continued when an ordinary closure was defeated" do
