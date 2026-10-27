@@ -87,5 +87,10 @@ describe DivisionSummaryPipeline::DivisionFacts do
       expect([0.9, 0.5, 0.2, 0.0, nil].map { |fraction| described_class.majority_strength(fraction) })
         .to eq(["large majority", "modest majority", "small majority", "majority", "majority"])
     end
+
+    # KNOWN_ISSUES.md KI-86: the page's first case, when everyone who voted voted the same way.
+    it "says unanimously where the division page does" do
+      expect(described_class.majority_strength(1.0)).to eq("unanimously")
+    end
   end
 end
