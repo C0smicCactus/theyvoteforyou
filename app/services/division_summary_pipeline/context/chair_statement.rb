@@ -43,11 +43,12 @@ module DivisionSummaryPipeline
     # statements for May to September 2026: "circulated by the Australian Greens" (13 times), "One
     # Nation" (7), "Senator David Pocock" (6), "the opposition" (4), "the United Australia Party",
     # "the government", "Jacqui Lambie Network and Senator David Pocock". The House names a member
-    # by electorate.
+    # by electorate, or by office: "the Manager of Opposition Business" (House 30 March 2026 #3,
+    # which read as "the Manager", KI-104).
     CIRCULATED_BY = /\bcirculated\s+by\s+(
       the\s+(?:opposition|government)\b |
       the\s+(?:honourable\s+)?member\s+for\s+[A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*)* |
-      (?:the\s+)?[A-Z][\w'’-]*(?:\s+(?:and\s+)?[A-Z][\w'’-]*)*
+      (?:the\s+)?[A-Z][\w'’-]*(?:\s+(?:and\s+|of\s+(?:the\s+)?)?[A-Z][\w'’-]*)*
     )/x
 
     # Hansard's heading over them when the chair does not say: "Australian Greens' circulated

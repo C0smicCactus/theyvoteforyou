@@ -92,6 +92,14 @@ describe DivisionSummaryPipeline::ChairStatement do
       expect(senator.circulated_by).to eq("Senator Jo Marlowe")
     end
 
+    # KNOWN_ISSUES.md KI-104: House 30 March 2026 #3 read as "circulated by the Manager".
+    it "is the whole of an office the Speaker names" do
+      office = statement("<p>I will now put the question that the amendment as circulated by the Manager of Opposition " \
+                         "Business be agreed to.</p>")
+
+      expect(office.circulated_by).to eq("the Manager of Opposition Business")
+    end
+
     # The stray spaces are Hansard's, as in "Government' s circulated amendments—".
     it "is taken from Hansard's heading over the amendments when the chair does not say" do
       party = statement("<p>The question is that the amendments on sheet XY102 be agreed to.</p>" \
