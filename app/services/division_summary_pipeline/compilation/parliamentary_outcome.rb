@@ -21,6 +21,9 @@ module DivisionSummaryPipeline
     HOUSE_ABSOLUTE_MAJORITY = 76
     SENATE_ABSOLUTE_MAJORITY = 39
 
+    # "Senate numbers: Quorum 19", in the front matter of the Senate's standing orders (p. vi).
+    SENATE_QUORUM = 19
+
     attr_reader :facts, :template_id, :motion_text, :question_text, :declines_second_reading, :circulation,
                 :limitation_text, :closed_template_id
 
@@ -92,11 +95,10 @@ module DivisionSummaryPipeline
     # S.O. 58 is what makes it worth reporting: if a division shows fewer than a quorum voting,
     # the House has not made a decision. nil when neither the member count nor the date is known,
     # because getting this wrong means telling a reader a decision parliament did make was never
-    # made. There is no Senate equivalent on purpose: the Guides to Senate Procedure set out no
-    # rule voiding a Senate division for want of a quorum, and a citation we cannot check is not
-    # one to publish.
+    # made. In the Senate, a division showing "that a quorum is not present" decides nothing
+    # (Senate S.O. 52(1); S.O. 147(2) in committee; KNOWN_ISSUES.md KI-69).
     def quorum_threshold
-      return nil if facts.senate?
+      return SENATE_QUORUM if facts.senate?
       return (member_count / 5.0).ceil if member_count
 
       date = Date.parse(facts.date.to_s)
@@ -105,9 +107,13 @@ module DivisionSummaryPipeline
       nil
     end
 
+    # In the Senate the President, or the Chair of Committees in committee, need not vote (Senate
+    # S.O. 101(5)) but is present, so a count there is short only if it is still short with the
+    # chair added.
     def want_of_quorum?
       threshold = quorum_threshold
-      threshold.present? && facts.turnout.positive? && facts.turnout < threshold
+      present = facts.turnout + (facts.senate? ? 1 : 0)
+      threshold.present? && facts.turnout.positive? && present < threshold
     end
 
     # An equally divided division had no majority either way. The Senate loses the question

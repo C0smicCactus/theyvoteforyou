@@ -52,7 +52,9 @@ module DivisionSummaryPipeline
     end
 
     def successful_text
-      return "not decided, because fewer than a quorum of members voted" if outcome.want_of_quorum?
+      if outcome.want_of_quorum?
+        return "not decided, because fewer than a quorum of #{senate? ? 'senators' : 'members'} voted"
+      end
       return "not decided by the division figures, which were equal" if outcome.tied? && !senate?
 
       outcome.successful? ? "successful" : "unsuccessful"
@@ -407,7 +409,11 @@ module DivisionSummaryPipeline
     # Guides to Senate Procedure ("the question is lost") rather than section 23's own "shall
     # pass in the negative", which a reader can easily take to mean it passed.
     def result_notice
-      if outcome.want_of_quorum?
+      if outcome.want_of_quorum? && senate?
+        "Notice: only #{facts.turnout} senators voted, fewer than the quorum of #{outcome.quorum_threshold}. Under " \
+          "Senate Standing Order 52(1) the Senate does not make a decision on a question when a division shows " \
+          "that a quorum is not present.\n"
+      elsif outcome.want_of_quorum?
         "Notice: only #{facts.turnout} members voted, fewer than the quorum of #{outcome.quorum_threshold}. Under " \
           "House Standing Order 58 the House does not make a decision on a question when a division shows fewer " \
           "than a quorum voting.\n"

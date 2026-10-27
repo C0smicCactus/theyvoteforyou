@@ -310,9 +310,10 @@ for human review.
 
 - `ParliamentaryOutcome` decides meaning: success (and the Template 28 inversion), tied votes
   (Constitution ss 23 and 40), want of quorum (House S.O. 58, with the quorum from the member
-  records on the day), absolute majorities (section 128, Senate S.O. 87, suspensions), the message
-  forms, the three closures, the bill stage, the suspension's stated purpose and the urgency
-  matter. It reads the motion Stage 1 found, falling back to the question.
+  records on the day; Senate S.O. 52(1), with the quorum of 19 and the chair counted as present),
+  absolute majorities (section 128, Senate S.O. 87, suspensions), the message forms, the three
+  closures, the bill stage, the suspension's stated purpose and the urgency matter. It reads the
+  motion Stage 1 found, falling back to the question.
 - `SummaryWording` holds the human-authored sentences each outcome chooses.
 - `EvidenceSections` renders the quoting sections in the layout in section 3. A section with
   nothing to quote prints a fixed sentence ("No explanatory claims recorded."). `QuoteOutline`

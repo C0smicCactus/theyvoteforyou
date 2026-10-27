@@ -736,11 +736,20 @@ describe DivisionSummaryPipeline::TemplateCompiler do
         expect(rendered).not_to include("quorum")
       end
 
-      # The Guides to Senate Procedure set out no rule voiding a Senate division for want of a
-      # quorum, so the pipeline does not invent one, and senators may simply abstain by
-      # staying away.
-      it "never raises a quorum notice for a Senate division" do
-        data = quorum_division_data(date: "2021-03-04").merge(house: "senate")
+      # Senate S.O. 52(1): a division showing that a quorum (19) is not present decides nothing
+      # (KNOWN_ISSUES.md KI-69).
+      it "flags a want of quorum against the Senate's 19" do
+        data = quorum_division_data(date: "2021-03-04").merge(house: "senate", aye_votes: 10, no_votes: 7)
+        rendered = compile_quorum(data)
+
+        expect(rendered).to include("which means it was not decided, because fewer than a quorum of senators voted.")
+        expect(rendered).to include("only 17 senators voted, fewer than the quorum of 19.")
+        expect(rendered).to include("Under Senate Standing Order 52(1)")
+      end
+
+      # The President need not vote (Senate S.O. 101(5)), so 18 votes may be 19 senators present.
+      it "says nothing about a quorum when 18 senators voted" do
+        data = quorum_division_data(date: "2021-03-04").merge(house: "senate", aye_votes: 10, no_votes: 8)
 
         expect(compile_quorum(data)).not_to include("quorum")
       end
