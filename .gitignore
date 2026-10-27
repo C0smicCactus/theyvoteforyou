@@ -76,3 +76,6 @@ vendor
 
 # Mac Finder
 .DS_Store
+
+# Drafts written by rake ai:draft_local (docs/local-ai-drafts.md), handed over rather than committed
+/local_runs/

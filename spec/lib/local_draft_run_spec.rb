@@ -164,4 +164,38 @@ describe LocalDraftRun do
       expect(run.counts[:skipped]).to be_zero
     end
   end
+
+  describe "#run_one" do
+    before { create(:division, house: "representatives", date: day, number: 1) }
+
+    it "drafts the one division a URL names" do
+      run_with.run_one("https://theyvoteforyou.org.au/divisions/representatives/2026-08-19/1")
+
+      expect(draft_path).to exist
+    end
+
+    it "says so when the division already has a file" do
+      run_with.run_one("representatives/2026-08-19/1")
+      run_with.run_one("representatives/2026-08-19/1")
+
+      expect(out.string).to include "representatives/2026-08-19/1: skipped, as it already has a file"
+    end
+
+    it "refuses something that isn't a division" do
+      expect { run_with.run_one("representatives/2026-08-19") }.to raise_error(described_class::UnknownDivision, /doesn't name a division/)
+    end
+  end
+
+  describe ".parse_slug" do
+    it "reads a slug or a whole division URL" do
+      expect(described_class.parse_slug("senate/2026-09-17/8")).to eq ["senate", Date.new(2026, 9, 17), 8]
+      expect(described_class.parse_slug("https://theyvoteforyou.org.au/divisions/representatives/2026-09-17/3/"))
+        .to eq ["representatives", Date.new(2026, 9, 17), 3]
+    end
+
+    it "names nothing for anything else" do
+      expect(described_class.parse_slug("commons/2026-09-17/3")).to be_nil
+      expect(described_class.parse_slug("senate/2026-02-30/1")).to be_nil
+    end
+  end
 end
