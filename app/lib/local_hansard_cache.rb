@@ -23,8 +23,11 @@ class LocalHansardCache
     FileUtils.mkdir_p(@dir)
   end
 
-  # The day's XML as text, or nil for a day with none (a non-sitting day is a 404).
+  # The day's XML as text, or nil for a day with none (a non-sitting day is a 404). The day can be
+  # a Date or its text: EarlierDebate asks by text, and comparing that with a Date in #recent?
+  # raised before a day with no XML was marked, so every run asked for it again.
   def raw(house, date)
+    date = date.to_date
     file = @dir.join("#{house}-#{date}.xml")
     missing = @dir.join("#{house}-#{date}.missing")
     return nil if missing.exist? && !recent?(date)

@@ -50,6 +50,16 @@ describe LocalHansardCache do
       expect(dir.join("senate-2026-08-19.missing")).to exist
     end
 
+    # EarlierDebate asks for each earlier day by its text ("2026-08-19"), not as a Date.
+    it "remembers a day with no XML when the day comes as text" do
+      stub_request(:get, scrapedxml).to_return(status: 404)
+
+      expect(cache.raw("senate", sitting.to_s)).to be_nil
+      expect(cache.raw("senate", sitting.to_s)).to be_nil
+      expect(a_request(:get, scrapedxml)).to have_been_made.once
+      expect(dir.join("senate-2026-08-19.missing")).to exist
+    end
+
     it "asks again for a recent day with no XML, since its Hansard may be published later" do
       stub_request(:get, scrapedxml).to_return(status: 404)
       recent = Date.current - 1
