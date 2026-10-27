@@ -197,4 +197,69 @@ describe DivisionSummaryPipeline::EarlierDebate do
       expect(fetched).not_to be_empty
     end
   end
+
+  # KNOWN_ISSUES.md KI-100: at House 16 September 2026 #4 the second reading had been moved 83 days
+  # before, with 17 sitting days between, past both of the usual bounds.
+  context "with a second reading moved months before its question" do
+    let(:reading_heading) { "Example Rebate Bill 2026; Second Reading" }
+    let(:question) { "The question now is that this bill be read a second time." }
+    let(:reading_division) do
+      doc = day_xml(<<~XML)
+        <minor-heading id="h9">#{reading_heading}</minor-heading>
+        <speech id="s9" speakername="Casey Whitlow" time="17:30"><p>#{question}</p></speech>
+        <division divdate="2026-09-16" divnumber="4" id="d4" time="17:33"><divisioncount ayes="80" noes="50"/></division>
+      XML
+      DataLoader::DebatesXml.new(doc, "representatives").divisions.first
+    end
+    # Ten sitting days of debate before the question, the last of them past the usual bounds with
+    # an amendment the question passes over, and the minister's move in June.
+    let(:reading_days) do
+      debate = "<minor-heading id=\"h8\">#{reading_heading}</minor-heading>" \
+               "<speech id=\"s8\" speakername=\"Jess Harlow\" time=\"12:00\"><p>I support the bill.</p></speech>"
+      days = (1..10).to_h { |i| [(Date.new(2026, 9, 15) - i).to_s, day_xml(debate)] }
+      days["2026-09-05"] = day_xml(<<~XML)
+        <minor-heading id="h7">#{reading_heading}</minor-heading>
+        <speech id="s7" speakername="Robin Carrow" time="12:10"><p>I move:</p><p class="italic">That all words after "That" be omitted with a view to substituting "the House declines to give the bill a second reading".</p></speech>
+      XML
+      days["2026-06-25"] = day_xml(<<~XML)
+        <minor-heading id="h6">#{reading_heading}</minor-heading>
+        <speech id="s6" speakername="Morgan Treloar" time="09:11"><p>I move:</p><p class="italic">That this bill be now read a second time.</p><p>This bill makes the rebate fairer.</p></speech>
+      XML
+      days
+    end
+    let(:passed_over) { ->(text) { DivisionSummaryPipeline::MoverFinder.passes_over?(question: question, moved_text: text) } }
+
+    def collect_reading(fetched = [], **)
+      fetcher = lambda do |_house, date|
+        fetched << date
+        reading_days[date]
+      end
+      described_class.collect(division_xml: reading_division, house: "representatives", date: "2026-09-16",
+                              fetcher: fetcher, passed_over: passed_over, **)
+    end
+
+    it "finds the second reading's own move past the usual bounds, and keeps nothing else from there" do
+      result = collect_reading(second_reading: true)
+
+      expect(result.speeches.pluck(:speaker)).to eq(["Morgan Treloar"])
+      expect(result.speeches.first[:text]).to include("This bill makes the rebate fairer.")
+      expect(result.dates).to eq(["2026-06-25"])
+    end
+
+    it "stops looking back once it finds that move, even on the sitting-day retry" do
+      fetched = []
+      collect_reading(fetched, second_reading: true, exhaustive: true)
+
+      expect(fetched.last).to eq("2026-06-25")
+      expect(fetched.size).to eq(83)
+    end
+
+    it "keeps to the usual bounds for any other question" do
+      fetched = []
+      result = collect_reading(fetched)
+
+      expect(result.speeches).to be_empty
+      expect(fetched.size).to be < 70
+    end
+  end
 end

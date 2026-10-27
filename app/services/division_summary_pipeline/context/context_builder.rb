@@ -63,7 +63,11 @@ module DivisionSummaryPipeline
     # whole bill refers to nothing moved, whatever words it shares with these
     # (ProceduralRouter::WHOLE_BILL_QUESTION).
     REFERS_TO_MOVED_BUSINESS = /\bmoved\b|\bamendments?\b|\bmotion\b|\bread\s+a\s+(?:second|third)\s+time\b|
-                                \bstand\s+as\s+printed\b/xi
+                                \b(?:second|third)\s+reading\s+be\s+agreed\s+to\b|\bstand\s+as\s+printed\b/xi
+
+    # The second reading's own question, whose move EarlierDebate looks for further back than any
+    # other (KNOWN_ISSUES.md KI-100). An amendment to it is not: its mover is beside it.
+    SECOND_READING_QUESTION = /\bsecond\s+reading\b|\bread\s+a\s+second\s+time\b/i
 
     # xml_fetcher: callable (house, date) returning a parsed ParlParse document or nil, used to
     # read earlier sitting days of the same debate (EarlierDebate). Defaults to the loader's own
@@ -143,7 +147,8 @@ module DivisionSummaryPipeline
       chair = chair_statement(speeches, question_speech_id)
       speaker_question = chair&.question || division_xml.operative_question.presence || DEFAULT_SPEAKER_QUESTION
       deferred = deferred_by_chair?(division_xml)
-      earlier = earlier_debate(division_xml, chair&.putting_text.presence || speaker_question, speeches, deferred)
+      earlier = earlier_debate(division_xml, chair&.putting_text.presence || speaker_question, speaker_question,
+                               speeches, deferred)
       earlier_speeches = earlier.speeches.reject { |speech| speeches.any? { |s| s[:id] == speech[:id] } }
       mover = MoverFinder.find(question: speaker_question, putting: chair&.putting_text,
                                speeches: earlier_speeches + speeches, house: facts.house, date: facts.date,
@@ -377,18 +382,28 @@ module DivisionSummaryPipeline
     # packet has already proved not to be enough. putting is the chair's words putting the
     # question, whose lead-in often says what it refers to ("I'll first deal with the amendments
     # moved by Senator Example on sheet 3832. The question is that part 4 ... stand as printed.").
-    def earlier_debate(division_xml, putting, speeches, deferred)
+    # A move a reading's question passes over, such as the closure that brought it on, doesn't
+    # count as moving something (MoverFinder.passes_over?, KNOWN_ISSUES.md KI-100).
+    def earlier_debate(division_xml, putting, question, speeches, deferred)
       empty = EarlierDebate::Result.new(speeches: [], dates: [])
-      moved_here = speeches.any? { |s| s[:moved_text].present? }
+      passed_over = ->(moved_text) { MoverFinder.passes_over?(question: question, moved_text: moved_text) }
+      moved_here = speeches.any? { |s| s[:moved_text].present? && !passed_over.call(s[:moved_text]) }
       refers = putting.to_s.match?(REFERS_TO_MOVED_BUSINESS) && !ProceduralRouter.whole_bill_question?(putting)
       wanted = context_level == :sitting_day || deferred || (!moved_here && refers)
       return empty unless wanted
 
       EarlierDebate.collect(division_xml: division_xml, house: facts.house, date: facts.date,
-                            fetcher: xml_fetcher, exhaustive: context_level == :sitting_day)
+                            fetcher: xml_fetcher, exhaustive: context_level == :sitting_day,
+                            passed_over: passed_over, second_reading: second_reading_question?(question))
     rescue StandardError => e
       Rails.logger.warn "DivisionSummaryPipeline::ContextBuilder could not gather earlier debate: #{e.message}"
       empty
+    end
+
+    # A bill's title can say "Amendment", so titles are taken out before looking for one (KI-84).
+    def second_reading_question?(question)
+      text = question.to_s.gsub(ProceduralRouter::BILL_TITLE, "bill")
+      text.match?(SECOND_READING_QUESTION) && !text.match?(/\bamendments?\b/i)
     end
 
     # Whether the chair says this division was deferred, in the statement putting it or anywhere

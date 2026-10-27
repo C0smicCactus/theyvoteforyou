@@ -92,6 +92,15 @@ module DivisionSummaryPipeline
           run_statements: run_statements).find
     end
 
+    # Whether a question on a reading passes over these terms, as a closure that brought it on or an
+    # amendment moved in its debate, so ContextBuilder and EarlierDebate look further back for the
+    # reading's own move (KNOWN_ISSUES.md KI-100). Other questions pass over nothing, since earlier
+    # days are matched by heading, and a heading such as a suspension's is shared by unrelated motions.
+    def self.passes_over?(question:, moved_text:)
+      new(question: question, putting: nil, speeches: [], house: nil, date: nil, circulated: false, run_statements: [])
+        .passes_over?(moved_text)
+    end
+
     # The question is read with each bill's title as "bill", as the router reads it
     # (ProceduralRouter::BILL_TITLE): a bill that amends an Act is commonly titled "... Amendment
     # Bill", which says nothing about whether the question is on amendments. Read whole, it made a
@@ -121,6 +130,11 @@ module DivisionSummaryPipeline
       return nil unless speech || member&.name
 
       Result.new(speech: speech, member: member, found_by: found_by || (hint[:weak] ? :notice_owner : :chair_named_only))
+    end
+
+    # See .passes_over?.
+    def passes_over?(moved_text)
+      reading_question? && !fits_question?(moved_text)
     end
 
     private

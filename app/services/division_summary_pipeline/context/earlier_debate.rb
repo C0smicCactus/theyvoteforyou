@@ -33,6 +33,11 @@ module DivisionSummaryPipeline
     # sitting fortnights; the calendar bound stops a long winter break costing dozens of fetches.
     LOOKBACK_SITTING_DAYS = 8
     LOOKBACK_CALENDAR_DAYS = 70
+    # Except for the second reading's own question. That move is made when the bill is introduced,
+    # and the debate can resume after a recess: 83 days before House 16 September 2026 #4, 294
+    # before Senate 16 September 2026 #1. Past the bounds above the search goes on for that move
+    # alone, up to a year back, and stops when it finds it (KNOWN_ISSUES.md KI-100).
+    SECOND_READING_LOOKBACK_DAYS = 366
 
     # Enough for several movers' speeches, well short of the whole debate.
     MAX_CHARS = 40_000
@@ -45,16 +50,24 @@ module DivisionSummaryPipeline
 
     # exhaustive: keep looking back after the first move is found, for when the extractor has
     # already reported that the narrower packet was not enough (the sitting-day retry).
-    def self.collect(division_xml:, house:, date:, fetcher: nil, exhaustive: false)
-      new(division_xml: division_xml, house: house, date: date, fetcher: fetcher, exhaustive: exhaustive).collect
+    # passed_over: whether the question passes over a move's terms (MoverFinder.passes_over?), so the
+    # search goes on past an amendment to the second reading's own move (KNOWN_ISSUES.md KI-100).
+    # second_reading: the question is the second reading's own, so its move is looked for further
+    # back (SECOND_READING_LOOKBACK_DAYS).
+    def self.collect(division_xml:, house:, date:, fetcher: nil, exhaustive: false, passed_over: nil,
+                     second_reading: false)
+      new(division_xml: division_xml, house: house, date: date, fetcher: fetcher, exhaustive: exhaustive,
+          passed_over: passed_over, second_reading: second_reading).collect
     end
 
-    def initialize(division_xml:, house:, date:, fetcher:, exhaustive:)
+    def initialize(division_xml:, house:, date:, fetcher:, exhaustive:, passed_over:, second_reading: false)
       @division_xml = division_xml
       @house = house
       @date = parse_date(date)
       @fetcher = fetcher
       @exhaustive = exhaustive
+      @passed_over = passed_over
+      @second_reading = second_reading
       @chars = 0
     end
 
@@ -70,7 +83,7 @@ module DivisionSummaryPipeline
 
     private
 
-    attr_reader :division_xml, :house, :date, :fetcher, :exhaustive
+    attr_reader :division_xml, :house, :date, :fetcher, :exhaustive, :passed_over, :second_reading
 
     # Newest day first, so the search stops at the most recent move; returned oldest first.
     def previous_days(title)
@@ -79,8 +92,9 @@ module DivisionSummaryPipeline
       found = []
       sitting_days = 0
       bill_ids = division_xml.bill_ids
-      (1..LOOKBACK_CALENDAR_DAYS).each do |offset|
-        break if sitting_days >= LOOKBACK_SITTING_DAYS || @chars >= MAX_CHARS
+      (1..(second_reading ? SECOND_READING_LOOKBACK_DAYS : LOOKBACK_CALENDAR_DAYS)).each do |offset|
+        beyond = sitting_days >= LOOKBACK_SITTING_DAYS || offset > LOOKBACK_CALENDAR_DAYS || @chars >= MAX_CHARS
+        break if beyond && !second_reading
 
         day = date - offset
         document = fetch(day)
@@ -88,23 +102,28 @@ module DivisionSummaryPipeline
 
         sitting_days += 1
         speeches = DataLoader::DebatesXml.new(document, house).speeches_under_minor_heading(title, bill_ids: bill_ids)
-        found = keep(speeches, day, title) + found
-        break if found_move?(found) && !exhaustive
+        found = keep(speeches, day, title, own_move_only: beyond) + found
+        break if found_move?(found) && (!exhaustive || beyond)
       end
       found
     end
 
     # Another stage's speeches do not count against this debate's budget: ContextBuilder keeps
     # at most one of them, the move the chair named, so counting them could only crowd out this
-    # debate's own.
-    def keep(speech_nodes, day, title)
+    # debate's own. own_move_only: past the usual bounds, only the debate's own move is kept,
+    # whatever the budget, since it is what the search went on for.
+    def keep(speech_nodes, day, title, own_move_only: false)
       heading = DataLoader::DebatesXml.normalise_heading(title)
       speech_nodes.filter_map do |node|
         speech = DataLoader::SpeechText.context_speech(node)
-        next unless relevant?(speech, node) && @chars < MAX_CHARS
+        other_heading = DataLoader::DebatesXml.normalise_heading(DataLoader::DebatesXml.section_heading(node)&.text) != heading
+        if own_move_only
+          next unless own_move?(speech) && !other_heading
+        else
+          next unless relevant?(speech, node) && @chars < MAX_CHARS
+        end
 
         speech = within_budget(chair_words(speech))
-        other_heading = DataLoader::DebatesXml.normalise_heading(DataLoader::DebatesXml.section_heading(node)&.text) != heading
         @chars += speech[:text].size unless other_heading
         speech.merge(date: day.to_s, other_heading: other_heading)
       end
@@ -151,9 +170,13 @@ module DivisionSummaryPipeline
     end
 
     # A move under another of the bill's headings belongs to a different stage, so finding one
-    # is no reason to stop looking for this debate's own.
+    # is no reason to stop looking for this debate's own. Nor is a move the question passes over.
     def found_move?(speeches)
-      speeches.any? { |s| s[:moved_text].present? && !s[:other_heading] }
+      speeches.any? { |s| own_move?(s) && !s[:other_heading] }
+    end
+
+    def own_move?(speech)
+      speech[:moved_text].present? && !passed_over&.call(speech[:moved_text])
     end
 
     # A day that cannot be fetched is skipped rather than failing the summary: the packet is
