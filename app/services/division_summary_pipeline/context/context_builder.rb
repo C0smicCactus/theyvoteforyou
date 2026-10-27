@@ -147,7 +147,8 @@ module DivisionSummaryPipeline
                                speeches: earlier_speeches + speeches, house: facts.house, date: facts.date,
                                circulated: chair&.circulated_by.present?, run_statements: division_xml.run_statements)
       earlier_speeches = moves_only(without_other_stages(earlier_speeches, mover), mover)
-      transcript = Transcript.build(heading: heading, speeches: speeches, earlier_speeches: earlier_speeches,
+      reasons = mover_reasons(division_xml, mover, speaker_question, earlier_speeches + speeches)
+      transcript = Transcript.build(heading: heading, speeches: speeches, earlier_speeches: earlier_speeches + reasons,
                                     question_speech_id: question_speech_id, chair_statement: chair)
       limitation = limitation_statement(division_xml)
       warnings = context_warnings(division_xml, speeches, earlier_speeches, deferred: deferred, limitation: limitation)
@@ -263,6 +264,29 @@ module DivisionSummaryPipeline
                    MemberResolver.resolve(name: match[1], house: facts.house_key, date: facts.date.presence)
                  end
       resolved&.member ? resolved : nil
+    end
+
+    # The mover's own speeches from earlier in this section of the debate, when the question is on
+    # an amendment and the packet holds none of its mover's words (KNOWN_ISSUES.md KI-90). Each
+    # amendment is decided before the next is moved (Senate S.O. 91(2); House S.O. 123(c)), so a
+    # later one is often moved straight after the earlier one's division, where the speeches beside
+    # this division stop, and its mover argued for it before that.
+    def mover_reasons(division_xml, mover, question, known)
+      gid = mover&.speech&.dig(:speaker_gid)
+      return [] if gid.blank? || !question.match?(MoverFinder::AMENDMENT_QUESTION)
+      return [] if known.any? { |speech| speech[:speaker_gid] == gid && own_words?(speech) }
+
+      section = DataLoader::DebatesXml.section_heading(division_xml.division_xml)
+      division_xml.earlier_same_debate_speeches.filter_map do |node|
+        next unless node.attr(:speakerid) == gid && DataLoader::DebatesXml.section_heading(node) == section
+
+        speech = DataLoader::SpeechText.context_speech(node)
+        speech.merge(date: facts.date.to_s) if own_words?(speech)
+      end
+    end
+
+    def own_words?(speech)
+      speech[:paragraphs].any? { |paragraph| paragraph[:kind] == :prose }
     end
 
     # Once the mover is known, only their sentences can be quoted as the explanation, so another

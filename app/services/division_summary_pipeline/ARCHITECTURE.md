@@ -78,12 +78,15 @@ small packet:
 - the database facts (DivisionFacts): chamber, date, time, counts, bills, result;
 - the chair's question as the chamber decided it, and the chair's statement putting it, with who
   was in the chair and the time of that statement;
-- the speeches leading up to the vote (the subdebate by default), cut into a **Transcript** of
-  numbered units: each sentence a member spoke, each paragraph of a motion, the "I move" words, and
-  the chair's statement, every one with an ID such as `S3.4`;
+- the speeches leading up to the vote (the subdebate by default, which stops at the previous
+  division or heading), cut into a **Transcript** of numbered units: each sentence a member spoke,
+  each paragraph of a motion, the "I move" words, and the chair's statement, every one with an ID
+  such as `S3.4`;
 - when the motion was moved somewhere else (a deferred division, a long debate), the moving
   speeches from earlier in the same debate, including earlier sitting days and the same bill's
   other headings;
+- when the packet has none of the words of the member who moved an amendment, their own speeches
+  from earlier under the same heading that day, before an earlier division (KI-90);
 - when the question was put because a limitation of debate's time had expired, the chair's
   sentence saying so, however many divisions back it is, and in the House, the Speaker putting it
   immediately under a resolution agreed earlier;

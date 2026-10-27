@@ -175,6 +175,7 @@ Colours: **Severity** 🔴 High, 🟠 Medium-High or Medium, 🔵 Low. **Status*
 | KI-87 | Pipeline | 🟠 Medium-High | 🟢 Fixed | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switched off the validator's check of `declines_second_reading`, so whether the draft said the amendment opposed the bill rested on the model alone | `provenance_validator_spec.rb` "settles as not declining an addition that only mentions a delay or a committee, or has no opinion word" and "leaves an addition that refers or delays the bill to the model, and says so". `ProvenanceValidator::OPERATIVE_ADDITION` looks for the operative forms of a referral, a delay or a defeat ("the provisions of the bill be referred", "further consideration of the bill be made an order of the day"), and a Senate addition with none of them is settled as not declining, opinion word or not (Senate Guide No. 16, p. 47). Where the words leave the flag to the model, a warning says so. Of the 135 Template 2 drafts of 2026, 7 Senate ones are now settled by rule instead, each as the model had answered, and 78 carry the warning. Still worth knowing: an operative form the pattern doesn't list is settled as not declining, so a model that rightly answered `true` for it would fail validation. |
 | KI-88 | Pipeline | 🔵 Low | 🟠 Partly fixed | For a second reading amendment, the quoted reasons can be about the bill rather than the amendment's own terms | See the open entry below: the prompt is fixed, whether models follow it is not known. |
 | KI-89 | Pipeline | 🔵 Low | 🟢 Fixed | Question Put gave the chair's question the time of the speech before it | `provenance_validator_spec.rb` "marks the time the chair's question takes from the speech before it as shared"; `template_compiler_spec.rb` "says the question was put before the division, at the time it shares, when that is not its own". The chair's statement putting the question shares the time of the speech before it at about two in three of the 985 divisions checked, from November 2025 to September 2026, so most drafts now say "Before the division, at" that time: the time a reader finds beside the chair's words in the record, which is how they find them. |
+| KI-90 | Pipeline | 🟠 Medium | 🟠 Partly fixed | A mover's reasons given before an earlier division in the same debate never reach the model, so "About the Amendment" says "No explanatory claims recorded." | See the open entry below: the same sitting day is fixed, an earlier one is not. |
 | KI-91 | Pipeline | 🔵 Low | 🟢 Fixed | Template 2's vote sentence says an amendment "introduced by" a senator "to the" bill, though amendments are moved, and a second reading amendment is to the motion | `template_compiler_spec.rb` "naming members of the House" and "amendments the chair put without anyone moving them"; `division_summarizer_spec.rb` "compiles a draft quoting only Hansard" (Template 4); the evaluation corpus. Templates 2, 3 and 4 now say "moved by"; motions keep "introduced by", the word the site's research guide uses ("Who introduced the motion and why?"). |
 | KI-92 | Rules | 🔵 Low | 🔴 Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
 | KI-93 | Rules | 🔵 Low | 🟢 Fixed | Template 8's explainer tells the reader what "the summary should not suggest", calls a Senate order a power of "the parliament", and doesn't say the documents become public only when tabled | `template_compiler_spec.rb` "Template 8, an order for the production of documents", "names the chamber, says tabled documents become public, and gives the writer no instruction". The writing instruction is gone, and the explainer says the order is the chamber's (Senate S.O. 164(1), p. 90; House S.O. 200, p. 84, since the router does not limit Template 8 to the Senate), that it makes the government table the documents, that an order usually sets a deadline (Senate Guide No. 10, p. 25), and that tabled documents become public (Guide No. 10, p. 26; House S.O. 203, p. 85). |
@@ -681,3 +682,56 @@ waits where the amendment is moved apart from the speech: at Senate 14 September
 mover's earlier speech (`uk.org.publicwhip/lords/2026-09-14.28.1`) also argues for the committee
 amendments, so once KI-90 brings it to the model, a draft must not quote those sentences as the
 second reading amendment's purpose.
+
+### KI-90
+
+**A mover's reasons given before an earlier division in the same debate never reach the model, so
+"About the Amendment" says "No explanatory claims recorded."** Severity: Medium. Status: **Partly
+fixed**. **Confirmed** by replaying Senate 14 September 2026 #8 on 15 October 2026: the packet
+holds only the move and the chair's question, and "Earlier debate added" is "none". How often it
+happens is **Inferred** from the 2026 drafts and the cached XML.
+
+At Senate 14 September 2026 #8 Senator O'Sullivan gave the opposition's case in his second reading
+speech (`uk.org.publicwhip/lords/2026-09-14.28.1`, 11:25). Two hours later, after the minister's
+closing speech and division 7 on the Greens' amendment, he moved the opposition's amendment with no
+further words (`uk.org.publicwhip/lords/2026-09-14.39.1`), and division 8 decided it.
+`DivisionXml#previous_speeches` stops at the previous `division` element, so the subdebate packet
+held only 39.1 and the chair's question (39.2). `ContextBuilder#earlier_debate` is skipped whenever a
+speech beside the division moves something (`moved_here`), and 39.1 does. Told that an explanation
+can only be sentences the mover spoke, the model rightly found none. The Reviewer Only section says
+only that there was no explanation and "Earlier debate added | none", so the editor isn't told the
+reasons exist.
+
+This is the usual Senate pattern when more than one second reading amendment is foreshadowed: "An
+amendment proposed shall be disposed of before another amendment to the original question may be
+moved" (Senate S.O. 91(2), p. 63), so each later one is moved after the previous one's division. Of
+the 105 Senate second reading amendment drafts of 2026, 11 have their moving speech straight after a
+division, and all 11 print "No explanatory claims recorded."; in four the mover had spoken earlier
+under the same heading that day (Senate 31 March 2026 #15 and #21, 7 September 2026 #2, 14 September
+2026 #8). Whether each of those speeches gave reasons for the amendment, and whether the other seven
+movers spoke on an earlier day, was not checked. Senate 17 September 2026 #9 and #10, which KI-64
+asks about, are among the seven. KI-64 looks at the model; this cause is in Stage 1, and may account
+for part of KI-64's count.
+
+Fixed for the same sitting day: when the question is on an amendment and the packet holds none of
+its mover's own words, `ContextBuilder#mover_reasons` adds the mover's speeches from earlier under
+the same heading that day, which can only be before an earlier division, and the transcript's
+"EARLIER IN THIS DEBATE" heading and the prompt's rule 10 say that it holds them
+(`context_builder_spec.rb` "adds the mover's own speech from before that division"). Over the 910
+divisions of 2026 this adds a speech to six packets, and changes no route, mover or warning: the
+four above; House 30 March 2026 #2, where the member for Lyne moved without a word and then spoke in
+a speech of its own (`uk.org.publicwhip/debate/2026-03-30.110.4`) before the division on an
+amendment to hers; and Senate 4 February 2026 #32, where the speech added asks only that motions be
+put separately. KI-88 now applies: at Senate 14 September 2026 #8 the speech added argues for the
+committee amendments.
+
+Still open: a mover who argued on an earlier sitting day. At Senate 17 September 2026 #9 and #10
+Senators Pocock and Whitten moved without a word straight after a division, and had foreshadowed
+their amendments in second reading speeches on 16 September
+(`uk.org.publicwhip/lords/2026-09-16.19.1` and `2026-09-16.21.1`). A fix would have `EarlierDebate`
+look for the mover's speeches on earlier days too, once the mover is known. Whether models quote
+what is added is still to be seen: on 19 October 2026 a local model given the same speeches, under a
+heading that said the section held only speeches that moved something, quoted them at Senate 31
+March 2026 #15, 7 September 2026 #2 and 14 September 2026 #8, but not at 31 March #21, where its
+reasoning cited rule 10's "use it to find a motion" and rule 5's "the speech is only the move".
+**Verify** with a Bedrock run on #21.
