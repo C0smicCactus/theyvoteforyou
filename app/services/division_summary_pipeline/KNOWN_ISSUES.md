@@ -158,6 +158,7 @@ Colours: **Severity** 🔴 High, 🟠 Medium-High or Medium, 🔵 Low. **Status*
 | KI-71 | Pipeline | 🟠 Medium | 🟢 Fixed | The prompt did not connect a House mover's name with the seat or office the chair calls them by | `extraction_prompt_spec.rb` "gives a House mover's seat and offices, which the chair calls them by", `member_resolver_spec.rb` "gives the offices the member held on the date". A House Member is referred to by office or seat, never by name (House S.O. 64, p. 40). A Senate mover is still given by name alone, since the Senate chair names senators. |
 | KI-72 | Rules | 🟠 Medium | 🟠 Partly fixed | Senate rescission: the standing order and the guide disagree on the majority; the code's pattern was too broad | See the open entry below. |
 | KI-74 | Rules | 🔵 Low | 🟢 Fixed | Three House rules the pipeline got wrong in rare cases: a tie on the ballot closure, the quorum fallback, and Template 1 | `template_compiler_spec.rb` "reports an equal vote on the ballot closure as lost", "takes the quorum from the seats, not the members on the day", "explains the first reading in the guides' own terms"; `procedural_router_spec.rb` "does not settle a House question on a first reading". A tie on "That the ballot be taken now" is lost (House S.O. 11(h), p. 17; House Guide p. 5). The quorum is 31 from 1 July 2019 to 3 May 2025 and 30 otherwise, whatever the member records say on the day (House Guide pp. 16 to 17, which foresees 151 Members "in the 46th Parliament"; S.O. 54, p. 37, 30 as at 23 July 2025). The 151 seats to 2025 rest on the member records, which give 151 on the first sitting days of the 2019 and 2022 Parliaments and 150 from the 2025 election; House of Representatives Practice and the Votes and Proceedings were not checked. The router no longer settles Template 1 for the House, where a bill is "read a first time without a question being put" (S.O. 141(a), p. 64), and the explainer no longer says such divisions are only "rarer" there. House S.O. 2 gives the count out as "currently 31 Members" (p. 7) against 30 in its quorum definition (p. 10) and S.O. 54; the 31 looks left over from the House of 151. |
+| KI-76 | Pipeline | 🔵 Low | 🟠 Partly fixed | The Reviewer Only section left out things a reviewer needs; a local draft still does not name the reply it was built from | See the open entry below: three of its four points are fixed, each naming its spec. |
 | KI-77 | Pipeline | 🔵 Low | 🟢 Fixed | The local model tools lose or misreport a reply that does not finish | `local_model_client_spec.rb` "saves the prompt even when the request times out", "fails when the model runs out of tokens before finishing", "says when the server's context ran out before max_tokens did". The prompt is saved before the request; a reply cut off for length is put down to the server's context when its `usage.completion_tokens` is below `max_tokens`, and to `max_tokens` otherwise, including when the server reports no usage. |
 | KI-78 | Rules | 🔵 Low | 🟢 Fixed | Choices the pipeline made are not marked as choices, so they could be defended as rules or "fixed" as errors | Comments (no spec), citing KI-78 where the code makes each choice, and `ARCHITECTURE.md` section 8 for the template sentences. "X MP", the Monday deferral window, the divided question forms, the fallback constants, `MoverFinder`'s window, the validator's word lists and routing on the chair's question were already marked as the code's own or gave its reasons, so are unchanged. |
 | KI-80 | Pipeline | 🔴 High | 🟢 Fixed | A deferred vote the chair put by name, without restating its question, was drafted as a closure | `procedural_router_spec.rb` "locks out the closure when the chair only names a deferred vote". A question that names a deferred vote and matches no rule forbids Template 22, since the division is on the motion deferred (Senate S.O. 57(3), p. 47). When the motion deferred settles a route, that route is used as before, so a closure that was itself deferred is still a closure. Senate 5 March 2026 #8's motion matches no rule, so its route is still the general motion default. Of the 910 divisions from January to September 2026, only it and Senate 4 March 2026 #7, another deferred vote, changed route. |
@@ -355,3 +356,27 @@ options considered were a "[...]" line between non-adjacent passages, "(sentence
 leaving them as they are, which was chosen for now. Any of them is template text, so it does not
 affect ADR 0005. When this is revisited, the place to change is `EvidenceSections#explanation`, and
 `Transcript#passages` already says where one passage ends and the next begins.
+
+### KI-76
+
+**The Reviewer Only section leaves out things a reviewer needs.** Severity: Low. Status: **Partly
+fixed**. **Confirmed** from drafts, except where marked.
+
+Still open: a draft from `rake ai:draft_local` does not name the saved reply it was built from, or
+say whether that reply was cut off, so matching a draft to its reply means opening the saved
+prompts. The reply files are named by database id, which differs between machines.
+
+Fixed (`reviewer_report_spec.rb`):
+
+- The "Mover" table had no row for an urgency motion's proposer, so a reviewer could not see where
+  "on behalf of Senator ..." came from. It now has a "Proposer" row ("names who proposed what
+  someone else moved, and only when someone did").
+- "Explanation sentences to look at twice" (`ReviewerReport::POINTED`) looks for "you", "Senator X",
+  "member for X", "Prime Minister" or "Minister X", so at Senate 20 August 2026 #23 it missed a
+  sentence that described another member without naming them. No pattern can catch every such
+  phrase, so the list now says it is a prompt for the reviewer, not a complete check ("flags a
+  quoted explanation that speaks to someone or names another member, for the reviewer only").
+- The "Title" row quoted the heading as stored on the Division record, such as "Securing the Ndis
+  for Future Generations", though the draft's own title reads "NDIS" (KI-48). It now prints a
+  bill's title in the heading as the title does ("quotes the heading with the bill's title as the
+  title prints it").

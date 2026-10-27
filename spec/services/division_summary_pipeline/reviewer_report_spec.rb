@@ -67,8 +67,8 @@ describe DivisionSummaryPipeline::ReviewerReport do
     )
     flagged = report(packet: context, validation: DivisionSummaryPipeline::ProvenanceValidator.validate(reply, context))
 
-    expect(flagged).to include("### Explanation sentences to look at twice\n\n- S1.1-S1.2: You have let students down.")
-    expect(report).to include("### Explanation sentences to look at twice\n\nNone.")
+    expect(flagged).to include("not a complete check.*\n\n- S1.1-S1.2: You have let students down.")
+    expect(report).to include("not a complete check.*\n\nNone.")
   end
 
   it "records each decision from the pipeline's own data" do
@@ -114,6 +114,25 @@ describe DivisionSummaryPipeline::ReviewerReport do
     )
 
     expect(report(extraction: reply)).to include("| Fact references | committee_name: S1.1 |")
+  end
+
+  # KNOWN_ISSUES.md KI-76: otherwise a reviewer cannot see where "on behalf of" came from.
+  it "names who proposed what someone else moved, and only when someone did" do
+    unmatched = packet.with(proposer: DivisionSummaryPipeline::MemberResolver.named("Robin Castellan"))
+    matched = packet.with(proposer: DivisionSummaryPipeline::ResolvedMember.new(member: Member.new, name: "Robin Castellan",
+                                                                                party: "Example Party"))
+
+    expect(report(packet: unmatched)).to include("| Proposer | Robin Castellan, not matched to a TVFY member |")
+    expect(report(packet: matched)).to include("| Proposer | Robin Castellan (Example Party) |")
+    expect(report).not_to include("Proposer")
+  end
+
+  # KNOWN_ISSUES.md KI-76: the title prints a bill's title as the bill records it (KI-48).
+  it "quotes the heading with the bill's title as the title prints it" do
+    facts = packet.facts.with(bill_titles: ["Example Scheme (ESP) Bill 2026"])
+    titled = packet.with(heading: "Bills &#8212; Example Scheme (Esp) Bill 2026; Second Reading", facts: facts)
+
+    expect(report(packet: titled)).to include("Example Scheme (ESP) Bill 2026; Second Reading\" and the template) |")
   end
 
   it "lists the fallbacks, the warnings and how the mover was found" do

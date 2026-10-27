@@ -29,10 +29,16 @@ module DivisionSummaryPipeline
       subject = subject[0...-1] if subject.size > 1
       title = [major, subject.join("; ").presence].compact_blank.join(" - ").gsub(HEADING_JOIN, " - ")
       title = TextNormaliser.clean_text(fallback).gsub(HEADING_JOIN, " - ") if title.blank?
-      Array(bill_titles).compact_blank.each { |bill| title = title.gsub(/#{Regexp.escape(bill)}/i) { bill } }
+      title = bill_cased(title, bill_titles)
 
       procedure = TemplateCatalogue[template_id]&.title
       procedure ? [title.presence, procedure].compact.join("; ") : title
+    end
+
+    # The text with each bill's title in it, matched ignoring case, spelt as the bills table
+    # records it. ReviewerReport uses it too, so the heading it quotes agrees with the title.
+    def bill_cased(text, bill_titles)
+      Array(bill_titles).compact_blank.reduce(text) { |cased, bill| cased.gsub(/#{Regexp.escape(bill)}/i) { bill } }
     end
   end
 end
