@@ -254,10 +254,11 @@ module DivisionSummaryPipeline
     # be taken now" form used to closure debate during the election of a Speaker (House
     # S.O. 11(h), Guide p. 41). Not the Senate's previous question, "That this question be not now
     # put", which is its opposite: carried, it disposes of the question without putting it (Senate
-    # S.O. 94 and 95, KNOWN_ISSUES.md KI-68).
+    # S.O. 94 and 95, KNOWN_ISSUES.md KI-68). "be now put", not "now put", since the chair also says
+    # "I will now put the question that the amendment ... be agreed to" (KNOWN_ISSUES.md KI-102).
     def closure_of_debate
       return if says?("not now put")
-      return unless says?("question be now put", "question be put", "now put", "ballot be taken now",
+      return unless says?("question be now put", "question be put", "be now put", "ballot be taken now",
                           "business of the day be called on")
 
       reason = if says?("business of the day")

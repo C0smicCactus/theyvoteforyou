@@ -62,6 +62,16 @@ describe DivisionSummaryPipeline::ChairStatement do
       expect(statement("<p>The real question is that this bill hurts renters.</p>").question).to be_nil
     end
 
+    # KNOWN_ISSUES.md KI-102, as at House 4 June 2026 #2, 30 March 2026 #3 and Senate 1 April 2026 #6.
+    it "is the question the chair puts in other words" do
+      ["I will now put the question that the amendment as circulated be agreed to.",
+       "We'll deal with the immediate question, which is that the amendment moved by the honourable member for " \
+       "Exampleton be agreed to.",
+       "The first question, being amendment (2) on sheet XY101, is that clause 43 stand as printed."].each do |question|
+        expect(statement("<p>Subsequent amendments have been moved. #{question}</p>").question).to eq(question)
+      end
+    end
+
     # KNOWN_ISSUES.md KI-101, as at House 4 February 2026 #1.
     it "is the question put now before the House, or that the question is now" do
       ["The question now before the House is that the amendment be agreed to.",

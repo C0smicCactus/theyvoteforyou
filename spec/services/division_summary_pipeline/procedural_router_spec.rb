@@ -505,6 +505,17 @@ describe DivisionSummaryPipeline::ProceduralRouter do
         expect(decision.template_id).to eq(22)
         expect(decision.rule_name).to eq("CLOSURE_OF_DEBATE")
       end
+
+      # KNOWN_ISSUES.md KI-102, as at House 30 March 2026 #3.
+      it "does not take the chair saying it will now put the question for a closure" do
+        decision = described_class.route(
+          speaker_question: "In accordance with the resolution agreed to earlier, I will now put the question that " \
+                            "the amendment as circulated by the Manager of Opposition Business be agreed to.",
+          chamber: "House of Representatives"
+        )
+
+        expect(decision.rule_name).not_to eq("CLOSURE_OF_DEBATE")
+      end
     end
 
     # The House's declaration of urgency (S.O. 82, as at 23 July 2025) once fell to Template 15 and

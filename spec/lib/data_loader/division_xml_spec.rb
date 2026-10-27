@@ -311,6 +311,23 @@ describe DataLoader::DivisionXml do
       expect(division.question_speech.attr(:id)).to eq("s1")
     end
 
+    # KNOWN_ISSUES.md KI-102: missed, the question fell to "that the motion be agreed to".
+    it "is the chair putting the question in other words, but not a member answering a question" do
+      chair = divisions(<<~XML).first
+        #{heading}
+        <speech id="s1" speakername="Casey Whitlow"><p>We'll deal with the immediate question, which is that the amendment be agreed to.</p></speech>
+        <division divnumber="1" id="d1"/>
+      XML
+      member = divisions(<<~XML).first
+        #{heading}
+        <speech id="s1" speakername="Morgan Treloar"><p>I gave an answer to the first question, which is that nobody will be worse off.</p></speech>
+        <division divnumber="1" id="d1"/>
+      XML
+
+      expect(chair.question_speech&.attr(:id)).to eq("s1")
+      expect(member.question_speech).to be_nil
+    end
+
     # KNOWN_ISSUES.md KI-101, as at House 4 February 2026 #1.
     it "is the chair putting the question now before the House" do
       division = divisions(<<~XML).first

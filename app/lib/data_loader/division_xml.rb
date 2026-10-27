@@ -19,6 +19,13 @@ module DataLoader
     # that happens to say "the question is" from passing as one. "The question now before the
     # House is" was once missed, so the draft said no question was recorded (KNOWN_ISSUES.md KI-101).
     CHAIR_STATEMENT = /\bquestion\s+(?:is|now\s+is|we're\s+dealing\s+with|(?:now\s+)?before\s+the\s+(?:house|chair)(?:\s+now)?\s+is)\b|\bdeferred\b/i
+    # The chair's other ways of putting a question, in every 2026 Hansard statement that uses them:
+    # "I will now put the question that" (6), "We'll deal with the immediate question, which is
+    # that" (1) and "The first question, being amendment (2) on sheet GJ118, is that" (1). Missed,
+    # the question became "that the motion be agreed to" and the draft took a closure moved before
+    # it for the question (KNOWN_ISSUES.md KI-102). Members say "the first question, which is
+    # that", so only "immediate" is taken there.
+    CHAIR_PUTTING = /\bput\s+the\s+question\s+that\b|\bimmediate\s+question,\s+which\s+is\s+that\b|\bquestion,\s+being\b[^.]{0,80}?,\s+is\s+that\b/i
     CHAIR_STATEMENT_MAXIMUM_SIZE = 1200
 
     # Whether a speech is the chair's statement, judged on its plain paragraphs only. Hansard sets
@@ -32,7 +39,7 @@ module DataLoader
 
     def self.chair_statement_text?(text)
       text = text.to_s.strip
-      text.size <= CHAIR_STATEMENT_MAXIMUM_SIZE && text.match?(CHAIR_STATEMENT)
+      text.size <= CHAIR_STATEMENT_MAXIMUM_SIZE && (text.match?(CHAIR_STATEMENT) || text.match?(CHAIR_PUTTING))
     end
 
     # The chair saying the time a limitation of debate (a "guillotine") allotted has run out, in
