@@ -8,8 +8,8 @@ module DivisionSummaryPipeline
   # member".
   #
   # The chair usually names the mover when putting the question ("the amendment moved by
-  # Senator Example", "the motion moved by the member for Exampleton"), and that is trusted
-  # first. Otherwise the motion being put is the one moved just before the question, so only
+  # Senator Example", "the amendment as moved by Minister Example", "the motion moved by the
+  # member for Exampleton"), and that is trusted first. Otherwise the motion being put is the one moved just before the question, so only
   # a move in the last few speeches counts: further back it may be a different motion from
   # earlier in the debate, such as an amendment moved before a second reading question. The
   # chair putting other questions in between does not count against that, since a run of
@@ -27,7 +27,11 @@ module DivisionSummaryPipeline
   #
   # "Business ... standing in the name of Senator Example" names whose notice it is, which is
   # weaker: another senator often moves a notice on the owner's behalf, so a recent move by
-  # someone else still wins over it.
+  # someone else still wins over it when the owner's own move is not in the excerpt. When it is,
+  # the owner's move wins even over a later amendment, since the Senate votes on the notice
+  # after voting on an amendment to it, and only the amendment's own question names its
+  # mover: "the amendment as moved by Minister Example to general business notice of motion
+  # No. 320, standing in the name of Senator Example" (KNOWN_ISSUES.md KI-99).
   class MoverFinder
     # found_by says how, for the reviewer: :chair_named (the chair named the mover and their move
     # is in the excerpt), :chair_named_only (named, but the move is not in the excerpt),
@@ -78,7 +82,7 @@ module DivisionSummaryPipeline
                              \bsuspen(?:d|ded|sion)\b/ix
 
     ELECTORATE_HINT = /moved\s+by\s+the\s+(?:honourable\s+|hon\.?\s+)?member\s+for\s+([A-Z][\w'’-]*(?:[ -][A-Z][\w'’-]*)*)/
-    MOVED_BY_HINT = /moved\s+by\s+(?:Senator|Mr|Mrs|Ms|Miss|Dr)\s+(?:the\s+Hon\.?\s+)?([A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*)*)/
+    MOVED_BY_HINT = /moved\s+by\s+(?:Senator|Minister|Mr|Mrs|Ms|Miss|Dr)\s+(?:the\s+Hon\.?\s+)?([A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*)*)/
     NOTICE_OWNER_HINT = /in\s+the\s+name\s+of\s+(?:Senator|Mr|Mrs|Ms|Miss|Dr)\s+(?:the\s+Hon\.?\s+)?([A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*)*)/
     SHEET = /\bsheets?\s+([A-Z]*\d+)/i
 
@@ -237,13 +241,18 @@ module DivisionSummaryPipeline
     # question ("I'll first deal with the amendments moved by Senator Example on sheet 3832"), and
     # then put "the remaining amendments on sheet 3832" without the name (KNOWN_ISSUES.md KI-70).
     # Only a sentence about this question's own sheet counts, since a statement often goes on to
-    # put other senators' sheets.
+    # put other senators' sheets. Nor does one putting an amendment to the sheet's amendment, which
+    # names that amendment's mover: at Senate 1 April 2026 #14 the chair then put "the amended
+    # amendment on sheet 3731", the Greens' circulated amendment, not the minister's (KI-99).
     def named_for_sheet
       sheet = question[SHEET, 1]
       return nil unless sheet
 
       sentences = run_statements.flat_map { |text| Transcript.sentence_spans(text).map { |from, to| text[from...to] } }
-      sentence = sentences.reverse.find { |text| text.match?(/\bsheets?\s+#{sheet}\b/i) && hint_in(text) }
+      sentence = sentences.reverse.find do |text|
+        text.match?(/\bsheets?\s+#{sheet}\b/i) && !text.match?(/\bto\s+the\s+amendments?\s+on\s+sheets?\s+#{sheet}\b/i) &&
+          hint_in(text)
+      end
       hint_in(sentence) if sentence
     end
 

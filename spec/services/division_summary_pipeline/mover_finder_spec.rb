@@ -291,6 +291,51 @@ describe DivisionSummaryPipeline::MoverFinder do
     expect(result.member.name).to eq("Priya Dunstan")
   end
 
+  # KNOWN_ISSUES.md KI-99: the Senate votes on a minister's amendment to a senator's notice or
+  # amendment, then on that, and only the first question names the minister.
+  context "with a minister's amendment to someone else's motion or amendment" do
+    let(:notice) do
+      speech("Alex Ashworth", "I move: That there be laid on the table ...", moved_text: "That there be laid on the table ...")
+    end
+    let(:amendment) do
+      speech("Robin Kellerman", "I move an amendment to the motion: ...", moved_text: "Omit all words after 'That', substitute ...")
+    end
+
+    it "takes the minister the chair names for the amendment, over the notice's owner" do
+      result = described_class.find(
+        question: "The question is that the amendment as moved by Minister Kellerman to general business notice of " \
+                  "motion No. 320, standing in the name of Senator Ashworth, be agreed to.",
+        speeches: [notice, amendment, chair]
+      )
+
+      expect(result.member.name).to eq("Robin Kellerman")
+      expect(result.found_by).to eq(:chair_named)
+    end
+
+    it "takes the owner's own move for the notice, put after the amendment" do
+      result = described_class.find(
+        question: "The question is that general business notice of motion No. 320, standing in the name of " \
+                  "Senator Ashworth, be agreed to.",
+        speeches: [notice, amendment, chair]
+      )
+
+      expect(result.member.name).to eq("Alex Ashworth")
+      expect(result.moved_text).to eq("That there be laid on the table ...")
+    end
+
+    # As at Senate 1 April 2026 #13 and #14, under a limitation of debate.
+    it "does not take the minister for the mover of the circulated amendment they amended" do
+      result = described_class.find(
+        question: "The question is that the amended amendment on sheet 9003 be agreed to.",
+        speeches: [amendment, chair], circulated: true,
+        run_statements: ["The question is that the amendment as moved by Minister Kellerman to the amendment on sheet " \
+                         "9003 be agreed to."]
+      )
+
+      expect(result).to be_nil
+    end
+  end
+
   it "does not attribute a named mover's motion to someone else when their move is not in the excerpt" do
     result = described_class.find(
       question: "The question is that the amendment moved by Senator Treloar be agreed to.",
