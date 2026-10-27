@@ -395,6 +395,25 @@ describe DivisionSummaryPipeline::ContextBuilder do
         end
       end
 
+      # KNOWN_ISSUES.md KI-98: as at House 26 March 2026 #1, an amendment to a motion to suspend
+      # standing orders, moved by someone other than the motion's mover.
+      it "finds what an amendment to a motion would change" do
+        xml = <<~XML.gsub("DATE", "2026-03-26")
+          <debates><major-heading id="h1" url="x">BUSINESS</major-heading>
+          <minor-heading id="h2" url="x">Consideration of Legislation</minor-heading>
+          <speech id="s1" speakerid="uk.org.publicwhip/lord/900101" speakername="Morgan Treloar" time="09:28:00" url="x"><p>I move:</p><p class="italic">That so much of the standing orders be suspended as would prevent the Example Bill 2026 being called on immediately.</p></speech>
+          <speech id="s2" speakerid="uk.org.publicwhip/lord/900104" speakername="Jo Marlowe" time="09:43:00" url="x"><p>I move:</p><p class="italic">That the motion be amended to read as follows: "That so much of the standing orders be suspended as would prevent the Example Bill 2026 and the Sample Bill 2026 being called on immediately."</p></speech>
+          <speech id="s3" speakerid="uk.org.publicwhip/lord/900102" speakername="Casey Whitlow" time="09:44:00" url="x"><p>The question is that the amendment as moved by Senator Marlowe be agreed to.</p></speech>
+          #{division_element(1, '09:59:00')}</debates>
+        XML
+        packet = described_class.build({ id: 1, house: "senate", date: "2026-03-26", number: 1, clock_time: "9:59 AM" },
+                                       xml_content: xml)
+
+        expect(packet.routing.template_id).to eq(31)
+        expect(packet.mover.speech[:speaker]).to eq("Jo Marlowe")
+        expect(packet.amended_template_id).to eq(17)
+      end
+
       # A Monday division at 12.05 is in the window when deferred divisions are put, but a
       # motion moved at 12.00 was put there and then.
       it "does not warn about the Monday deferral window when the motion was moved inside it" do

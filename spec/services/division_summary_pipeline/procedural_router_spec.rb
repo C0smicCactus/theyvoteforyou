@@ -879,5 +879,56 @@ describe DivisionSummaryPipeline::ProceduralRouter do
         end
       end
     end
+
+    # KNOWN_ISSUES.md KI-98: every amendment went to Templates 2, 3 and 4. At House 26 March 2026 #1
+    # the motion amended, a suspension of standing orders, set out "a consideration in detail stage",
+    # so the amendment to it was settled on Template 4 and drafted as changing a bill.
+    describe "an amendment to a motion that is not about a bill" do
+      it "settles Template 31 whatever the motion amended says about bill stages" do
+        decision = described_class.route(
+          speaker_question: "The question before the House is the amendment moved by the Leader of the House to the " \
+                            "motion by the Manager of Opposition Business be agreed to.",
+          chamber: "representatives", debate_heading: "Business — Consideration of Legislation",
+          hansard_snippet: "(4) if required, a consideration in detail stage of the bill"
+        )
+
+        expect(decision).to be_deterministic
+        expect(decision.template_id).to eq(31)
+        expect(decision.rule_name).to eq("AMENDMENT_TO_A_MOTION")
+      end
+
+      it "settles each form the chambers used in 2026, including an amendment to another amendment" do
+        [["senate", "Documents — Example Report", "The question is that the amendment as moved by Senator Example to " \
+                                                  "general business notice of motion No. 348 be agreed to."],
+         ["senate", "Motions — Example", "The question is that Senator Example's amendment be agreed to."],
+         ["senate", "Motions — Example", "The question before the chair is that the amendment moved by Senator Sample " \
+                                         "to Senator Example's amendment be agreed to."],
+         ["senate", "Committees — Selection of Bills Committee; Report", "The question is that part (b) of Senator " \
+                                                                         "Example's amendment be agreed to."],
+         ["senate", "Business — Rearrangement", "The question is that those amendments be agreed to."],
+         ["representatives", "Business — Standing and Sessional Orders",
+          "The question is the amendments moved by the Manager of Opposition Business be agreed to."]]
+          .each do |chamber, heading, question|
+          decision = described_class.route(speaker_question: question, chamber: chamber, debate_heading: heading)
+
+          expect(decision.template_id).to eq(31), question
+        end
+      end
+
+      it "leaves an amendment to a bill, the motion as amended, and a motion about amendments to their own rules" do
+        [["senate", "Bills — Example Bill 2026; In Committee", "The question is that the amendment moved by Senator " \
+                                                               "Example be agreed to."],
+         ["representatives", "Business — Example", "The question is that the amendment moved by the member for " \
+                                                   "Example to the motion for the second reading be agreed to."],
+         ["representatives", "Business — Example", "The question now is that the motion as amended be agreed to."],
+         ["senate", "Bills — Example Bill 2026", "The question is that the amendments be considered immediately."],
+         ["senate", "Business — Example", "The question is that so much of the standing orders be suspended as would " \
+                                          "prevent the amendment being moved."]].each do |chamber, heading, question|
+          decision = described_class.route(speaker_question: question, chamber: chamber, debate_heading: heading)
+
+          expect(decision.template_id).not_to eq(31), question
+        end
+      end
+    end
   end
 end

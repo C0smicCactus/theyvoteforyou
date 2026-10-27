@@ -92,7 +92,8 @@ module DivisionSummaryPipeline
                               explanations: explanations, facts: facts, mover: packet.mover&.member,
                               limitation: limitation, circulation: packet.circulation,
                               closed_template_id: packet.closed_template_id, proposer: packet.proposer,
-                              put_without_mover: packet.put_without_mover?)
+                              put_without_mover: packet.put_without_mover?,
+                              amended_template_id: packet.amended_template_id)
       check_declines_second_reading(evidence)
       ValidationResult.new(errors: errors, warnings: warnings, evidence: evidence)
     end

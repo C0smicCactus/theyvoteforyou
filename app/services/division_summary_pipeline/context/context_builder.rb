@@ -156,12 +156,14 @@ module DivisionSummaryPipeline
       warnings = context_warnings(division_xml, speeches, earlier_speeches, deferred: deferred, limitation: limitation)
       routing = route(speaker_question, heading, transcript, motion_text: mover&.moved_text)
       closure = routing.allowed_templates.include?(22)
+      amendment = routing.template_id == 31
 
       assemble_packet(
         heading: heading, speaker_question: speaker_question, transcript: transcript, mover: mover, routing: routing,
         context_warnings: warnings, source: :hansard_xml, division_xml_id: division_xml.division_xml.attr(:id),
         limitation_statement: limitation, circulation: circulation(chair, transcript, mover),
         closed_template_id: (closed_template_id(earlier_speeches + speeches, mover, heading) if closure),
+        amended_template_id: (amended_template_id(earlier_speeches + speeches, mover, heading) if amendment),
         facts: closure ? with_followup(division_xml) : facts,
         proposer: proposer(earlier_speeches + speeches, mover, speaker_question, chair&.putting_text)
       )
@@ -204,17 +206,29 @@ module DivisionSummaryPipeline
     # 199(3) lets a minister who has spoken move the closure, and House S.O. 81 bars no one, so when
     # the closure's mover also moved the motion it cuts short, that motion is skipped.
     def closed_template_id(speeches, mover, heading)
-      closing = mover&.speech
-      index = closing && speeches.index { |speech| speech[:id] == closing[:id] }
+      earlier_move_template_id(speeches, mover, heading)
+    end
+
+    # What an amendment to a motion (Template 31) would change, found the same way. Senate S.O.
+    # 90(4) bars a motion's mover from amending it; the House's standing orders don't, so there it
+    # is the same assumption as for a closure (KI-78). An amendment to another amendment finds that
+    # amendment, routed on its own terms.
+    def amended_template_id(speeches, mover, heading)
+      earlier_move_template_id(speeches, mover, heading)
+    end
+
+    def earlier_move_template_id(speeches, mover, heading)
+      moving = mover&.speech
+      index = moving && speeches.index { |speech| speech[:id] == moving[:id] }
       return nil unless index
 
-      closed = speeches[0...index].reverse.find do |speech|
+      earlier = speeches[0...index].reverse.find do |speech|
         speech[:moved_text].present? && !speech[:other_heading] &&
-          !MemberResolver.same_speaker?(speech[:speaker], closing[:speaker])
+          !MemberResolver.same_speaker?(speech[:speaker], moving[:speaker])
       end
-      return nil unless closed
+      return nil unless earlier
 
-      ProceduralRouter.route(speaker_question: operative_paragraph(closed[:moved_text]), chamber: facts.house,
+      ProceduralRouter.route(speaker_question: operative_paragraph(earlier[:moved_text]), chamber: facts.house,
                              debate_heading: heading).template_id
     end
 
@@ -523,12 +537,13 @@ module DivisionSummaryPipeline
 
     def assemble_packet(heading:, speaker_question:, transcript:, mover:, routing:, context_warnings:, source:,
                         division_xml_id:, limitation_statement:, circulation: nil, closed_template_id: nil,
-                        facts: self.facts, proposer: nil)
+                        amended_template_id: nil, facts: self.facts, proposer: nil)
       ContextPacket.new(facts: facts, heading: heading, speaker_question: speaker_question, transcript: transcript,
                         mover: mover, routing: routing, context_level: context_level,
                         context_warnings: context_warnings, source: source, division_xml_id: division_xml_id,
                         limitation_statement: limitation_statement, circulation: circulation,
-                        closed_template_id: closed_template_id, proposer: proposer)
+                        closed_template_id: closed_template_id, amended_template_id: amended_template_id,
+                        proposer: proposer)
     end
   end
 end

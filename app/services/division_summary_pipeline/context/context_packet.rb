@@ -25,12 +25,14 @@ module DivisionSummaryPipeline
   #   saying who circulated them; otherwise nil
   # - closed_template_id: for a closure, the template the motion it cut short settles on (17 for a
   #   suspension of standing orders), found by rule; otherwise nil
+  # - amended_template_id: for an amendment to a motion (Template 31), the template the motion it
+  #   would change settles on, found by rule; otherwise nil
   # - proposer: the ResolvedMember who proposed a matter of urgency, or gave a notice, someone else
   #   moved, or nil
   ContextPacket = Data.define(:facts, :heading, :speaker_question, :transcript, :mover, :routing, :context_level,
                               :context_warnings, :source, :division_xml_id, :limitation_statement, :circulation,
-                              :closed_template_id, :proposer) do
-    def initialize(circulation: nil, closed_template_id: nil, proposer: nil, **fields)
+                              :closed_template_id, :proposer, :amended_template_id) do
+    def initialize(circulation: nil, closed_template_id: nil, proposer: nil, amended_template_id: nil, **fields)
       super
     end
   end

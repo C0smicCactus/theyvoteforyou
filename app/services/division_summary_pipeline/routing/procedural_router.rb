@@ -31,6 +31,11 @@ module DivisionSummaryPipeline
     # signatures have to sit below a guardrail they must not overtake, and each says so where it
     # is defined below.
     RULES = [
+      # An amendment's own question, before any signature: it can name the motion it would change
+      # ("the amendment ... to the motion to suspend standing orders"), so a signature would report
+      # the amendment as that motion. Amendments to a bill are left to the bill-stage rules below.
+      :amendment_to_a_motion,
+
       # Signatures of a procedure. Each decides only its own procedure and nothing about the
       # underlying question, which is why they come before any rule about a subject: a
       # suspension question that mentions a censure is a vote on suspending the standing
@@ -86,6 +91,14 @@ module DivisionSummaryPipeline
     # (House Guide p. 52), so it is the amendment's opposite (KNOWN_ISSUES.md KI-68).
     AMENDMENT_FORMS = ["omit all words after", "all words after that be omitted", "leave out all words after",
                        "at the end of the motion add"].freeze
+
+    # The question on an amendment, with the amendment as its subject (House S.O. 122; Senate S.O.
+    # 91(1)), as the chair puts it with punctuation dropped: "the question is that the amendment
+    # moved by ... be agreed to", "the question before the house is the amendment ...", "the
+    # question is that senator example s amendment be agreed to". Not "the motion as amended",
+    # whose subject is the motion.
+    AMENDMENT_PUT = /\bquestion\s(?:now\s)?(?:before\sthe\s(?:house|senate|chair)\s)?is\s(?:that\s)?
+                     (?:the\s|those\s|these\s|[a-z\s]{1,40}?\ss\s)?amendments?\s(?:.*\s)?be\sagreed\sto\b/x
 
     # Openings that settle what a motion does however the rest of it reads: a suspension of
     # standing orders, a referral to a committee, an order for the production of documents and
@@ -199,6 +212,22 @@ module DivisionSummaryPipeline
 
     attr_reader :text, :heading, :context
 
+    # Template 31: an amendment to a motion that is not about a bill. Any question can be amended,
+    # and the question on an amendment is always "That the amendment be agreed to" (House S.O.
+    # 121(a) and 122; Senate S.O. 90(1) and 91(1)). Hansard files a bill's business under a "Bills"
+    # heading, and an amendment there is Template 2, 3 or 4. Every amendment was once taken for one
+    # to a bill, so an amendment to a suspension of standing orders, whose motion set out a
+    # consideration in detail stage, was drafted as changing a bill (KNOWN_ISSUES.md KI-98). With no
+    # heading, or a "Limitation of Debate" one, which holds a bill's amendments as often as not, the
+    # question is left to the rules below.
+    def amendment_to_a_motion
+      return unless @text_outside_titles.match?(AMENDMENT_PUT)
+      return if heading.empty? || heading.start_with?("bills") || guillotine_heading?
+      return if @text_outside_titles.match?(/\b(?:the|this|that) bills?\b|\breading\b/)
+
+      settle(31, "AMENDMENT_TO_A_MOTION", "Question is that an amendment to a motion not about a bill be agreed to.")
+    end
+
     # ---------------------------------------------------------------------------------------
     # Signatures of a procedure
     # ---------------------------------------------------------------------------------------
@@ -206,12 +235,12 @@ module DivisionSummaryPipeline
     # Template 17: suspension of standing orders (the chamber's own rulebook). Decides only that
     # the rules are set aside, not the merits of whatever is then moved under them.
     #
-    # First in the whole router, and it has to be. A suspension question recites the motion it
+    # First of the signatures, and it has to be. A suspension question recites the motion it
     # would clear the way for ("That so much of the standing orders be suspended as would
     # prevent ...", House Guide p. 2), so it contains the trigger words of whichever rule covers
     # that motion, including the closure rule next, since suspensions are routinely moved to let
-    # a question be put forthwith. Any rule above this one reports the suspension division as the
-    # thing it merely enabled (KNOWN_ISSUES.md, KI-16).
+    # a question be put forthwith. Any signature above this one reports the suspension division as
+    # the thing it merely enabled (KNOWN_ISSUES.md, KI-16).
     def suspension_of_standing_orders
       return unless says?("standing orders be suspended", "standing and sessional orders be suspended",
                           "suspend standing orders", "so much of the standing")
