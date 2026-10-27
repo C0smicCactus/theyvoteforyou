@@ -196,7 +196,9 @@ module DivisionSummaryPipeline
     # What a closure cut short: the last move before the closure's own, in the same debate, by
     # someone else, routed on its first paragraph, and kept only when that settles a template.
     # A closure's draft once said only that "the debate" ended, though the suspension it ended was
-    # in the packet (KI-54).
+    # in the packet (KI-54). "By someone else" is an assumption, not a rule (KI-78): Senate S.O.
+    # 199(3) lets a minister who has spoken move the closure, and House S.O. 81 bars no one, so when
+    # the closure's mover also moved the motion it cuts short, that motion is skipped.
     def closed_template_id(speeches, mover, heading)
       closing = mover&.speech
       index = closing && speeches.index { |speech| speech[:id] == closing[:id] }
@@ -237,6 +239,8 @@ module DivisionSummaryPipeline
     # Amendments the chair put that nobody moved in the chamber: the chair's statement prints their
     # terms or says who circulated them, and no move of them was found. Under a limitation of debate
     # that is how circulated amendments are decided (Senate Guide No. 17; House S.O. 85(c)).
+    # Outside one, and for amendments moved before one fell (KI-70), it is this code's assumption,
+    # not a rule (KI-78).
     def circulation(chair, transcript, mover)
       return nil unless chair
 

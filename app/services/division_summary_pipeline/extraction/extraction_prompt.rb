@@ -8,7 +8,8 @@ module DivisionSummaryPipeline
   # KI-38), and asks for the case rather than the barbs, since small models read an attack on an
   # opponent as "a reason" (KI-58); its Template 17 line keeps the
   # explanation to why the rules should be set aside, not the merits, as the team decided in
-  # September 2026; rule 7 is the closed list KI-11 relies on, rule 9 restates the
+  # September 2026, a choice about what a summary quotes, not a rule of debate (KI-78); rule 7 is
+  # the closed list KI-11 relies on, rule 9 restates the
   # guillotine trap Stage 2 fences, and rule 8 keeps member details out of the model's hands
   # because MemberResolver looks them up in the database.
   module ExtractionPrompt

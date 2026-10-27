@@ -66,6 +66,7 @@ module DataLoader
     POSITION_RECORDED = /\b(?:record|recorded|note|noted|on\s+the\s+record)\b.{0,80}?
                            \b(?:support|opposition|opposed|opposing|position|name)\b |
                          \b(?:support|opposition|opposed|opposing|position|name)\b.{0,80}?\b(?:recorded|noted)\b/xim
+    # Anything longer is taken as debate: this code's own limit, not a rule (KI-78).
     POSITION_STATEMENT_MAXIMUM_SIZE = 400
 
     attr_accessor :division_xml, :house

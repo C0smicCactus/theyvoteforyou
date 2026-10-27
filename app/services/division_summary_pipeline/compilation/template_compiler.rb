@@ -238,6 +238,8 @@ module DivisionSummaryPipeline
 
     # " on behalf of Senator [Name](link) (Party)", added to the mover's clause for a matter of
     # urgency or a notice that someone other than its proposer moved (KNOWN_ISSUES.md KI-55, KI-65).
+    # "on behalf of" is this project's phrase: the mover says "At the request of Senator ...", as
+    # Senate S.O. 83(1) does of a notice (KI-78).
     def proposer_clause(facts, evidence)
       return "" unless evidence.proposer && evidence.mover
 
