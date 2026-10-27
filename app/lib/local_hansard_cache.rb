@@ -79,6 +79,7 @@ class LocalHansardCache
       template_id: routing&.template_id, allowed: routing&.allowed_templates, forbidden: routing&.forbidden_templates,
       mode: routing&.mode.to_s, rule: routing&.rule_name, source: packet.source.to_s,
       question: packet.speaker_question.to_s[0, 160], by_reference: packet.question_by_reference?,
+      chair_statement: packet.question_speech.present?,
       states_motion: packet.question_states_motion?, mover: packet.mover&.member&.name,
       mover_found_by: packet.mover&.found_by&.to_s, motion_found: packet.motion_found?,
       limitation: packet.limitation_statement.present?, warnings: packet.context_warnings.size,

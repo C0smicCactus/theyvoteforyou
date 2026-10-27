@@ -99,4 +99,29 @@ describe LocalHansardCache do
       expect(cache.divisions?("senate", sitting)).to be false
     end
   end
+
+  describe ".snapshot_row" do
+    # Fictional fixture, in which the chair puts the question on a second reading amendment.
+    let(:fixture) { Rails.root.join("spec/fixtures/division_summaries/test_1") }
+    let(:division) { Division.new(id: 2788, house: "representatives", date: Date.new(2026, 8, 18), number: 2) }
+
+    def row_for(xml)
+      division_data = JSON.parse(fixture.join("division.json").read)
+      packet = DivisionSummaryPipeline::ContextBuilder.build(division_data, xml_content: xml)
+      described_class.snapshot_row(division, packet)
+    end
+
+    it "records the question and that the chair's statement putting it was found" do
+      row = row_for(fixture.join("hansard_excerpt.xml").read)
+
+      expect(row).to include(chair_statement: true, question: start_with("The question now is that the amendment"))
+    end
+
+    it "records when no chair's statement was found" do
+      xml = Nokogiri::XML(fixture.join("hansard_excerpt.xml").read)
+      xml.at("speech[nospeaker]").remove
+
+      expect(row_for(xml.to_xml)).to include(chair_statement: false)
+    end
+  end
 end

@@ -8,17 +8,34 @@ until an editor has reviewed it in the division edit form.
 How the pipeline itself works is in `app/services/division_summary_pipeline/ARCHITECTURE.md`. Why the files are named
 the way they are is in `docs/adr/0007-local-drafts-named-after-division-url.md`.
 
-## Before you start
+## Getting started
 
-1. Set up the app as the README describes, as far as `bundle exec rake db:setup`. The task itself doesn't need
+Everything the local tasks read comes from data.openaustralia.org.au, the public source the site itself loads from.
+You don't need a copy of anyone else's database, Hansard or drafts, and none of them go in git.
+
+1. Set up the app as the README describes, as far as `bundle exec rake db:setup`. The local tasks don't need
    Elasticsearch running.
-2. Load the members once:
+2. Load the dates you want to work on:
 
    ```
-   bundle exec rake application:load:members
+   bin/rake ai:load_local FROM=2026-01-01 TO=2026-09-30
    ```
 
-   You don't need to load any divisions. The task loads each sitting day as it reaches it.
+   This loads the members, every division from FROM to TO, and each sitting day's Hansard. The Hansard starts 70
+   days before FROM, because a division's debate can begin days or weeks before the vote. A bill's second reading
+   can go back further, up to a year, so the first draft or snapshot that needs an older day fetches it then. All
+   of it is kept in `tmp/hansard_xml/` and fetched only once, so running the task again only reloads the members
+   and divisions. The first run takes a while, mostly downloading. TO defaults to today. The divisions aren't added
+   to the site's search; `bundle exec rake searchkick:reindex:all` adds them.
+
+   If you only want to draft, you can load just the members (`bundle exec rake application:load:members`) instead:
+   `ai:draft_local` loads each sitting day as it reaches it.
+3. Choose a model, start a model server and tell the task where it is, as the next three sections describe.
+4. Draft one division to check everything works:
+
+   ```
+   bin/rake ai:draft_local DIVISION=representatives/2026-09-17/3
+   ```
 
 ## Choose a model
 
@@ -149,5 +166,21 @@ Send the zip to the person at They Vote For You who uploads drafts. Leave out `f
 | couldn't load this day's divisions | Usually the members aren't loaded: run `bundle exec rake application:load:members`, then run the task again. The day is tried again next time |
 | model wrote 16000 tokens without finishing | The model got stuck on that division. It's in `failed/`; `RETRY_FAILED=1` tries again |
 | model wrote ... tokens without finishing (the model server's context ran out) | The prompt and the reply together filled the server's context (`--ctx-size` for `llama-server`). It's in `failed/`; `RETRY_FAILED=1` tries again, best with a larger context if your machine has the memory |
+
+## Checking a change across many divisions
+
+A change to how the pipeline reads Hansard can fix the division it was made for and quietly change others. A route
+snapshot records what the pipeline finds by rule for every loaded division in a date range, before any model is
+asked: the route, the question, whether the chair's statement putting it was found, and the mover. It needs no model.
+
+```
+bin/rake ai:route_snapshot LABEL=before FROM=2026-01-01 TO=2026-09-30
+# make the change
+bin/rake ai:route_snapshot LABEL=after FROM=2026-01-01 TO=2026-09-30
+bin/rake ai:route_snapshot_diff BEFORE=before AFTER=after
+```
+
+The diff lists each division that changed, field by field. Check each one in Hansard, then draft a few of them with
+`FORCE=1` and read the drafts: the snapshot shows what changed, not whether the drafts are now right.
 
 Drafted with AI assistance (Claude Code, claude-opus-5-5).

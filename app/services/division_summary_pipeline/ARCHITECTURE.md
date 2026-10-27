@@ -541,6 +541,14 @@ a file under `local_runs/` named after the division's URL (`LocalDraftFile`; `do
 saved to the database, and a division that already has a file is skipped so a run can be stopped
 and restarted. `docs/local-ai-drafts.md` is the how-to.
 
+```bash
+rake ai:load_local FROM=2026-01-01 TO=2026-09-30
+```
+
+Loads what the local tasks read for a date range, all from data.openaustralia.org.au: the members,
+the divisions, and each day's Hansard from `EarlierDebate`'s 70-day lookback before FROM. An older
+day a second reading's move needs (KI-100) is fetched when a draft or snapshot first asks for it.
+
 Three more development tasks in the same file check a change without a model:
 
 ```bash

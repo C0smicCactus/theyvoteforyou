@@ -83,6 +83,41 @@ namespace :ai do
     abort "\nStopped. Run the same command to carry on where it left off."
   end
 
+  # Everything the tasks in this file read for a date range, from data.openaustralia.org.au (the
+  # public source the site loads from), so nobody needs a copy of anyone else's database or Hansard:
+  # the members, the divisions, and each day's Hansard from EarlierDebate's 70-day lookback before
+  # FROM up to TO. Not its year-long search for a second reading's move, which would fetch a year of
+  # days mostly never read; the cache fetches such a day when a draft or snapshot first needs it.
+  # Searchkick's callbacks are off, as in LocalDraftRun, so Elasticsearch needn't be running.
+  desc "LOCAL: load the members, divisions and Hansard the local AI tasks read, for a date range. " \
+       "FROM=2026-01-01 required; TO defaults to today."
+  task load_local: :environment do
+    usage = "Usage: rake ai:load_local FROM=2026-01-01 [TO=2026-09-30]"
+    date = lambda do |name, default = nil|
+      Date.iso8601(ENV.fetch(name) { default || abort(usage) })
+    rescue Date::Error
+      abort "#{name} must be a date like 2026-09-17"
+    end
+    from = date.call("FROM")
+    to = date.call("TO", Date.current.iso8601)
+    abort "FROM #{from} is after TO #{to}" if from > to
+
+    Searchkick.callbacks(false) do
+      Rake::Task["application:load:members"].invoke
+      Rake::Task["application:load:divisions"].invoke(from.iso8601, to.iso8601)
+    end
+
+    cache = LocalHansardCache.new
+    first = from - DivisionSummaryPipeline::EarlierDebate::LOOKBACK_CALENDAR_DAYS
+    puts "Fetching Hansard from #{first} to #{to} into tmp/hansard_xml/ (days already there are skipped)"
+    sitting_days = first.upto(to).count do |day|
+      print "."
+      House.australian.map { |house| cache.raw(house, day) }.any?
+    end
+    puts "\n#{Division.where(date: from..to).count} divisions from #{from} to #{to} loaded, " \
+         "and Hansard for #{sitting_days} sitting days from #{first}"
+  end
+
   # A change to what Stage 1 reads or Stage 2 decides can move divisions that no spec covers, so
   # routes are compared before and after over every loaded division (KNOWN_ISSUES.md KI-35).
   desc "LOCAL: record what Stages 1 and 2 decide for every loaded division in a date range. " \
