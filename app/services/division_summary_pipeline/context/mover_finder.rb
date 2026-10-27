@@ -31,8 +31,9 @@ module DivisionSummaryPipeline
   class MoverFinder
     # found_by says how, for the reviewer: :chair_named (the chair named the mover and their move
     # is in the excerpt), :chair_named_only (named, but the move is not in the excerpt),
-    # :recent_move (the latest "I move" just before the question) or :notice_owner (the weaker
-    # "in the name of" hint, with no move of theirs found).
+    # :recent_move (the latest "I move" just before the question), :reading_move (a reading's own
+    # move, further back) or :notice_owner (the weaker "in the name of" hint, with no move of theirs
+    # found).
     Result = Struct.new(:speech, :member, :found_by, keyword_init: true) do
       def moved_text
         speech&.dig(:moved_text)
@@ -54,6 +55,13 @@ module DivisionSummaryPipeline
     AMENDMENT_TERMS = /\b(?:omit|omitted|leave\s+out|insert|substitute|substituting|add|to\s+be\s+opposed|
                           amendments?|requests?)\b/ix
     READING = /\bread\s+a\s+(first|second|third)\s+time\b/i
+    # The Senate puts a reading as "that the second reading be agreed to", which a question about
+    # the reading ("that the second reading be made an order of the day") is not. A reading's own
+    # move begins "That this bill be now read a second time", which a reasoned amendment's terms can
+    # contain ("... the bill be not now read a second time ...") but never begin with (KI-84).
+    QUESTION_READING = /\bthat\s+(?:the\s+)?(first|second|third)\s+reading\s+be\s+agreed\s+to\b/i
+    READING_MOTION = /\A\W*That\s+(?:this|the|these)\s+bills?\s+be\s+(?:now\s+)?read\s+a\s+
+                      (first|second|third)\s+time\b/ix
 
     # A closure's terms ("That the question be now put"), the questions that can be putting the
     # closure itself, and the questions that name the business a closure brings on. Once a closure
@@ -81,9 +89,14 @@ module DivisionSummaryPipeline
       new(question: question, putting: putting, speeches: speeches, house: house, date: date, circulated: circulated).find
     end
 
+    # The question is read with each bill's title as "bill", as the router reads it
+    # (ProceduralRouter::BILL_TITLE): a bill that amends an Act is commonly titled "... Amendment
+    # Bill", which says nothing about whether the question is on amendments. Read whole, it made a
+    # second reading question one on amendments, and a second reading amendment fitted it
+    # (KNOWN_ISSUES.md KI-84).
     def initialize(question:, putting:, speeches:, house:, date:, circulated:)
-      @question = question.to_s
-      @putting = putting.presence || @question
+      @question = question.to_s.gsub(ProceduralRouter::BILL_TITLE, "bill")
+      @putting = putting.presence || question.to_s
       @speeches = Array(speeches)
       @house = house
       @date = date
@@ -94,10 +107,7 @@ module DivisionSummaryPipeline
       hint = named_mover
       speech = named_move(hint) if hint
       found_by = (hint[:weak] ? :notice_owner : :chair_named) if hint && speech
-      if speech.nil? && (hint.nil? || hint[:weak]) && !@circulated
-        speech = recent_unnamed_move
-        found_by = :recent_move if speech
-      end
+      speech, found_by = unnamed_move if speech.nil? && (hint.nil? || hint[:weak]) && !@circulated
       member = speech ? member_for_speech(speech) : member_for_hint(hint)
       return nil unless speech || member&.name
 
@@ -117,6 +127,33 @@ module DivisionSummaryPipeline
     def named_move(hint)
       same, other = moves.partition { |s| !s[:other_heading] }
       same.reverse.find { |s| matches_hint?(s, hint) } || other.reverse.find { |s| matches_hint?(s, hint) }
+    end
+
+    # The latest move just before the question or, for a question on a reading, the reading's own
+    # move however far back in this debate: a second reading debate can run for days and end in a
+    # closure, so its move is seldom among the last few speeches (KNOWN_ISSUES.md KI-84).
+    def unnamed_move
+      recent = recent_unnamed_move
+      return [recent, :recent_move] if recent
+
+      reading = reading_move
+      [reading, :reading_move] if reading
+    end
+
+    def reading_move
+      return nil unless reading_question?
+
+      speeches.reverse.find do |s|
+        !s[:other_heading] && s[:moved_text].to_s[READING_MOTION, 1].to_s.casecmp?(question_reading)
+      end
+    end
+
+    def reading_question?
+      question_reading.present? && !question.match?(AMENDMENT_QUESTION)
+    end
+
+    def question_reading
+      question[READING, 1] || question[QUESTION_READING, 1]
     end
 
     def recent_unnamed_move
@@ -151,8 +188,8 @@ module DivisionSummaryPipeline
       return moved_text.match?(AMENDMENT_TERMS) if question.match?(AMENDMENT_QUESTION)
       return closure_fits? if moved_text.match?(CLOSURE_TERMS)
 
-      reading = question[READING, 1]
-      reading.nil? || moved_text[READING, 1].to_s.casecmp?(reading)
+      reading = question_reading
+      reading.nil? || moved_text[READING_MOTION, 1].to_s.casecmp?(reading)
     end
 
     def closure_fits?

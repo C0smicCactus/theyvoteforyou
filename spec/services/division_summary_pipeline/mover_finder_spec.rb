@@ -128,11 +128,80 @@ describe DivisionSummaryPipeline::MoverFinder do
     end
   end
 
+  # KNOWN_ISSUES.md KI-84: as at Senate 17 September 2026 #1, a second reading moved two sitting days
+  # before its question, which a closure brought on after other senators' speeches.
+  context "with a reading moved long before its question" do
+    let(:reading) { speech("Robin Carrow", "I move:", moved_text: "That this bill be now read a second time.") }
+    let(:debate) { Array.new(3) { |i| speech("Senator #{i}", "I support this bill.") } }
+    let(:closure) { speech("Jo Marlowe", "I move:", moved_text: "That the question be now put.") }
+    let(:reasoned) do
+      speech("Priya Dunstan", "I move:",
+             moved_text: "That all words after \"That\" be omitted with a view to substituting " \
+                         "\"the bill be not now read a second time\".")
+    end
+
+    it "takes the reading's own move, however far back in the debate" do
+      result = described_class.find(question: "The question is that the second reading be agreed to.",
+                                    speeches: [reading, *debate, closure, chair])
+
+      expect([result.member.name, result.found_by]).to eq(["Robin Carrow", :reading_move])
+    end
+
+    it "takes neither an amendment that names the reading nor a reading for a question on amendments" do
+      expect(described_class.find(question: "The question is that the second reading be agreed to.",
+                                  speeches: [reasoned, *debate, closure, chair])).to be_nil
+      expect(described_class.find(question: "The question is that the amendment be agreed to.",
+                                  speeches: [reading, *debate, chair])).to be_nil
+    end
+
+    # As at House 17 September 2026 #3: a motion about the reading, not the reading itself.
+    it "still takes a motion that the reading be made an order of the day as its own" do
+      order = "the second reading be made an order of the day for the next sitting"
+      later = speech("Andrea Leigh", "I move:", moved_text: "That #{order}.")
+
+      expect(described_class.find(question: "The question is that #{order}.",
+                                  speeches: [reading, *debate, later, chair]).member.name).to eq("Andrea Leigh")
+    end
+
+    it "does not take a reasoned amendment just before the question for the Senate's second reading" do
+      expect(described_class.find(question: "The question is that the second reading be agreed to.",
+                                  speeches: [reading, *debate, reasoned, chair]).member.name).to eq("Robin Carrow")
+    end
+  end
+
   it "takes a motion about the amendment for a question on it, as the House moves on a Senate message" do
     message = speech("Sam Okafor", "I move:", moved_text: "That the amendment be agreed to.")
 
     expect(described_class.find(question: "The question is that the amendment be agreed to.",
                                 speeches: [message, chair]).member.name).to eq("Sam Okafor")
+  end
+
+  # KNOWN_ISSUES.md KI-84: at House 5 March 2026 #1 the bill's title held "Amendment", so the
+  # second reading question was taken for a question on amendments and credited to the mover of
+  # a second reading amendment negatived the day before.
+  context "with a bill whose title says \"Amendment\"" do
+    let(:second_reading) { speech("Jo Marlowe", "I move:", moved_text: "That this bill be now read a second time.") }
+    let(:reasoned_amendment) do
+      speech("Robin Carrow", "I move:", moved_text: "That all words after \"That\" be omitted with a view to substituting " \
+                                                    "the following words: \"whilst not declining to give the bill a second reading, the House notes the cost\".")
+    end
+
+    it "does not take a second reading amendment for the second reading" do
+      question = "I shall now proceed to put the question on the motion moved on the second reading of the Example Laws " \
+                 "Amendment (Fairer Levy) Bill 2026. The question before the House is that this bill be now read a second time."
+
+      expect(described_class.find(question: question, speeches: [reasoned_amendment, chair])).to be_nil
+      expect(described_class.find(question: question, speeches: [second_reading, reasoned_amendment, chair]).member.name)
+        .to eq("Jo Marlowe")
+    end
+
+    it "still reads an amendment named outside the title" do
+      result = described_class.find(question: "The question is that the second reading amendment to the Example Laws " \
+                                              "Amendment Bill 2026 be agreed to.",
+                                    speeches: [second_reading, reasoned_amendment, chair])
+
+      expect(result.member.name).to eq("Robin Carrow")
+    end
   end
 
   # KI-63: at House 17 September 2026 #1 a suspension of standing orders was moved, seconded and
