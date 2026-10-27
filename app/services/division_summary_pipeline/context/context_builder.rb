@@ -46,10 +46,11 @@ module DivisionSummaryPipeline
     DEFAULT_SPEAKER_QUESTION = "The question is that the motion be agreed to."
 
     # The chair saying a division was deferred, in either chamber's words: "on which a division
-    # was called for and deferred", "the division is deferred until ...", "we have a deferred
+    # was called for and deferred", "the division is deferred until ...", "a division on amendment
+    # (1) ... was deferred", "the votes on the amendments ... were deferred", "we have a deferred
     # vote on ...". Read from the text because the time-of-day windows below miss deferrals put
     # on other days, such as at the start of the next sitting day.
-    DEFERRED_STATEMENT = /standing\s+order\s+133|called\s+for\s+and\s+deferred|(?:division|vote)\s+(?:is|was|be|being|has\s+been)\s+deferred|deferred\s+(?:division|vote|question)/i
+    DEFERRED_STATEMENT = /standing\s+order\s+133|called\s+for\s+and\s+deferred|(?:division|vote)s?\b[^\n.?!]*?\b(?:is|was|were|be|being|has\s+been)\s+deferred|deferred\s+(?:division|vote|question)/i
 
     # The chair reading out a matter of urgency before anyone speaks to it (Senate S.O. 75; Senate
     # Guide No. 9): "Senator McKim has submitted a proposal, under standing order 75, today". The
@@ -139,7 +140,7 @@ module DivisionSummaryPipeline
       question_speech_id = division_xml.question_speech&.attr(:id)
       chair = chair_statement(speeches, question_speech_id)
       speaker_question = chair&.question || division_xml.operative_question.presence || DEFAULT_SPEAKER_QUESTION
-      deferred = deferred_by_chair?(division_xml, speeches)
+      deferred = deferred_by_chair?(division_xml)
       earlier = earlier_debate(division_xml, chair&.putting_text.presence || speaker_question, speeches, deferred)
       earlier_speeches = earlier.speeches.reject { |speech| speeches.any? { |s| s[:id] == speech[:id] } }
       mover = MoverFinder.find(question: speaker_question, putting: chair&.putting_text,
@@ -350,18 +351,13 @@ module DivisionSummaryPipeline
       empty
     end
 
-    # Whether the chair says this division was deferred, in the speeches beside it or anywhere
+    # Whether the chair says this division was deferred, in the statement putting it or anywhere
     # in the run of divisions it belongs to: only the first question of a deferred run says so
-    # (DataLoader::DivisionXml#run_statements). Only speeches short enough to be the chair's are
-    # read, so a member citing standing order 133 does not count.
-    def deferred_by_chair?(division_xml, speeches)
-      chair_words = speeches.map { |speech| plain_text(speech) }
-                            .select { |text| text.size <= DataLoader::DivisionXml::CHAIR_STATEMENT_MAXIMUM_SIZE }
-      (chair_words + division_xml.run_statements).any? { |text| text.match?(DEFERRED_STATEMENT) }
-    end
-
-    def plain_text(speech)
-      speech[:paragraphs].reject { |paragraph| paragraph[:kind] == :quotation }.pluck(:text).join("\n\n")
+    # (DataLoader::DivisionXml#run_statements, which includes that statement). Read from every
+    # speech in the packet, it took a motion's own terms, or on the sitting-day retry a deferred
+    # vote put earlier in the day, for the chair's (KNOWN_ISSUES.md KI-81).
+    def deferred_by_chair?(division_xml)
+      division_xml.run_statements.any? { |text| text.match?(DEFERRED_STATEMENT) }
     end
 
     # Stage 1 takes the speeches immediately before the <division> element, which assumes the

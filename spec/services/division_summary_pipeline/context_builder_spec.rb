@@ -446,6 +446,41 @@ describe DivisionSummaryPipeline::ContextBuilder do
         expect(packet.routing.allowed_templates).to eq([2])
       end
 
+      # The Senate chair's words, as at Senate 3 March 2026 #2 and 20 August 2026 #14
+      # (KNOWN_ISSUES.md KI-81).
+      it "reads the Senate chair's deferral with words between the vote and \"deferred\"" do
+        ["Yesterday evening a division on amendment (1) on sheet 3472 moved by Senator Treloar was deferred.",
+         "When the bill was last considered, the votes on the amendments moved by Senator Treloar were deferred."]
+          .each do |words|
+          xml = debates("2026-08-20", <<~XML)
+            <minor-heading id="h2" url="x">Example Bill 2026; In Committee</minor-heading>
+            <speech id="s1" speakerid="uk.org.publicwhip/lord/900102" speakername="Casey Whitlow" time="09:20:00" url="x"><p>#{words} The question is that the amendments be agreed to.</p></speech>
+            #{division_element(1, '09:21:00')}
+          XML
+
+          packet = described_class.build({ id: 1, house: "senate", date: "2026-08-20", number: 1, clock_time: "9:21 AM" },
+                                         xml_content: xml)
+
+          expect(packet.context_warnings.join).to include("The chair's words show this division was deferred")
+        end
+      end
+
+      # Only the chair's words say a division was deferred, not a motion's own terms (House 18
+      # August 2026 #10, KNOWN_ISSUES.md KI-81).
+      it "does not read a deferral from the terms of the motion being put" do
+        xml = debates("2026-08-20", <<~XML)
+          <minor-heading id="h2" url="x">Business; Rearrangement</minor-heading>
+          <speech id="s1" speakerid="uk.org.publicwhip/member/900201" speakername="Robin Carrow" time="09:15:00" url="x"><p>I move:</p><p class="italic">That standing order 133(b) (deferred divisions) be suspended for this sitting.</p></speech>
+          <speech id="s2" speakerid="uk.org.publicwhip/member/900202" speakername="Casey Whitlow" time="09:20:00" url="x"><p>The question is that the motion be agreed to.</p></speech>
+          #{division_element(1, '09:21:00')}
+        XML
+
+        packet = described_class.build({ id: 1, house: "representatives", date: "2026-08-20", number: 1, clock_time: "9:21 AM" },
+                                       xml_content: xml)
+
+        expect(packet.context_warnings.join).not_to include("The chair's words show this division was deferred")
+      end
+
       # A deferred division is put without debate, often on another sitting day, so the
       # amendment it decides was moved in an earlier day's XML under the same heading.
       it "brings in the amendment from the earlier sitting day it was moved on" do
