@@ -496,11 +496,12 @@ Nothing is published by this task.
 rake ai:summarize_division_local DIVISION_ID=123
 ```
 
-The same pipeline with a model served by llama.cpp's `llama-server` in place of Bedrock, for
-testing a change without AWS credentials (`lib/tasks/local_llm.rake`). `LLAMA_URL` (default
-`http://127.0.0.1:8080`), `LLAMA_TIMEOUT` and `LLAMA_MAX_TOKENS` configure it. It always re-runs,
-overwrites that model's saved draft, and keeps every reply under `tmp/llm_replies/`, with the prompt
-that produced it beside it (`...-prompt.json`).
+The same pipeline with a model on your own machine in place of Bedrock, for testing a change
+without AWS credentials (`lib/tasks/local_llm.rake`). Any server with an OpenAI-style chat API works
+(llama.cpp's `llama-server`, Ollama, LM Studio, vLLM); `config/local_model.yml`, copied from
+`config/local_model.yml.example`, says where it is (`LocalModelClient`). Drafts are saved under the
+model id `local.<model name>`. It always re-runs, overwrites that model's saved draft, and keeps
+every reply under `tmp/llm_replies/`, with the prompt that produced it beside it (`...-prompt.json`).
 
 Three more development tasks in the same file check a change without a model:
 

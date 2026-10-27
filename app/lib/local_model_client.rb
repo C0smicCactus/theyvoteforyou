@@ -4,17 +4,26 @@ require "net/http"
 
 # Talks to a model server running on your own machine, in place of Bedrock, through the OpenAI-style
 # chat API that llama.cpp's llama-server, Ollama, LM Studio and vLLM all offer. Development only:
-# nothing in production calls it. It's for the local tasks in lib/tasks/local_llm.rake: #llm_caller
-# is what SemanticExtractor takes, so every other stage of the pipeline runs unchanged.
+# nothing in production calls it. The local tasks in lib/tasks/local_llm.rake hand #llm_caller to
+# SemanticExtractor, so every other stage of the pipeline runs unchanged.
 #
-# The defaults suit llama-server on its default port. llama-server's API is documented at
+# Settings come from config/local_model.yml (copy config/local_model.yml.example). Without the file
+# the defaults suit llama-server on its default port. llama-server's API is documented at
 # https://github.com/ggml-org/llama.cpp/tree/master/tools/server
 class LocalModelClient
+  CONFIG_PATH = Rails.root.join("config/local_model.yml")
+
   # A long debate on local hardware can take many minutes just to read the prompt, hence the hour.
   # A small model at temperature 0 can get stuck and never finish: Gemma 4 12B wrote 113,000 tokens
   # for one division before the timeout cut it off. The answer itself is a few hundred tokens of
   # JSON plus any thinking, so the cap turns an hour-long hang into a quick failure.
   DEFAULTS = { "url" => "http://127.0.0.1:8080", "model" => nil, "timeout" => 3600, "max_tokens" => 16_000 }.freeze
+
+  # Answers that mean the server isn't serving a model at all, so every division would fail the
+  # same way and the run should stop: llama-server answers 503 while it is still loading a model,
+  # and Ollama answers 404 when it has no model of that name. A 500 is the server failing on this
+  # one call, which stays the division's own failure.
+  NOT_SERVING = %w[404 502 503].freeze
 
   # Seconds to wait for the server to accept a connection. It's on this machine or the local
   # network, so a server that takes longer than this isn't running.
@@ -25,6 +34,13 @@ class LocalModelClient
   class Unreachable < StandardError; end
 
   attr_reader :url, :timeout, :max_tokens, :unreachable
+
+  def self.from_config(path = CONFIG_PATH)
+    settings = path.exist? ? YAML.safe_load_file(path) || {} : {}
+    settings = DEFAULTS.merge(settings.compact)
+    new(url: settings["url"], model: settings["model"], timeout: Integer(settings["timeout"]),
+        max_tokens: Integer(settings["max_tokens"]))
+  end
 
   # "local." and the model's name, e.g. local.Qwen3.6-35B-A3B-UD-Q4_K_M: true whichever server is
   # running it, in the "provider.model" style of the Bedrock ids, and never equal to one of them.
@@ -86,7 +102,7 @@ class LocalModelClient
 
   # The draft keeps only the prompt of the reply it used, so a sitting day retry's first prompt
   # would otherwise be lost. Written before the request, so one that times out still leaves its
-  # prompt to read.
+  # prompt to read (KNOWN_ISSUES.md KI-77).
   def save_prompt(stamp, system_prompt, user_prompt)
     FileUtils.mkdir_p(replies_dir)
     File.write(replies_dir.join("#{stamp}-prompt.json"), JSON.pretty_generate(system: system_prompt, user: user_prompt))
@@ -99,7 +115,7 @@ class LocalModelClient
   end
 
   # A reply cut off for length either used up max_tokens or was stopped sooner by the server, when
-  # the prompt and the reply together filled its context. The message says
+  # the prompt and the reply together filled its context (KNOWN_ISSUES.md KI-77). The message says
   # which, since only the first is changed in config/local_model.yml.
   def check_completion!(reply, saved)
     return unless reply.dig("choices", 0, "finish_reason") == "length"
@@ -125,7 +141,15 @@ class LocalModelClient
                                                    read_timeout: timeout) do |http|
       yield http, uri
     end
-    raise "model server #{response.code}: #{response.body.to_s.truncate(500)}" unless response.is_a?(Net::HTTPSuccess)
+    unless response.is_a?(Net::HTTPSuccess)
+      message = "model server #{response.code}: #{response.body.to_s.truncate(500)}"
+      if NOT_SERVING.include?(response.code)
+        @unreachable = message
+        raise Unreachable, message
+      end
+
+      raise message
+    end
 
     JSON.parse(response.body)
   rescue SystemCallError, SocketError, Net::OpenTimeout, EOFError => e

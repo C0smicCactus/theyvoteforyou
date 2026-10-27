@@ -15,6 +15,28 @@ describe LocalModelClient do
       usage: { completion_tokens: completion_tokens } }.to_json
   end
 
+  describe ".from_config" do
+    let(:path) { Rails.root.join("tmp/test_local_model.yml") }
+
+    after { FileUtils.rm_f(path) }
+
+    it "reads the server's address and the model from the file" do
+      File.write(path, "url: http://127.0.0.1:11434\nmodel: example-model\ntimeout: 60\nmax_tokens: 500\n")
+      client = described_class.from_config(path)
+
+      expect([client.url, client.model_name, client.timeout, client.max_tokens])
+        .to eq ["http://127.0.0.1:11434", "example-model", 60, 500]
+    end
+
+    it "uses the defaults for llama-server when there is no file or a setting is left blank" do
+      File.write(path, "model:\n")
+      client = described_class.from_config(path)
+
+      expect([client.url, client.timeout, client.max_tokens]).to eq ["http://127.0.0.1:8080", 3600, 16_000]
+      expect(described_class.from_config(Rails.root.join("tmp/no_such_file.yml")).url).to eq "http://127.0.0.1:8080"
+    end
+  end
+
   describe ".model_id_for" do
     it "puts local. before the model's name, without a GGUF file's folder or extension" do
       expect(described_class.model_id_for("/models/Example-Model-UD-Q4_K_M.gguf")).to eq "local.Example-Model-UD-Q4_K_M"
@@ -99,6 +121,19 @@ describe LocalModelClient do
 
       expect { answer }.to raise_error(RuntimeError, /model server 500: out of memory/)
       expect(client.unreachable).to be_nil
+    end
+
+    it "stops the run when the server answers it isn't serving a model (503 while loading)" do
+      stub_request(:post, completions).to_return(status: 503, body: "loading model, try again")
+
+      expect { answer }.to raise_error(described_class::Unreachable, /503/)
+      expect(client.unreachable).to include "model server 503"
+    end
+
+    it "stops the run when the server has no model of that name (Ollama answers 404)" do
+      stub_request(:post, completions).to_return(status: 404, body: "model not found")
+
+      expect { answer }.to raise_error(described_class::Unreachable, /404/)
     end
 
     it "remembers that the server stopped answering, since every later division would fail the same way" do
