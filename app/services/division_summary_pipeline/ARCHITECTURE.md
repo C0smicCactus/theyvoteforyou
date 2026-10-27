@@ -419,7 +419,7 @@ checked" means no rule has been checked against that template yet.
 | 5 | `5_federation_chamber_report.md` | Federation Chamber Report | House S.O. 153, 188 |
 | 6 | `6_third_reading.md` | Third Reading | House S.O. 155, 173; Senate S.O. 122, 135; Senate Guide No. 17 pp. 51 to 52 for the remaining stages |
 | 7 | `7_agreeing_to_amendments_message.md` | Consideration of a Message | Senate S.O. 126; Senate Guide No. 18 pp. 54 to 56; House S.O. 161, 162, 169; for section 53 of the Constitution, Senate Guide No. 16 pp. 48 to 49 and House Guide pp. 88 to 89 |
-| 8 | `8_production_of_documents.md` | Order for the Production of Documents | Senate S.O. 164; Senate Guide No. 12 p. 30 |
+| 8 | `8_production_of_documents.md` | Order for the Production of Documents | Senate S.O. 164; Senate Guide No. 10 pp. 25 to 26; Senate Guide No. 12 p. 30; House S.O. 200, 203 |
 | 9 | `9_disallowance_motion.md` | Disallowance Motion | Senate Guide No. 19 pp. 57 to 58; House Guide p. 93 |
 | 10 | `10_censure_motion.md` | Censure Motion | House S.O. 48; House Guide p. 53 |
 | 11 | `11_estimates_committees.md` | Budget Estimates Committees | None checked |
