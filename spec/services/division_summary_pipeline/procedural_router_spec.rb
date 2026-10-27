@@ -750,6 +750,21 @@ describe DivisionSummaryPipeline::ProceduralRouter do
         expect(decision.template_id).to eq(29)
       end
 
+      it "does not take a capitalised amendment just before the bill's name as part of the title" do
+        senate = described_class.route(
+          speaker_question: "That the Opposition Amendment to the Example Bill 2026 be agreed to.", chamber: "senate"
+        )
+        house = described_class.route(
+          speaker_question: "That the Senate Amendment to the Example Bill 2026 be disagreed to.",
+          chamber: "representatives"
+        )
+
+        expect(senate.rule_name).to eq("AMENDMENT_STAGE_NUANCE")
+        expect(senate.allowed_templates).to eq([2, 3])
+        expect(house.rule_name).to eq("CONSIDERATION_OF_MESSAGE")
+        expect(house.template_id).to eq(7)
+      end
+
       it "still routes an amendment moved to an amending bill as an amendment" do
         decision = described_class.route(
           speaker_question: "That the amendment moved by Senator Okafor to the Example Amendment Bill 2026 be agreed to.",

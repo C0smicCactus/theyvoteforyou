@@ -115,7 +115,7 @@ Colours: **Severity** 🔴 High, 🟠 Medium-High or Medium, 🔵 Low. **Status*
 | KI-27 | Pipeline | 🟠 Medium | 🟢 Fixed | The context retry leaked one model's note and re-routed the division | `context_builder_spec.rb`, `semantic_extractor_spec.rb`, `division_summarizer_spec.rb`. |
 | KI-28 | Pipeline | 🟠 Medium | 🟢 Fixed | Validator warnings and the review flag were thrown away | `reviewer_report_spec.rb` "lists the fallbacks, the warnings and how the mover was found"; `division_summarizer_spec.rb`. Every draft, a failed one included, ends with a fixed Reviewer Only report carrying Stage 1's context warnings, the validation errors and warnings, and the fallbacks used. |
 | KI-29 | Pipeline | 🟠 Medium | 🟠 Partly fixed | Findings from the same audit | See the open entry below: one finding is still open, and each fixed one names its spec. |
-| KI-30 | Pipeline | 🔵 Low | 🔴 Open | The router's bill-title stripping can take a capitalised "Amendment" that is not in a title | See the open entry below. |
+| KI-30 | Pipeline | 🔵 Low | 🟢 Fixed | The router's bill-title stripping could take a capitalised "Amendment" that is not in a title | `procedural_router_spec.rb` "does not take a capitalised amendment just before the bill's name as part of the title". A title runs through "the" or "to" only inside parentheses. "That the Example Amendment Bill 2026 be disagreed to" still reaches the fallback, rightly: only its title says "amendment" (KI-29), and it is amendments, not a bill, that a chamber disagrees to (House S.O. 161(c), p. 70; Senate S.O. 126(2), p. 75). |
 | KI-31 | Rules | 🟠 Medium | 🟢 Fixed | "That the remaining stages of the bill be agreed to, and the bill be now passed" fell to the general motion fallback | `procedural_router_spec.rb` "routes the remaining stages being agreed to and the bill passed to Template 6". A model that took the fallback's default compiled a valid draft that never said the bill passed. |
 | KI-32 | Pipeline | 🟠 Medium | 🟢 Fixed | A question that is the whole motion sent the pipeline to read the whole sitting day | `extraction_prompt_spec.rb` "tells the model there are no terms to find when the question is the whole motion"; `division_summarizer_spec.rb` "when the question is the whole motion and the model reports its terms missing". The prompt told the model to report the terms missing whatever the question, and the retry read about 70,000 tokens that could not contain them. `ContextPacket::QUESTION_IS_THE_MOTION` lists the templates this applies to. Extended in September 2026, after two models reported the mover's speech missing for such a question and one retry read 78,535 tokens: a mover's speech reported missing is no reason to widen when nobody moved anything (the question is the whole motion, the amendments were circulated and put, or a limitation of debate applies and no mover was found), nor are terms Stage 1 found by rule, and the prompt says so (`division_summarizer_spec.rb` "does not widen for a mover's speech reported missing either"; `extraction_prompt_spec.rb`). |
 | KI-33 | Pipeline | 🟠 Medium | 🟢 Fixed | A failed sitting day retry threw away a first reply that would have compiled | `division_summarizer_spec.rb` "when the retry over the whole sitting day fails"; `reviewer_report_spec.rb`. The draft is now built from the first reply and the Reviewer Only report says why. |
@@ -239,7 +239,7 @@ each guarded by the spec named:
   old title and description shape", `division_summarizer_spec.rb` "when the model answers in the
   old title and description shape".
 - "Amendment" in a bill's title triggered the amendment rule: `procedural_router_spec.rb` "a bill
-  title that contains the word amendment". What the fix still gets wrong is KI-30.
+  title that contains the word amendment", corrected by KI-30.
 - An unverifiable `motion_text` was only a warning. The motion is now Stage 1's, or a model
   reference that resolves, and a question that only refers to a motion nobody can find is a hard
   error: `provenance_validator_spec.rb` "the operative motion".
@@ -266,20 +266,6 @@ Still open:
 - No draft says it was drafted with AI or by which model. The Reviewer Only report records the
   model for reviewers, but that section is removed before publishing. How a published summary
   should say so is a decision for the team, since drafts are meant for the public site.
-
-### KI-30
-
-**The router's bill-title stripping can take a capitalised "Amendment" that is not in a title.**
-Severity: Low. Status: Open. **Confirmed** by routing the forms below.
-
-KI-29's fix removes bill titles ("... Amendment Bill 2026") from the question before looking for
-amendment wording. A title is recognised by its capitalised words, so a capitalised "Amendment"
-just before a bill's name can be taken as part of the title: "That the Opposition Amendment to the
-Example Bill 2026 be agreed to" loses the amendment it is about. And "That the Example Amendment
-Bill 2026 be disagreed to" now reaches the fallback instead of Template 7, because only the title
-said "amendment". No real question in either form has been seen; both came from comparing the old
-and new routers over generated questions. `procedural_router_spec.rb` "a bill title that contains
-the word amendment" is where a fix would be tested.
 
 ### KI-61
 
