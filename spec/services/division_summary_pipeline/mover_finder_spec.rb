@@ -300,6 +300,20 @@ describe DivisionSummaryPipeline::MoverFinder do
     expect(result).to be_nil
   end
 
+  # KNOWN_ISSUES.md KI-4: the chair proposes the question on the whole bill at the end of its
+  # detail stage (House S.O. 149(c); Senate S.O. 116), so the latest move is always some
+  # amendment's, and drafts of 2026 credited the bill to whoever moved the last one.
+  it "credits nobody with the question on the whole bill, which the chair puts with nobody moving it" do
+    omission = speech("Morgan Treloar", "I move: ...", moved_text: "(1) Schedule 1, item 4, page 3, to be opposed.")
+
+    expect(described_class.find(question: "The question now is that the bill, as amended, be agreed to.",
+                                putting: "The amendments moved by Senator Dunstan having been agreed to, the question now " \
+                                         "is that the bill, as amended, be agreed to.",
+                                speeches: [amendment_by_dunstan, chair])).to be_nil
+    expect(described_class.find(question: "The question is that the bill stand as printed.",
+                                speeches: [omission, chair])).to be_nil
+  end
+
   context "with member records" do
     let!(:member) do
       create(:member, person: create(:person), gid: "uk.org.publicwhip/member/9101", first_name: "Robin", last_name: "Carrow",

@@ -107,7 +107,12 @@ module DivisionSummaryPipeline
       @run_statements = run_statements
     end
 
+    # Nobody moves the question on the whole bill at the end of its detail stage: the chair
+    # proposes it (House S.O. 149(c); Senate S.O. 116). The latest move before it is always an
+    # amendment's, and drafts credited the bill to whoever moved the last one (KNOWN_ISSUES.md KI-4).
     def find
+      return nil if ProceduralRouter.whole_bill_question?(question)
+
       hint = named_mover
       speech = named_move(hint) if hint
       found_by = (hint[:weak] ? :notice_owner : :chair_named) if hint && speech

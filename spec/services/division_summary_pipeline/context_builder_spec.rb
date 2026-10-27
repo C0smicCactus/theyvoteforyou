@@ -615,6 +615,33 @@ describe DivisionSummaryPipeline::ContextBuilder do
       # As on 18 August 2026, when the second reading's time expired and the chair put the
       # opposition's amendment, then eight amendments the Greens had circulated, then the second
       # reading itself, all under the "; Second Reading" heading the minister moved it under.
+      # KNOWN_ISSUES.md KI-4: as at Senate 30 June and 7 September 2026, where the latest move was
+      # an amendment's and "stand as printed" sent Stage 1 back through the debate looking for it.
+      context "with the question on the whole bill at the end of its detail stage" do
+        let(:chair) { "speakerid=\"uk.org.publicwhip/lord/900102\" speakername=\"Casey Whitlow\"" }
+        let(:committee_xml) do
+          debates("2026-08-18", <<~XML)
+            <minor-heading id="h2" url="x">Example Bill 2026; In Committee</minor-heading>
+            <speech id="s1" speakerid="uk.org.publicwhip/lord/900101" speakername="Morgan Treloar" time="11:00:00" url="x"><p>I move:</p><p class="italic">(1) Schedule 1, item 4, page 3 (lines 1 to 9), to be opposed.</p><p>The item goes too far.</p></speech>
+            <speech id="s2" #{chair} time="11:20:00" url="x"><p>The question is that schedule 1, item 4 stand as printed.</p></speech>
+            #{division_element(1, '11:21:00')}
+            <speech id="s3" #{chair} time="11:26:00" url="x"><p>The question now is that the bill stand as printed.</p></speech>
+            #{division_element(2, '11:27:00')}
+          XML
+        end
+
+        it "settles Template 30, credits nobody with moving it and reads no earlier debate for it" do
+          packet = described_class.build({ id: 2, house: "senate", date: "2026-08-18", number: 2, clock_time: "11:27 AM" },
+                                         xml_content: committee_xml)
+
+          expect(packet.routing.template_id).to eq(30)
+          expect(packet.mover).to be_nil
+          expect(packet).to be_question_states_motion
+          expect(packet.earlier_debate_dates).to be_empty
+          expect(packet.transcript.prompt_text).not_to include("The item goes too far.")
+        end
+      end
+
       context "when the chair puts amendments nobody moved in the chamber" do
         let(:chair) { "speakerid=\"uk.org.publicwhip/lord/900102\" speakername=\"Casey Whitlow\"" }
         let(:circulated_xml) do

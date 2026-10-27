@@ -206,7 +206,8 @@ Nothing publishes itself: the draft is saved as an `AiDivisionSummary` for human
   100,000 characters nearest the division but never short of the division's own debate), and adds
   Level D, the moving speeches from earlier in the same debate (`EarlierDebate`), when the chair
   says the division was deferred, when nothing beside the division moved anything and the question
-  refers to something moved, and always on the sitting-day retry.
+  refers to something moved (the question on the whole bill never does, KI-4), and always on the
+  sitting-day retry.
 - A debate is matched by heading and by the bills listed under each heading, because a bill's
   stages sit under different headings: a guillotine's questions are put under "; Limitation of
   Debate" about amendments moved under "; Second Reading". A speech found under another heading
@@ -256,9 +257,10 @@ Nothing publishes itself: the draft is saved as an `AiDivisionSummary` for human
   (amendments for a question on amendments, the same reading for a reading, and a closure for
   anything but the reading or suspension it brought on, KI-62), and the chair putting
   other questions in between does not push it out of the window. The window counts members'
-  speeches, not the pieces Hansard breaks a speech into at each interjection (KI-63).
-  `MemberResolver` resolves members from the database and owns the one name matcher
-  (`same_speaker?`).
+  speeches, not the pieces Hansard breaks a speech into at each interjection (KI-63). Nobody is
+  credited with the question on the whole bill at the end of its detail stage (Template 30), which
+  the chair proposes with nobody moving it (KI-4). `MemberResolver` resolves members from the
+  database and owns the one name matcher (`same_speaker?`).
 - Context warnings flag when the speeches beside a division may not be the debate about it:
   successive divisions (House S.O. 131; Senate S.O. 101(3)), deferral read from the chair's words
   or the House's deferral windows (S.O. 133), speeches added from earlier in the debate, no
