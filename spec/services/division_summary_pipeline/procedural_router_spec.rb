@@ -605,6 +605,18 @@ describe DivisionSummaryPipeline::ProceduralRouter do
         expect(decision.template_id).to eq(6)
         expect(decision.reason).not_to include("routed on the motion as moved")
       end
+
+      # Senate 5 March 2026 #8 was drafted as a closure (KNOWN_ISSUES.md KI-80).
+      it "locks out the closure when the chair only names a deferred vote" do
+        decision = described_class.route(
+          speaker_question: "The question is the deferred vote, as moved by Senator Okafor on Tuesday 3 March, be taken now.",
+          chamber: "senate", motion_text: "That the Example Bill 2026 be considered during private senators' time."
+        )
+
+        expect(decision.allowed_templates).to eq([15])
+        expect(decision).to be_advisory
+        expect(decision.forbids?(22)).to be true
+      end
     end
 
     # Forms found in the House and Senate XML for September 2026 that routed to the wrong
