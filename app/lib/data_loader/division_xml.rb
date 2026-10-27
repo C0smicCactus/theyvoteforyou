@@ -43,13 +43,15 @@ module DataLoader
     LIMITATION_OF_DEBATE_HEADING = /limitation\s+of\s+debate\z/
     # The House's form, when it has agreed by suspending standing orders that a bill's questions
     # are to be put at a set time (a "programming motion", House Guide p. 75): "In accordance with
-    # the resolution agreed to on 12 August 2026, I will put the question immediately.", and
-    # "..., as amended on 18 August 2026, I'll now put the question immediately." The only forms
-    # seen, on 18 August 2026. What the Speaker says under the House's own guillotine for urgent
-    # bills (S.O. 82 and 85) has not been checked, so it is not assumed to be this.
+    # the resolution agreed to on 12 August 2026, I will put the question immediately.", "..., as
+    # amended on 18 August 2026, I'll now put the question immediately." (18 August 2026), and "In
+    # accordance with the resolution agreed to on 23 June 2026, the time allotted for this debate
+    # has expired." (24 June 2026). "The resolution agreed to earlier" is left out: the draft gives
+    # the resolution's date (KNOWN_ISSUES.md KI-52). What the Speaker says under the House's own
+    # guillotine for urgent bills (S.O. 82 and 85) has not been checked, so it is not assumed to be this.
     PUT_IMMEDIATELY = /\b[Ii]n\s+accordance\s+with\s+the\s+resolution\s+agreed\s+to\s+on\s+
                        \d{1,2}\s+[A-Z][a-z]+\s+\d{4}\b
-                       .{0,60}?\bput\s+the\s+question\s+immediately\b/xm
+                       .{0,60}?\b(?:put\s+the\s+question\s+immediately|time\s+allotted\b.{0,60}?\bhas\s+expired)\b/xm
     # How far into a speech the expiry must be said (see #limitation_expiry?).
     LIMITATION_STATEMENT_OPENING = 400
 

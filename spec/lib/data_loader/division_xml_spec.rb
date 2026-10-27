@@ -228,6 +228,17 @@ describe DataLoader::DivisionXml do
       expect(last.limitation_of_debate_statement.attr(:id)).to eq("s1")
     end
 
+    # KI-52: as at House 24 June 2026 #1, when the time the resolution of 23 June allotted had expired.
+    it "finds the Speaker saying the time a resolution allotted has expired" do
+      division = divisions(<<~XML).last
+        #{heading}
+        <speech id="s1" #{chair}><p>In accordance with the resolution agreed to on 23 June 2026, the time allotted for this debate has expired. The question is that the amendment be agreed to.</p></speech>
+        <division divnumber="1" id="d1"/>
+      XML
+
+      expect(division.limitation_of_debate_statement.attr(:id)).to eq("s1")
+    end
+
     it "is nil once the bill has moved on to a stage debated under its own heading" do
       last = divisions(<<~XML).last
         <minor-heading id="h2">Fair Pricing Bill 2026; Limitation of Debate</minor-heading>
