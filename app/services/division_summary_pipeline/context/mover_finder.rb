@@ -80,13 +80,16 @@ module DivisionSummaryPipeline
     ELECTORATE_HINT = /moved\s+by\s+the\s+(?:honourable\s+|hon\.?\s+)?member\s+for\s+([A-Z][\w'’-]*(?:[ -][A-Z][\w'’-]*)*)/
     MOVED_BY_HINT = /moved\s+by\s+(?:Senator|Mr|Mrs|Ms|Miss|Dr)\s+(?:the\s+Hon\.?\s+)?([A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*)*)/
     NOTICE_OWNER_HINT = /in\s+the\s+name\s+of\s+(?:Senator|Mr|Mrs|Ms|Miss|Dr)\s+(?:the\s+Hon\.?\s+)?([A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*)*)/
+    SHEET = /\bsheets?\s+([A-Z]*\d+)/i
 
     # question: the sentence putting the question. putting: all the chair's words putting it
     # (ChairStatement#putting_text), where the chair often names the mover in a sentence of its own.
     # circulated: the chair says the amendments being put were circulated, so nobody moved them in
-    # the chamber and a recent move is someone else's (Circulation).
-    def self.find(question:, speeches:, house: nil, date: nil, putting: nil, circulated: false)
-      new(question: question, putting: putting, speeches: speeches, house: house, date: date, circulated: circulated).find
+    # the chamber and a recent move is someone else's (Circulation). run_statements: the chair's
+    # statements in the run of divisions this one ends (DataLoader::DivisionXml#run_statements).
+    def self.find(question:, speeches:, house: nil, date: nil, putting: nil, circulated: false, run_statements: [])
+      new(question: question, putting: putting, speeches: speeches, house: house, date: date, circulated: circulated,
+          run_statements: run_statements).find
     end
 
     # The question is read with each bill's title as "bill", as the router reads it
@@ -94,13 +97,14 @@ module DivisionSummaryPipeline
     # Bill", which says nothing about whether the question is on amendments. Read whole, it made a
     # second reading question one on amendments, and a second reading amendment fitted it
     # (KNOWN_ISSUES.md KI-84).
-    def initialize(question:, putting:, speeches:, house:, date:, circulated:)
+    def initialize(question:, putting:, speeches:, house:, date:, circulated:, run_statements:)
       @question = question.to_s.gsub(ProceduralRouter::BILL_TITLE, "bill")
       @putting = putting.presence || question.to_s
       @speeches = Array(speeches)
       @house = house
       @date = date
       @circulated = circulated
+      @run_statements = run_statements
     end
 
     def find
@@ -116,7 +120,7 @@ module DivisionSummaryPipeline
 
     private
 
-    attr_reader :question, :putting, :speeches, :house, :date
+    attr_reader :question, :putting, :speeches, :house, :date, :run_statements
 
     def moves
       speeches.select { |s| s[:moved_text].present? }
@@ -197,13 +201,31 @@ module DivisionSummaryPipeline
     end
 
     def named_mover
-      if (match = putting.match(ELECTORATE_HINT))
+      hint_in(putting) || named_for_sheet
+    end
+
+    def hint_in(text)
+      if (match = text.match(ELECTORATE_HINT))
         { electorate: match[1].strip }
-      elsif (match = putting.match(MOVED_BY_HINT))
+      elsif (match = text.match(MOVED_BY_HINT))
         { name: match[1].strip }
-      elsif (match = putting.match(NOTICE_OWNER_HINT))
+      elsif (match = text.match(NOTICE_OWNER_HINT))
         { name: match[1].strip, weak: true }
       end
+    end
+
+    # Under a limitation of debate the chair may name a sheet's mover only once, putting its first
+    # question ("I'll first deal with the amendments moved by Senator Example on sheet 3832"), and
+    # then put "the remaining amendments on sheet 3832" without the name (KNOWN_ISSUES.md KI-70).
+    # Only a sentence about this question's own sheet counts, since a statement often goes on to
+    # put other senators' sheets.
+    def named_for_sheet
+      sheet = question[SHEET, 1]
+      return nil unless sheet
+
+      sentences = run_statements.flat_map { |text| Transcript.sentence_spans(text).map { |from, to| text[from...to] } }
+      sentence = sentences.reverse.find { |text| text.match?(/\bsheets?\s+#{sheet}\b/i) && hint_in(text) }
+      hint_in(sentence) if sentence
     end
 
     # A surname is enough ("Senator Example" against "Jo Example"), and an electorate needs

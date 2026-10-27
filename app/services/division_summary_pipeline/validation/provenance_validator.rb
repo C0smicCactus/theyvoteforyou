@@ -92,7 +92,7 @@ module DivisionSummaryPipeline
                               explanations: explanations, facts: facts, mover: packet.mover&.member,
                               limitation: limitation, circulation: packet.circulation,
                               closed_template_id: packet.closed_template_id, proposer: packet.proposer,
-                              put_without_mover: put_without_mover?)
+                              put_without_mover: packet.put_without_mover?)
       check_declines_second_reading(evidence)
       ValidationResult.new(errors: errors, warnings: warnings, evidence: evidence)
     end
@@ -221,12 +221,6 @@ module DivisionSummaryPipeline
         return nil
       end
       Evidence::Excerpt.from_passage(passages.first, found_by: :model)
-    end
-
-    # Nobody moved what the chair put: under a guillotine the chair puts the remaining stages and
-    # the circulated amendments with nobody moving them (Senate Guide No. 17).
-    def put_without_mover?
-      packet.mover.nil? && (packet.question_states_motion? || packet.circulation.present?)
     end
 
     # The chair's own forms of words, which are never the terms of a motion whoever the transcript

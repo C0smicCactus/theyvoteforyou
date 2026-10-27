@@ -549,6 +549,32 @@ describe DivisionSummaryPipeline::ContextBuilder do
           expect(packet.mover).to be_nil
           expect(packet.transcript.prompt_text).not_to include("the Senate rejects the bill")
         end
+
+        # KI-70: at Senate 18 August 2026 #14 the chair had named the sheet's mover only when putting
+        # its first question, and the draft failed for want of the remaining amendments' terms.
+        it "credits the rest of a sheet's amendments to the mover the chair named earlier in the run, and only them" do
+          division = ->(number) { "<division divdate=\"DATE\" divnumber=\"#{number}\" id=\"d#{number}\" url=\"x\">#{bills}</division>" }
+          xml = debates("2026-08-18", <<~XML)
+            <minor-heading id="h2" url="x">Example Bill 2026; In Committee</minor-heading>
+            #{bills}
+            <speech id="s1" speakerid="uk.org.publicwhip/lord/900101" speakername="Morgan Treloar" time="17:55:00" url="x"><p>I move the amendments on sheet 9001:</p><p class="italic">(1) Clause 2, page 2, omit the table item.</p><p class="italic">(2) Schedule 1, Part 4, to be opposed.</p></speech>
+            <minor-heading id="h3" url="x">Example Bill 2026; Limitation of Debate</minor-heading>
+            #{bills}
+            <speech id="s2" #{chair} time="20:00:00" url="x"><p>Pursuant to the order agreed to this morning, the time allocated for the remaining stages of this bill has expired. I'll first deal with the amendments moved by Senator Treloar on sheet 9001. The question is that part 4 of schedule 1, on sheet 9001, stand as printed.</p></speech>
+            #{division.call(1)}
+            <speech id="s3" #{chair} time="20:09:00" url="x"><p>The question is that the remaining amendments on sheet 9001 be agreed to.</p></speech>
+            #{division.call(2)}
+            <speech id="s4" #{chair} time="20:14:00" url="x"><p>As the last question was resolved in the affirmative, the consequential amendment on sheet 9001 will not be put. The question is that the amendments on sheet 9002 be agreed to.</p></speech>
+            #{division.call(3)}
+          XML
+          remaining, other_sheet = [2, 3].map do |number|
+            described_class.build({ id: number, house: "senate", date: "2026-08-18", number: number }, xml_content: xml)
+          end
+
+          expect(remaining.mover.speech[:id]).to eq("s1")
+          expect(remaining).to be_motion_found
+          expect(other_sheet.mover).to be_nil
+        end
       end
 
       # As on 18 August 2026, when the second reading's time expired and the chair put the
