@@ -61,6 +61,14 @@ describe DivisionSummaryPipeline::ChairStatement do
     it "does not take a member's \"the real question is\" for the chair putting one" do
       expect(statement("<p>The real question is that this bill hurts renters.</p>").question).to be_nil
     end
+
+    # KNOWN_ISSUES.md KI-101, as at House 4 February 2026 #1.
+    it "is the question put now before the House, or that the question is now" do
+      ["The question now before the House is that the amendment be agreed to.",
+       "The question is now that this bill be now read a third time."].each do |question|
+        expect(statement("<p>The time for the debate has expired. #{question}</p>").question).to eq(question)
+      end
+    end
   end
 
   describe "#circulated_by" do

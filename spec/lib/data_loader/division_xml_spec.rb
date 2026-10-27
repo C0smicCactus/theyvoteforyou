@@ -239,6 +239,20 @@ describe DataLoader::DivisionXml do
       expect(division.limitation_of_debate_statement.attr(:id)).to eq("s1")
     end
 
+    # KI-52 and KI-101: as at House 24 June 2026 #2, which the Speaker put after the Deputy
+    # Speaker had said the time expired before #1.
+    it "walks past another occupant of the chair putting the next question before the House" do
+      last = divisions(<<~XML).last
+        #{heading}
+        <speech id="s1" #{chair}><p>In accordance with the resolution agreed to on 23 June 2026, the time allotted for this debate has expired. The question is that the amendment be agreed to.</p></speech>
+        <division divnumber="1" id="d1"/>
+        <speech id="s2" speakerid="uk.org.publicwhip/lord/900002" speakername="Jordan Ellery"><p>The question before the House is that the bill be read a second time.</p></speech>
+        <division divnumber="2" id="d2"/>
+      XML
+
+      expect(last.limitation_of_debate_statement&.attr(:id)).to eq("s1")
+    end
+
     it "is nil once the bill has moved on to a stage debated under its own heading" do
       last = divisions(<<~XML).last
         <minor-heading id="h2">Fair Pricing Bill 2026; Limitation of Debate</minor-heading>
@@ -295,6 +309,18 @@ describe DataLoader::DivisionXml do
       XML
 
       expect(division.question_speech.attr(:id)).to eq("s1")
+    end
+
+    # KNOWN_ISSUES.md KI-101, as at House 4 February 2026 #1.
+    it "is the chair putting the question now before the House" do
+      division = divisions(<<~XML).first
+        #{heading}
+        <speech id="s1" speakername="Morgan Treloar"><p>I commend the bill to the Senate.</p></speech>
+        <speech id="s2" speakername="Casey Whitlow"><p>The question now before the House is that the amendment be agreed to.</p></speech>
+        <division divnumber="1" id="d1"/>
+      XML
+
+      expect(division.question_speech&.attr(:id)).to eq("s2")
     end
 
     # As at Senate 18 August 2026 #4, where eight circulated amendments made the chair's statement

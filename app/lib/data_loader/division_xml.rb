@@ -16,8 +16,9 @@ module DataLoader
     # The chair putting a question, or saying one was deferred, as against a member debating it
     # (see #preceded_by_division?). Current Hansard names the member in the chair like any other
     # speaker, so the words are all there is to go on; the length cap keeps a member's speech
-    # that happens to say "the question is" from passing as one.
-    CHAIR_STATEMENT = /\bquestion\s+(?:is|now\s+is|we're\s+dealing\s+with|before\s+the\s+(?:house|chair)(?:\s+now)?\s+is)\b|\bdeferred\b/i
+    # that happens to say "the question is" from passing as one. "The question now before the
+    # House is" was once missed, so the draft said no question was recorded (KNOWN_ISSUES.md KI-101).
+    CHAIR_STATEMENT = /\bquestion\s+(?:is|now\s+is|we're\s+dealing\s+with|(?:now\s+)?before\s+the\s+(?:house|chair)(?:\s+now)?\s+is)\b|\bdeferred\b/i
     CHAIR_STATEMENT_MAXIMUM_SIZE = 1200
 
     # Whether a speech is the chair's statement, judged on its plain paragraphs only. Hansard sets
