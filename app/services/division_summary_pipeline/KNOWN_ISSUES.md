@@ -173,6 +173,7 @@ Colours: **Severity** 🔴 High, 🟠 Medium-High or Medium, 🔵 Low. **Status*
 | KI-85 | Rules | 🟠 Medium-High | 🔴 Open | A House division with six or fewer on a side (S.O. 127) may be reported as decided by no one, or the wrong way round | See the open entry below. |
 | KI-86 | Pipeline | 🔵 Low | 🟢 Fixed | A unanimous division would read "a large majority" where the division page says "unanimously" | `division_facts_spec.rb` "says unanimously where the division page does" and `template_compiler_spec.rb` "says the chamber voted unanimously where the division page does". The vote sentence reads "the Senate unanimously voted for ..." (`SummaryWording#amount_with_article`). No 2026 division had an empty side, so no 2026 draft changes. |
 | KI-87 | Pipeline | 🟠 Medium-High | 🟢 Fixed | A word such as "delayed" or "Committee" anywhere in a Senate second reading amendment switched off the validator's check of `declines_second_reading`, so whether the draft said the amendment opposed the bill rested on the model alone | `provenance_validator_spec.rb` "settles as not declining an addition that only mentions a delay or a committee, or has no opinion word" and "leaves an addition that refers or delays the bill to the model, and says so". `ProvenanceValidator::OPERATIVE_ADDITION` looks for the operative forms of a referral, a delay or a defeat ("the provisions of the bill be referred", "further consideration of the bill be made an order of the day"), and a Senate addition with none of them is settled as not declining, opinion word or not (Senate Guide No. 16, p. 47). Where the words leave the flag to the model, a warning says so. Of the 135 Template 2 drafts of 2026, 7 Senate ones are now settled by rule instead, each as the model had answered, and 78 carry the warning. Still worth knowing: an operative form the pattern doesn't list is settled as not declining, so a model that rightly answered `true` for it would fail validation. |
+| KI-88 | Pipeline | 🔵 Low | 🟠 Partly fixed | For a second reading amendment, the quoted reasons can be about the bill rather than the amendment's own terms | See the open entry below: the prompt is fixed, whether models follow it is not known. |
 | KI-89 | Pipeline | 🔵 Low | 🟢 Fixed | Question Put gave the chair's question the time of the speech before it | `provenance_validator_spec.rb` "marks the time the chair's question takes from the speech before it as shared"; `template_compiler_spec.rb` "says the question was put before the division, at the time it shares, when that is not its own". The chair's statement putting the question shares the time of the speech before it at about two in three of the 985 divisions checked, from November 2025 to September 2026, so most drafts now say "Before the division, at" that time: the time a reader finds beside the chair's words in the record, which is how they find them. |
 | KI-91 | Pipeline | 🔵 Low | 🟢 Fixed | Template 2's vote sentence says an amendment "introduced by" a senator "to the" bill, though amendments are moved, and a second reading amendment is to the motion | `template_compiler_spec.rb` "naming members of the House" and "amendments the chair put without anyone moving them"; `division_summarizer_spec.rb` "compiles a draft quoting only Hansard" (Template 4); the evaluation corpus. Templates 2, 3 and 4 now say "moved by"; motions keep "introduced by", the word the site's research guide uses ("Who introduced the motion and why?"). |
 | KI-92 | Rules | 🔵 Low | 🔴 Open | A senator's position on parts of a question, recorded by leave just after its division, never appears in a draft: a decision is needed | See the open entry below. |
@@ -649,3 +650,34 @@ Still open:
   chair put the two deferred votes first (`2026-08-20.65.2`, "I will put those questions first
   before dealing with the remaining amendments") and the rest under the limitation of debate, which
   has its own warning.
+
+### KI-88
+
+**For a second reading amendment, the quoted reasons can be about the bill rather than the
+amendment.** Severity: Low. Status: **Partly fixed**. **Confirmed** by replaying Senate 14 September
+2026 #7 on 15 October 2026.
+
+A second reading amendment is usually moved at the end of a second reading speech on the whole
+bill, so most of the mover's sentences are about the bill. At Senate 14 September 2026 #7 the model quoted, from
+`uk.org.publicwhip/lords/2026-09-14.30.1`, "... doesn't mean we must not also urgently address the
+gap for educators in family day care and in-home care." The Greens' amendment says nothing about
+family day care or in-home care; the opposition's amendment, voted on next (#8), does. A reader may
+take the quote as the amendment's purpose. The model's reasoning checked the sentence against the
+prompt's rule 5 on remarks about other members, not against the amendment's terms: rule 5's "Scope
+to what the vote itself decides" list names Templates 8, 17, 18 and 9, and not 2.
+
+Fixed in the prompt: rule 5's list now has a Template 2 line asking for reasons for what the
+amendment itself says, not the mover's wider case on the bill. It does not rule out the case
+against the bill as a whole, because a reasoned amendment can place on record the reasons for not
+agreeing to the second reading (House Guide p. 68), and then that case is what the amendment says
+(`extraction_prompt_spec.rb` "scopes a second reading amendment's explanation to what the amendment
+says").
+
+Still open: whether models follow it can only be judged on real output, as for KI-58. On 19 October
+2026 a local model given a line to the same effect still quoted the family day care sentence at
+#7, its reasoning saying that the sentences it chose "focus on the amendment's terms (calling for
+certainty, universal system, addressing gaps)". **Verify** with a Bedrock run on #7. The same trap
+waits where the amendment is moved apart from the speech: at Senate 14 September 2026 #8 the
+mover's earlier speech (`uk.org.publicwhip/lords/2026-09-14.28.1`) also argues for the committee
+amendments, so once KI-90 brings it to the model, a draft must not quote those sentences as the
+second reading amendment's purpose.

@@ -175,6 +175,8 @@ module DivisionSummaryPipeline
              other members, parties or the government, remarks addressed to them ("you"), and comments on the
              debate itself: they are not the case for the motion, however pointed.
            - Scope to what the vote itself decides, never the subject it happens to sit under:
+             Template 2 (second reading amendment): reasons for what the amendment itself says, not the
+             mover's wider case on the bill.
              Template 8 (production of documents): why the documents should be produced, not their subject.
              Template 17 (suspension of standing orders): why the rules should be set aside so something can
              happen now, never the merits of that matter. Movers seldom say why, so an empty list is the
