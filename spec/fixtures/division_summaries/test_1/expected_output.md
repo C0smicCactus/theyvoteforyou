@@ -12,7 +12,7 @@ Nobody voted against their party on this occasion.
 
 ### About the Amendment
 
-> No explanatory claims recorded.
+No reasons from the mover were found to quote.
 
 ### Amendment Text
 

@@ -152,9 +152,9 @@ Every draft has the same shape:
 
 ### About the Bill            (bill templates: the Bills Digest section)
 ### About the Amendment       (or Motion, Report...: "At 1:27 PM, Senator Example said:" + exact
-                               sentences, or "No explanatory claims recorded."; for words
-                               incorporated in Hansard, "Senator Example's speech, incorporated in
-                               Hansard, reads:")
+                               sentences, or "No reasons from the mover were found to quote.";
+                               for words incorporated in Hansard, "Senator Example's speech,
+                               incorporated in Hansard, reads:")
 ### Motion Introduction       (the mover's "I move ..." words, exactly)
 ### Amendment Text            (or Motion Text: "Senator Example moved the following amendment:",
                                or for amendments the chair put, "The following amendments,
@@ -323,9 +323,9 @@ Nothing publishes itself: the draft is saved as an `AiDivisionSummary` for human
   motion Stage 1 found, falling back to the question.
 - `SummaryWording` holds the human-authored sentences each outcome chooses.
 - `EvidenceSections` renders the quoting sections in the layout in section 3. A section with
-  nothing to quote prints a fixed sentence ("No explanatory claims recorded."). `QuoteOutline`
-  works out how deeply each paragraph of the motion sits from its label, so "(i)" under "(a)" is
-  quoted one level further in (KI-66).
+  nothing to quote prints a fixed sentence ("No reasons from the mover were found to quote.").
+  `QuoteOutline` works out how deeply each paragraph of the motion sits from its label, so "(i)"
+  under "(a)" is quoted one level further in (KI-66).
 - `TemplateCompiler` loads the template, fills its placeholders, and keeps its tidying passes off
   every placeholder that quotes Hansard (KI-17). It records each fallback it used.
 - `DraftTitle` builds the title by rule: `<major heading> - <minor heading without its last "; ..."
@@ -500,7 +500,7 @@ spec/fixtures/division_summaries/         evaluation fixtures (test_1, test_2)
 2. **Evaluation corpus** (`evaluation_spec.rb`, `spec/fixtures/division_summaries/`): Stages 1, 2,
    4 and 5 end to end over fixture XML with the model's reply read from a fixture, comparing the
    compiled Markdown exactly. Fixture 1 is a second reading amendment moved formally, which must
-   print "No explanatory claims recorded."; fixture 2 is a closure.
+   print "No reasons from the mover were found to quote."; fixture 2 is a closure.
 
 The mover names, electorates and bills in fixtures are invented, never a real member's words, per
 `AGENTS.md`. Growing the corpus with real historical divisions is open work (section 13).
