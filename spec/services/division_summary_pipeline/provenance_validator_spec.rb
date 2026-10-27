@@ -442,12 +442,32 @@ describe DivisionSummaryPipeline::ProvenanceValidator do
         expect(with_terms(terms, declines: false)).to be_valid
       end
 
-      # Senate Guide No. 16: added words can also refer the bill to a committee or delay it.
-      it "leaves an addition that refers the bill to a committee to the model" do
-        terms = "At the end of the motion, add \", but the Senate notes the bill should be referred to the Economics Committee\"."
+      # KNOWN_ISSUES.md KI-87: words that only mention a delay or a committee, or that welcome rather
+      # than note, still only express an opinion.
+      it "settles as not declining an addition that only mentions a delay or a committee, or has no opinion word" do
+        ["At the end of the motion, add \", but the Senate notes the uncertainty caused by the delayed confirmation of " \
+         "funding and calls on the Government to respond to the Committee's report\".",
+         "At the end of the motion, add \", but the Senate welcomes the certainty the scheme gives\"."].each do |terms|
+          expect(with_terms(terms, declines: true).errors.join).to include("only adds words expressing an opinion"), terms
+          expect(with_terms(terms, declines: false)).to be_valid, terms
+        end
+      end
 
-        expect(with_terms(terms, declines: true)).to be_valid
-        expect(with_terms(terms, declines: false)).to be_valid
+      # Senate Guide No. 16, p. 47: added words can also refer the bill to a committee or delay further
+      # consideration of it, which is for the model to judge, and the editor to check.
+      it "leaves an addition that refers or delays the bill to the model, and says so" do
+        ["the bill be referred to the Economics Legislation Committee for inquiry and report",
+         "further consideration of the bill be made an order of the day for the day after the committee reports",
+         "the bill be withdrawn and redrafted",
+         "the bill not be proceeded with until the review is published"].each do |words|
+          terms = "At the end of the motion, add \", and #{words}\"."
+
+          [true, false].each do |declines|
+            result = with_terms(terms, declines: declines)
+            expect(result).to be_valid, terms
+            expect(result.warnings.join).to include("'declines_second_reading' (#{declines}) is the model's judgement"), terms
+          end
+        end
       end
 
       # House S.O. 145(a)(iii) does not allow words to be added to the second reading question.

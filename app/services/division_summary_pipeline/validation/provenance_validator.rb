@@ -55,15 +55,18 @@ module DivisionSummaryPipeline
     # The Senate's usual reasoned form: "Omit all words after "That", substitute "the Senate rejects
     # the bill ..."".
     REJECTING_PATTERN = /\b(?:senate|house)\s+rejects\s+the\s+bill\b/i
-    # Words added to the motion that only express an opinion: "At the end of the motion, add ", but
-    # the Senate: (a) notes ... (b) calls on ..."". Added words can also refer the bill to a
-    # committee or delay it (Senate Guide No. 16), so anything that mentions either is left to the
-    # model. The House does not allow words to be added at all (House S.O. 145(a)(iii)).
+    # Words added to the motion ("At the end of the motion, add ", but the Senate: (a) notes ... (b)
+    # calls on ..."") can express an opinion, defeat the bill, refer it to a committee or delay it
+    # (Senate Guide No. 16, p. 47). Only the last three bear on declining, so words that do none of
+    # them only express an opinion. They are found by the operative form the Senate orders them in
+    # ("the provisions of the bill be referred"), not by a word such as "delayed" or "Committee",
+    # which an opinion can mention too (KNOWN_ISSUES.md KI-87). The House does not allow words to be
+    # added at all (House S.O. 145(a)(iii)).
     ADDITION_PATTERN = /\bat\s+the\s+end\s+of\s+the\s+motion,?\s+add\b/i
-    OPINION_PATTERN = /\b(?:notes?|calls?\s+on|is\s+of\s+the\s+opinion|condemns|regrets|expresses|acknowledges|
-                          recognises|urges)\b/ix
-    REFERRAL_OR_DELAY = /\brefer|\bcommittee|\bdelay|\bpostpone|\bnot\s+be\s+proceeded|\bthis\s+day|\bwithdraw|
-                         \brejects|\bdeclin/ix
+    OPERATIVE_ADDITION = /\bbe\s+(?:\w+\s+)?(?:referred|postponed|deferred|delayed|adjourned|withdrawn|appointed|
+                            established|made\s+an\s+order\s+of\s+the\s+day)\b|
+                          \bnot\s+be\s+(?:further\s+)?proceeded\b|
+                          \b(?:refers|rejects|declines\s+to(?:\s+\w+){1,2})\s+(?:the|this)\s+bills?\b/ix
 
     UNIDENTIFIED_SPEAKER = "The mover was not identified by rule, so the explanation's speaker was chosen by the model."
 
@@ -351,7 +354,8 @@ module DivisionSummaryPipeline
     # Template 2's summary says the opposite thing depending on this flag. Left unanswered
     # there is no safe default, and a flag that contradicts the amendment's own words is the one
     # place the model can be caught out (KNOWN_ISSUES.md, KI-11). Where the words settle it, a
-    # contradicting answer is an error; any other wording is the model's to judge.
+    # contradicting answer is an error; any other wording is the model's to judge, and the editor is
+    # told so (KI-87).
     def check_declines_second_reading(evidence)
       return unless template_id == 2
 
@@ -367,9 +371,12 @@ module DivisionSummaryPipeline
                     "allow; check the chamber and the terms."
       end
       settled, form = declining_by_rule(motion)
-      return if settled.nil? || settled == declines
-
-      errors << "'declines_second_reading' is #{declines} but the amendment #{form}, which settles it as #{settled}."
+      if settled.nil?
+        warnings << "The amendment's words don't settle whether it declines the bill a second reading, so " \
+                    "'declines_second_reading' (#{declines}) is the model's judgement; check it against the amendment."
+      elsif settled != declines
+        errors << "'declines_second_reading' is #{declines} but the amendment #{form}, which settles it as #{settled}."
+      end
     end
 
     # [value, why] where the amendment's own words settle whether it declines the bill a second
@@ -381,7 +388,7 @@ module DivisionSummaryPipeline
       return [true, "rejects the bill"] if motion.match?(REJECTING_PATTERN)
 
       added = motion.split(ADDITION_PATTERN, 2)[1]
-      opinion_only = added&.match?(OPINION_PATTERN) && !added.match?(REFERRAL_OR_DELAY)
+      opinion_only = added && !added.match?(OPERATIVE_ADDITION)
       return [false, "only adds words expressing an opinion"] if packet.facts.senate? && opinion_only
 
       nil
