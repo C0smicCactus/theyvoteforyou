@@ -197,7 +197,8 @@ for human review.
 
 - `ContextBuilder` matches the TVFY `Division` to its `<division>` element by `divnumber` (section
   5), gathers speeches at progressive tiers (Level A immediate, Level B subdebate, the default and
-  capped at 25 speeches with the latest earlier move kept in front, Level C sitting day), and adds
+  capped at 25 speeches with the latest earlier move kept in front, Level C sitting day, cut to
+  100,000 characters nearest the division but never short of the division's own debate), and adds
   Level D, the moving speeches from earlier in the same debate (`EarlierDebate`), when the chair
   says the division was deferred, when nothing beside the division moved anything and the question
   refers to something moved, and always on the sitting-day retry.
