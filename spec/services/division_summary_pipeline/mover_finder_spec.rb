@@ -336,6 +336,41 @@ describe DivisionSummaryPipeline::MoverFinder do
     end
   end
 
+  # KNOWN_ISSUES.md KI-103: the chair names whose amendment the question puts in the possessive.
+  context "when the chair names whose amendment it is" do
+    it "takes the senator named, over a later amendment to theirs" do
+      result = described_class.find(question: "The question is that part (b) of Senator Treloar's amendment be agreed to.",
+                                    speeches: [amendment_by_treloar, amendment_by_dunstan, chair])
+
+      expect(result.member.name).to eq("Morgan Treloar")
+      expect(result.found_by).to eq(:chair_named)
+    end
+
+    it "takes the amendment amended, not the one amending it" do
+      question = "The question is that Senator Treloar's amendment, as amended by Senator Dunstan's amendment, be agreed to."
+
+      expect(described_class.find(question: question, speeches: [amendment_by_treloar, amendment_by_dunstan, chair]).member.name)
+        .to eq("Morgan Treloar")
+    end
+
+    it "does not take the senator whose amendment a circulated one amends" do
+      result = described_class.find(question: "The question is that One Nation's amendment on sheet 9003 to Senator " \
+                                              "Treloar's amendment be agreed to.",
+                                    speeches: [amendment_by_treloar, chair], circulated: true)
+
+      expect(result).to be_nil
+    end
+
+    # As at Senate 25 June 2026 #21, where the amendment had been circulated.
+    it "does not take a move of theirs that is not an amendment" do
+      instruction = speech("Morgan Treloar", "I move: That it be an instruction to the committee ...",
+                           moved_text: "That it be an instruction to the committee of the whole to divide the bill.")
+
+      expect(described_class.find(question: "The question is that Senator Treloar's amendment be agreed to.",
+                                  speeches: [instruction, chair])).to be_nil
+    end
+  end
+
   it "does not attribute a named mover's motion to someone else when their move is not in the excerpt" do
     result = described_class.find(
       question: "The question is that the amendment moved by Senator Treloar be agreed to.",

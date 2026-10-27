@@ -83,6 +83,20 @@ module DivisionSummaryPipeline
 
     ELECTORATE_HINT = /moved\s+by\s+the\s+(?:honourable\s+|hon\.?\s+)?member\s+for\s+([A-Z][\w'’-]*(?:[ -][A-Z][\w'’-]*)*)/
     MOVED_BY_HINT = /moved\s+by\s+(?:Senator|Minister|Mr|Mrs|Ms|Miss|Dr)\s+(?:the\s+Hon\.?\s+)?([A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*)*)/
+    # The chair also names an amendment by its mover: "part (b) of Minister Example's amendment",
+    # "the remainder of Senator Example's second reading amendment". Only as what the question puts,
+    # since a later one is the amendment being amended ("to Senator Example's amendment") or the one
+    # amending it ("as amended by Senator Example's amendment") (KNOWN_ISSUES.md KI-103). It names
+    # whose amendment it is, not that they moved it in the chamber, so only a move of theirs that
+    # begins as an amendment does counts: at Senate 25 June 2026 #21 the President put Senator
+    # David Pocock's circulated amendment, and his move that morning was an instruction to the
+    # committee.
+    POSSESSIVE_HINT = /\bthat\s+(?:(?:parts?|paragraphs?)\s+\([^)]*\)(?:\s+(?:and|to|through)\s+\([^)]*\))*\s+of\s+|
+                       the\s+remainder\s+of\s+)?
+                       (?:Senator|Minister|Mr|Mrs|Ms|Miss|Dr)\s+(?:the\s+Hon\.?\s+)?([A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*)*)['’]s\s+
+                       (?:second\s+reading\s+)?amendments?\b/x
+    AMENDMENT_BEGINNING = /\A\W*(?:\(\w+\)\s*)?(?:omit|leave\s+out|at\s+the\s+end|after|before|insert|add|paragraphs?|
+                           parts?|schedules?|clauses?|items?|page|that\s+all\s+words)\b/ix
     NOTICE_OWNER_HINT = /in\s+the\s+name\s+of\s+(?:Senator|Mr|Mrs|Ms|Miss|Dr)\s+(?:the\s+Hon\.?\s+)?([A-Z][\w'’-]*(?:\s+[A-Z][\w'’-]*)*)/
     SHEET = /\bsheets?\s+([A-Z]*\d+)/i
 
@@ -232,6 +246,8 @@ module DivisionSummaryPipeline
         { electorate: match[1].strip }
       elsif (match = text.match(MOVED_BY_HINT))
         { name: match[1].strip }
+      elsif (match = text.match(POSSESSIVE_HINT))
+        { name: match[1].strip, amendment: true }
       elsif (match = text.match(NOTICE_OWNER_HINT))
         { name: match[1].strip, weak: true }
       end
@@ -259,6 +275,8 @@ module DivisionSummaryPipeline
     # A surname is enough ("Senator Example" against "Jo Example"), and an electorate needs
     # the speaker's member record, since Hansard's speaker attribute carries only the name.
     def matches_hint?(speech, hint)
+      return false if hint[:amendment] && !speech[:moved_text].to_s.match?(AMENDMENT_BEGINNING)
+
       if hint[:name]
         MemberResolver.same_speaker?(speech[:speaker], hint[:name])
       else
