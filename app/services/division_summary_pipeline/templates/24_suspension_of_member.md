@@ -1,4 +1,4 @@
-**Jargon Explainer:** *This disciplinary vote suspends a member from the chamber after the Chair has named them for disorderly conduct. The question is put without amendment, adjournment or debate. If it is agreed to, the member must leave immediately. {{suspension_period_sentence}}*
+**Jargon Explainer:** *This disciplinary vote suspends a member from the chamber after the Chair has named them. The question is put without amendment, adjournment or debate. If it is agreed to, the member must leave immediately. {{suspension_period_sentence}}*
 
 ---
 

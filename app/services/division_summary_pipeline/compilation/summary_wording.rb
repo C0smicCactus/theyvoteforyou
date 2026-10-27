@@ -298,13 +298,12 @@ module DivisionSummaryPipeline
     # the sitting", and only the second and third leave out the day of the suspension: the first is
     # "the 24 hour period from the time of suspension". The limits on petitions, notices and matters
     # of public importance are the House Guide's (2017) account of practice, not a standing order.
-    # The Senate uses a different form of words again (KI-7). Senate S.O. 204 sets the Senate's
-    # periods, but the edition checked here is from 2009 and the Guides to Senate procedure do not
-    # state them, so this says where to look instead of asserting them.
+    # The Senate uses a different form of words again (KI-7), and its own periods and exclusion,
+    # from Senate S.O. 204(1) and (2) (July 2025, p. 102).
     def suspension_period_sentence
       if senate?
-        "The Senate names a senator under standing order 203 and sets the period of suspension under standing " \
-          "order 204; the Senate's own guide does not state those periods, so they are not given here."
+        "A suspended senator cannot enter the chamber. A first suspension in a calendar year runs for the rest of " \
+          "the day's sitting, a second for 7 sitting days, and a third or later one for 14 sitting days."
       else
         "A member suspended from the service of the House is excluded from the Chamber, all its galleries and any " \
           "room where the Federation Chamber is meeting, and while suspended cannot present petitions, give notices " \
