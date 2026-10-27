@@ -453,6 +453,7 @@ checked" means no rule has been checked against that template yet.
 | 28 | `28_stand_as_printed.md` | Question That a Clause or Part Stand As Printed (inverted: defeating the question is what omits the part) | Senate S.O. 116; Senate Guide No. 16 p. 48; Senate Guide No. 18 p. 55 |
 | 29 | `29_second_reading.md` | Second Reading (numbered last so that no template already cited by number had to be renumbered when the second reading was split from Template 6) | Senate S.O. 114(1); House S.O. 142(a); Senate Guide No. 16 p. 45 |
 | 30 | `30_agreeing_to_the_bill.md` | Agreeing to the Bill at the End of the Detail Stage ("That the bill (as amended) be agreed to", or the Senate's "That the bill stand as printed": the chair's question on the whole bill, which nobody moves and which does not pass it) | House S.O. 149(b) and (c), p. 66, 150(c), p. 67, 153(a) and (b)(iv) and 155(a), p. 68; House Guide pp. 71 to 73; Senate S.O. 116, p. 73, 120 and 122(1), p. 74; Senate Guide No. 16 p. 48 |
+| 31 | `31_amendment_to_a_motion.md` | Amendment to a Motion ("That the amendment be agreed to" on any motion that is not about a bill: the amendments to a bill are Templates 2, 3 and 4) | House S.O. 118, p. 56, 121(a) and 122, p. 57; Senate S.O. 90(1) and 91, p. 63 |
 
 Templates 22, 23, 24 and 26 decide only procedure, and nobody moves Template 30's question, so
 they print no explanation section. Every template has Motion Introduction, the terms moved and

@@ -44,7 +44,8 @@ module DivisionSummaryPipeline
                                          motion_text: evidence.motion_text, question_text: evidence.question_text,
                                          declines_second_reading: interpretation.declines_second_reading,
                                          circulation: evidence.circulation, limitation_text: evidence.limitation&.text,
-                                         closed_template_id: evidence.closed_template_id)
+                                         closed_template_id: evidence.closed_template_id,
+                                         amended_template_id: evidence.amended_template_id)
       template = load_template(interpretation.template_id)
       # A template with an "About the Bill" section is a bill template, which is what decides
       # both whether a digest is looked for and whether a missing bill record is worth flagging.
@@ -140,6 +141,8 @@ module DivisionSummaryPipeline
         "question_put" => sections.question,
         "limitation_of_debate_section" => limitation_of_debate_section(sections, wording),
         "amendment_effect_clause" => wording.amendment_effect_clause,
+        "amended_motion" => wording.amended_motion,
+        "motion_amendment_effect_clause" => wording.motion_amendment_effect_clause,
         "carried_amendment_note" => wording.carried_amendment_note,
         "reasoned_amendment_aside" => wording.reasoned_amendment_aside,
         "stand_as_printed_effect_clause" => wording.stand_as_printed_effect_clause,

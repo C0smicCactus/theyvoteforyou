@@ -27,15 +27,17 @@ module DivisionSummaryPipeline
     SENATE_QUORUM = 19
 
     attr_reader :facts, :template_id, :motion_text, :question_text, :declines_second_reading, :circulation,
-                :limitation_text, :closed_template_id
+                :limitation_text, :closed_template_id, :amended_template_id
 
     # circulation: the Circulation when the chair put amendments nobody moved, as Stage 1 found it.
     # limitation_text: the chair's sentence saying the question was put under a limitation of
     # debate, or under a resolution agreed earlier.
     # closed_template_id: for a closure, the template of the motion it cut short (ContextPacket).
+    # amended_template_id: for an amendment to a motion, the template of the motion it would change.
     def initialize(facts:, template_id:, motion_text: nil, question_text: nil, declines_second_reading: nil,
-                   circulation: nil, limitation_text: nil, closed_template_id: nil)
+                   circulation: nil, limitation_text: nil, closed_template_id: nil, amended_template_id: nil)
       @closed_template_id = closed_template_id
+      @amended_template_id = amended_template_id
       @facts = facts
       @template_id = template_id
       @motion_text = motion_text.to_s

@@ -31,7 +31,7 @@ module DivisionSummaryPipeline
       [2, "Second Reading Amendment", "Second Reading Amendment", "amendment", true, {}, [],
        "Second Reading Amendment (e.g. \"That all words after 'That' be omitted with a view to substituting...\")"],
       [3, "In Committee Amendment (Senate)", "In Committee Amendment", "amendment", true, {}, [],
-       "In Committee Amendment (Senate)"],
+       "In Committee Amendment (Senate), an amendment to a bill in the committee of the whole"],
       # The prompt says "Amendment": labelled only with the stage, Template 4 was chosen for the
       # question on the whole bill at the end of it (KNOWN_ISSUES.md KI-4), which is Template 30.
       [4, "Consideration in Detail (House of Representatives)", "Consideration in Detail Amendment", "amendment", true,
@@ -100,7 +100,14 @@ module DivisionSummaryPipeline
       [30, "Agreeing to the Bill at the End of the Detail Stage", "Agreeing to the Bill", "motion", false, {}, [],
        "Agreeing to the Bill at the End of the Detail Stage (the chair's question on the whole bill once its " \
        "amendments are dealt with: \"That the bill be agreed to\" or \"That the bill, as amended, be agreed to\", " \
-       "or in the Senate \"That the bill stand as printed\"; it does not pass the bill)"]
+       "or in the Senate \"That the bill stand as printed\"; it does not pass the bill)"],
+      # Any question can be amended, and the question on an amendment is always "That the
+      # amendment be agreed to" (House S.O. 121(a) and 122; Senate S.O. 90(1) and 91(1)). Templates
+      # 2, 3 and 4 are the amendments to a bill; this is every other.
+      [31, "Amendment to a Motion", "Amendment to a Motion", "amendment", true, {}, [],
+       "Amendment to a Motion (\"That the amendment be agreed to\" on a motion that is not about a bill, such as " \
+       "a suspension of standing orders, an order for documents, a motion to take note or a senator's own " \
+       "motion; an amendment to a bill is Template 2, 3 or 4)"]
     ].to_h do |id, name, title, moved, explains, facts, requires, prompt|
       [id, Entry.new(id: id, name: name, title: title, moved: moved, explains: explains, facts: facts,
                      requires: requires, prompt: prompt)]

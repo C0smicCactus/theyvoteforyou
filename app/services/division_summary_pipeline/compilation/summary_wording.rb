@@ -101,6 +101,43 @@ module DivisionSummaryPipeline
       outcome.successful? ? "The text of the bill has been changed accordingly." : ""
     end
 
+    # What Template 31's amendment would change, by the template the amended motion settles on
+    # (Evidence#amended_template_id), in each template's own words; "a motion" when it isn't known.
+    AMENDED_MOTIONS = {
+      8 => "a motion requiring the Government to produce documents",
+      14 => "a motion to adopt the report of the Selection of Bills Committee",
+      17 => "a motion to suspend standing orders",
+      19 => "a procedural motion to rearrange the business of the %{chamber}"
+    }.freeze
+
+    # An amendment to another amendment, which the standing orders treat as if that amendment were
+    # the original question (House S.O. 124; Senate S.O. 93): "... to Senator Example's amendment",
+    # "... to the amendment moved by ...".
+    AMENDS_AN_AMENDMENT = /\bto\s+(?:the\s+|[\w'’.-]+(?:\s+[\w'’.-]+){0,3}['’]s\s+)amendment\b/i
+
+    def amended_motion
+      motion = format(AMENDED_MOTIONS.fetch(outcome.amended_template_id, "a motion"), chamber: chamber)
+      amends_an_amendment? ? "another amendment to #{motion}" : motion
+    end
+
+    # Template 31: the amendment decides only the words of what it amends, which is put afterwards
+    # as amended, or as first proposed if the amendment was not made (House S.O. 118; Senate S.O.
+    # 91(4) and (5)). Nothing is said when the figures leave the result open.
+    def motion_amendment_effect_clause
+      return "" if outcome.want_of_quorum? || (outcome.tied? && !senate?)
+
+      amended = amends_an_amendment? ? "the other amendment" : "the motion"
+      if outcome.successful?
+        "#{amended.capitalize} was changed accordingly. Whether to agree to #{amended} as amended is decided separately."
+      else
+        "#{amended.capitalize} stays as it was. Whether to agree to it is decided separately."
+      end
+    end
+
+    def amends_an_amendment?
+      outcome.question_text.match?(AMENDS_AN_AMENDMENT)
+    end
+
     # Template 28 ("That the [unit] stand as printed") is the one question whose result and
     # whose effect on the bill point opposite ways: carrying it keeps the unit, defeating it
     # omits the unit (Guides to Senate Procedure, No. 16). The vote direction stays true to the

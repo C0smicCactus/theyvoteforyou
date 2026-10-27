@@ -624,6 +624,62 @@ describe DivisionSummaryPipeline::TemplateCompiler do
       end
     end
 
+    # At House 26 March 2026 #1 an amendment to a motion to suspend standing orders was drafted as
+    # an amendment to a bill in consideration in detail, which "changed" a bill.
+    describe "Template 31, an amendment to a motion that is not about a bill" do
+      def compile_amendment(data, amended_template_id: nil, question: "The question is that the amendment be agreed to.")
+        interpretation, evidence = summary_inputs(
+          template_id: 31, motion_text: "That the motion be amended to read as follows: \"That the Example Bill 2026 be called on.\"",
+          question_text: question
+        )
+        described_class.compile({ time: "09:59 AM", amount: "modest majority", mover_name: "Fictional Member" }.merge(data),
+                                interpretation, evidence.with(amended_template_id: amended_template_id))
+      end
+
+      it "names the motion amended and says the motion itself is still to be decided" do
+        rendered = compile_amendment({ result: "passed", house: "representatives" }, amended_template_id: 17)
+
+        expect(rendered).to start_with("**Jargon Explainer:** *An amendment proposes changing the words of a motion")
+        expect(rendered).to include("a modest majority voted for an amendment moved by")
+        expect(rendered).to include(" to a motion to suspend standing orders, which means it was successful. The motion was " \
+                                    "changed accordingly. Whether to agree to the motion as amended is decided separately.")
+        expect(rendered).to include("### Amendment Text", "moved the following amendment:")
+        expect(rendered).not_to include("the bill", "Bill Timeline", "Consideration in Detail")
+      end
+
+      it "says the motion stays as it was when the amendment is defeated" do
+        rendered = compile_amendment({ result: "negatived", house: "senate" }, amended_template_id: 8)
+
+        expect(rendered).to include(" to a motion requiring the Government to produce documents, which means it was " \
+                                    "unsuccessful. The motion stays as it was. Whether to agree to it is decided separately.")
+      end
+
+      it "names the chamber whose business a rearrangement changes, and says only \"a motion\" for any other" do
+        expect(compile_amendment({ result: "passed", house: "senate" }, amended_template_id: 19))
+          .to include(" to a procedural motion to rearrange the business of the Senate, which means")
+        expect(compile_amendment({ result: "passed", house: "senate" }, amended_template_id: 15))
+          .to include(" to a motion, which means it was successful.")
+      end
+
+      # House S.O. 124 and Senate S.O. 93: an amendment to an amendment is put as if that amendment
+      # were the original question, so it is the other amendment that changes.
+      it "says when the amendment is to another amendment, and that it is that amendment which changes" do
+        question = "The question is that the amendment moved by Senator Sample to Senator Example's amendment be agreed to."
+        rendered = compile_amendment({ result: "passed", house: "senate" }, amended_template_id: 17, question: question)
+
+        expect(rendered).to include(" to another amendment to a motion to suspend standing orders, which means it was " \
+                                    "successful. The other amendment was changed accordingly. Whether to agree to the " \
+                                    "other amendment as amended is decided separately.")
+      end
+
+      it "says nothing of the effect when the division figures do not decide it" do
+        rendered = compile_amendment({ result: "passed", house: "representatives", aye_votes: 70, no_votes: 70 })
+
+        expect(rendered).to include("which means it was not decided by the division figures, which were equal.")
+        expect(rendered).not_to include("changed accordingly", "stays as it was")
+      end
+    end
+
     # The order is the chamber's, its documents are tabled, and they are public only once they
     # are (KI-93).
     describe "Template 8, an order for the production of documents" do

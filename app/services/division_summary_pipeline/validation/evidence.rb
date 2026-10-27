@@ -25,9 +25,13 @@ module DivisionSummaryPipeline
   # - put_without_mover: the chair put the question with nobody moving it, either a question that is
   #   the whole motion (ContextPacket#question_states_motion?) or amendments circulated and put, so
   #   there are no "I move" words, and for the first no separate terms, to record.
+  # - amended_template_id: for an amendment to a motion (Template 31), the template the motion it
+  #   would change settles on, or nil.
   Evidence = Data.define(:introduction, :motion, :question, :explanations, :facts, :mover, :limitation,
-                         :circulation, :closed_template_id, :proposer, :put_without_mover) do
-    def initialize(circulation: nil, closed_template_id: nil, proposer: nil, put_without_mover: false, **fields)
+                         :circulation, :closed_template_id, :proposer, :put_without_mover,
+                         :amended_template_id) do
+    def initialize(circulation: nil, closed_template_id: nil, proposer: nil, put_without_mover: false,
+                   amended_template_id: nil, **fields)
       super
     end
   end
