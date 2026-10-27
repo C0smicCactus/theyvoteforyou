@@ -1445,6 +1445,16 @@ describe DivisionSummaryPipeline::TemplateCompiler do
                                   "matter of urgency")
     end
 
+    # KI-65.
+    it "names whose notice it was when someone else moved it" do
+      interpretation, evidence = summary_inputs(template_id: 13, motion_text: "That the matter be referred.",
+                                                mover: DivisionSummaryPipeline::MemberResolver.named("Sam Okafor"))
+      rendered = described_class.compile(senate_data, interpretation,
+                                         evidence.with(proposer: DivisionSummaryPipeline::MemberResolver.named("Morgan Treloar")))
+
+      expect(rendered).to include("a motion introduced by Senator Sam Okafor on behalf of Senator Morgan Treloar to refer")
+    end
+
     it "does not say words incorporated in Hansard were said" do
       interpretation, evidence = summary_inputs(template_id: 29, motion_text: "That this bill be now read a second time.",
                                                 mover: DivisionSummaryPipeline::MemberResolver.named("Jo Marlowe"))
