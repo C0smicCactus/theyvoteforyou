@@ -203,6 +203,18 @@ module DivisionSummaryPipeline
       "#{motion_text} #{question_text}".match?(/remaining stages/i) ? :remaining_stages : :third_reading
     end
 
+    # Template 30's question names the state of the bill it agrees to: "as amended" once amendments
+    # are agreed to, and in the Senate "stand as printed" when none were (House Guide p. 72; Senate
+    # Guide No. 16, p. 48). Read from the last question in the chair's words, since the statement
+    # can begin by putting an amendment.
+    def whole_bill_form
+      question = question_text.split(ChairStatement::QUESTION).last.to_s
+      return :as_printed if question.match?(/\bstand\s+as\s+printed\b/i)
+      return :as_amended if question.match?(/\bas\s+amended\b/i)
+
+      :plain
+    end
+
     # A suspension motion states its own purpose, in the words after "as would prevent" (House
     # Guide p. 2; KI-10). The purpose runs to the end of its clause: a semicolon, a colon, a
     # paragraph break, or a full stop followed by a new sentence or the end. A plain full stop is

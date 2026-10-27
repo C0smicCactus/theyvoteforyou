@@ -147,6 +147,7 @@ module DivisionSummaryPipeline
         "second_reading_clause" => wording.second_reading_clause,
         "passing_stage_clause" => wording.passing_stage_clause,
         "third_reading_clause" => wording.third_reading_clause,
+        "whole_bill_effect_clause" => wording.whole_bill_effect_clause,
         "continuation_clause" => wording.continuation_clause,
         "suspension_effect_clause" => wording.suspension_effect_clause,
         "suspension_purpose_clause" => wording.suspension_purpose_clause,
@@ -213,15 +214,16 @@ module DivisionSummaryPipeline
     # member": at the scheduled time the Speaker proposes the adjournment with nobody moving it
     # (House S.O. 31), and under a limitation of debate the chair puts circulated amendments and
     # the remaining stages with nobody moving them, when the clause says who circulated them
-    # instead, if Hansard says. An amendment is "moved" (Senate S.O. 90, 91); a motion is
-    # "introduced", the site's own word, from its research guide's "Who introduced the motion and
-    # why?" (KI-91).
+    # instead, if Hansard says. Naming nobody for a question put with nobody moving it, such as
+    # the one on the whole bill (Template 30), is no fallback, so the reviewer is not told it is.
+    # An amendment is "moved" (Senate S.O. 90, 91); a motion is "introduced", the site's own word,
+    # from its research guide's "Who introduced the motion and why?" (KI-91).
     def mover_details(facts, evidence, moved)
       details = supplied_mover(facts) || found_mover(facts, evidence.mover)
       return circulated_details(facts, evidence.circulation) if details.nil? && evidence.circulation
 
       unless details
-        @fallbacks << :mover_unresolved
+        @fallbacks << :mover_unresolved unless evidence.put_without_mover
         return { name: "", link: "", party: "", title: "", suffix: "", clause: "", label: nil }
       end
 
