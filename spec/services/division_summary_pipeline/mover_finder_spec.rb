@@ -3,8 +3,8 @@
 require "spec_helper"
 
 describe DivisionSummaryPipeline::MoverFinder do
-  def speech(speaker, text, moved_text: nil, gid: nil)
-    { speaker: speaker, speaker_gid: gid, time: "11:42", text: text, moved_text: moved_text }
+  def speech(speaker, text, moved_text: nil, gid: nil, talktype: nil)
+    { speaker: speaker, speaker_gid: gid, time: "11:42", text: text, moved_text: moved_text, talktype: talktype }
   end
 
   let(:amendment_by_treloar) do
@@ -133,6 +133,50 @@ describe DivisionSummaryPipeline::MoverFinder do
 
     expect(described_class.find(question: "The question is that the amendment be agreed to.",
                                 speeches: [message, chair]).member.name).to eq("Sam Okafor")
+  end
+
+  # KI-63: at House 17 September 2026 #1 a suspension of standing orders was moved, seconded and
+  # answered by a minister, and Hansard broke those three speeches into 21 pieces at the Speaker's
+  # "Is the motion seconded?", interjections and a point of order. Counted piece by piece, the
+  # move was far outside the window, so no mover was found and the motion never reached the router.
+  context "when Hansard breaks the speeches after a move into pieces" do
+    def interjection(speaker, text)
+      speech(speaker, text, talktype: "interjection")
+    end
+
+    let(:suspension) do
+      speech("Robin Carrow", "I move:", moved_text: "That so much of the standing and sessional orders be suspended as would prevent the Member for Exampleton from moving the following motion immediately ...", talktype: "speech")
+    end
+
+    let(:seconder_and_minister) do
+      [interjection("Casey Whitlow", "Is the motion seconded?"),
+       speech("Sam Okafor", "The motion is seconded. ...", talktype: "speech"),
+       interjection("Jo Marlowe", "Still won't say it!"),
+       speech("Sam Okafor", "... and that is why standing orders should be suspended.", talktype: "continuation"),
+       speech("Priya Dunstan", "The House has other business to get on with today.", talktype: "speech"),
+       interjection("Opposition members", "Opposition members interjecting—"),
+       interjection("Casey Whitlow", "Order! The minister will direct remarks through the chair."),
+       interjection("Jo Marlowe", "On a point of order: the minister should withdraw that remark."),
+       speech("Priya Dunstan", "I withdraw. This motion should not be agreed to.", talktype: "continuation")]
+    end
+
+    let(:question) { speech("Casey Whitlow", "The question is that the motion be agreed to.", talktype: "interjection") }
+
+    it "counts members' turns against the window for an unnamed move, not the pieces of them" do
+      result = described_class.find(question: "The question is that the motion be agreed to.",
+                                    speeches: [suspension, *seconder_and_minister, question])
+
+      expect(result.member.name).to eq("Robin Carrow")
+      expect(result.found_by).to eq(:recent_move)
+    end
+
+    it "still does not take a move from more turns back than the window" do
+      another_turn = [speech("Riley Ng", "A speech about something else.", talktype: "speech"),
+                      interjection("Casey Whitlow", "Order!")]
+
+      expect(described_class.find(question: "The question is that the motion be agreed to.",
+                                  speeches: [suspension, *another_turn, *seconder_and_minister, question])).to be_nil
+    end
   end
 
   # Under a guillotine the chair puts each second reading amendment in turn before the second

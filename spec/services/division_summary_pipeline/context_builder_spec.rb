@@ -218,6 +218,33 @@ describe DivisionSummaryPipeline::ContextBuilder do
         expect(suspension.mover.moved_text).to start_with("That so much of the standing orders be suspended")
       end
 
+      # KI-63: as at House 17 September 2026 #1, where the seconder's and the minister's speeches
+      # were broken up by the Speaker, interjections and a point of order, and the router fell
+      # back to the general motion fallback for want of the motion.
+      it "finds the move behind a seconder and a reply that Hansard broke into pieces" do
+        speaker = "speakerid=\"uk.org.publicwhip/member/900202\" speakername=\"Casey Whitlow\""
+        xml = debates("2026-09-17", <<~XML)
+          <minor-heading id="h2" url="x">Example Minister; Suspension of Standing and Sessional Orders</minor-heading>
+          <speech id="s1" speakerid="uk.org.publicwhip/member/900201" speakername="Robin Carrow" talktype="speech" time="09:01:00" url="x"><p>I move:</p><p class="italic">That so much of the standing and sessional orders be suspended as would prevent the Member for Exampleton from moving the following motion immediately—That this House has no confidence in the Minister for Examples.</p></speech>
+          <speech id="s2" #{speaker} talktype="interjection" time="09:01:00" url="x"><p>Is the motion seconded?</p></speech>
+          <speech id="s3" speakerid="uk.org.publicwhip/member/900203" speakername="Sam Okafor" talktype="speech" time="09:11:00" url="x"><p>The motion is seconded. Standing orders should be suspended.</p></speech>
+          <speech id="s4" speakerid="uk.org.publicwhip/member/900204" speakername="Jo Marlowe" talktype="interjection" time="09:11:00" url="x"><p>Still won't say it!</p></speech>
+          <speech id="s5" speakerid="uk.org.publicwhip/member/900203" speakername="Sam Okafor" talktype="continuation" time="09:11:00" url="x"><p>The House should hear this motion today.</p></speech>
+          <speech id="s6" speakerid="uk.org.publicwhip/member/900205" speakername="Priya Dunstan" talktype="speech" time="09:16:00" url="x"><p>This motion should not be agreed to.</p></speech>
+          <speech id="s7" speakerid="unknown" speakername="Opposition Members" talktype="interjection" time="09:16:00" url="x"><p>Opposition members interjecting—</p></speech>
+          <speech id="s8" #{speaker} talktype="interjection" time="09:16:00" url="x"><p>Order! The minister will direct remarks through the chair.</p></speech>
+          <speech id="s9" speakerid="uk.org.publicwhip/member/900205" speakername="Priya Dunstan" talktype="continuation" time="09:16:00" url="x"><p>The House has other business today.</p></speech>
+          <speech id="s10" #{speaker} talktype="interjection" time="09:16:00" url="x"><p>The question is that the motion be agreed to.</p></speech>
+          #{division_element(1, '09:31:00')}
+        XML
+
+        packet = described_class.build({ id: 1, house: "representatives", date: "2026-09-17", number: 1, clock_time: "9:31 AM" },
+                                       xml_content: xml)
+
+        expect(packet.mover.speech[:speaker]).to eq("Robin Carrow")
+        expect(packet.routing.template_id).to eq(17)
+      end
+
       # The widened retry is routed on the first packet, not on the start of the sitting day,
       # which is some other debate (KNOWN_ISSUES.md, KI-27).
       it "keeps a routing decision it is given rather than routing again" do

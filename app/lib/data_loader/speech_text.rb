@@ -86,11 +86,14 @@ module DataLoader
 
     module_function
 
+    # talktype is Hansard's "speech", "interjection" or "continuation": a member's speech is split
+    # into pieces wherever someone interjects, and only its first piece is a "speech".
     def context_speech(speech)
       {
         id: speech.attr(:id),
         speaker: speaker_name(speech),
         speaker_gid: speech.attr(:speakerid),
+        talktype: speech.attr(:talktype),
         time: speech.attr(:time),
         text: paragraph_text(speech),
         paragraphs: paragraphs(speech),

@@ -360,5 +360,12 @@ describe DataLoader::SpeechText do
       expect(result).to include(speaker: "Morgan Treloar", speaker_gid: "uk.org.publicwhip/lord/900001", time: "13:27",
                                 moved_text: "That the question be now put.")
     end
+
+    # So MoverFinder can count members' turns rather than the pieces Hansard breaks them into.
+    it "carries whether Hansard records the speech as a new speech, an interjection or a continuation" do
+      node = Nokogiri::XML("<speech speakername=\"Morgan Treloar\" talktype=\"continuation\"><p>As I was saying.</p></speech>").root
+
+      expect(described_class.context_speech(node)[:talktype]).to eq("continuation")
+    end
   end
 end

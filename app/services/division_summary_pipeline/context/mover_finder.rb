@@ -41,6 +41,7 @@ module DivisionSummaryPipeline
 
     # How close to the end of the excerpt an unnamed move must be to count as the motion being
     # put, counting members' speeches only: the move itself, perhaps a seconder, and one more.
+    # A speech is counted once however many pieces Hansard breaks it into (#last_turns).
     UNNAMED_MOVE_WINDOW = 3
 
     # A question on amendments, and terms that could be what it puts: an amendment in any of its
@@ -120,7 +121,19 @@ module DivisionSummaryPipeline
 
     def recent_unnamed_move
       members = speeches.reject { |s| s[:other_heading] || chair_statement?(s) }
-      members.last(UNNAMED_MOVE_WINDOW).reverse.find { |s| s[:moved_text].present? && fits_question?(s[:moved_text]) }
+      last_turns(members).reverse.find { |s| s[:moved_text].present? && fits_question?(s[:moved_text]) }
+    end
+
+    # The pieces making up the last few speeches. Hansard starts a new piece wherever the chair
+    # or a member interjects, and the speech goes on as a "continuation", so counted piece by
+    # piece a seconder and one reply could push the move out of the window: at House
+    # 17 September 2026 #1 three speeches were 21 pieces, and no mover was found (KI-63). A
+    # piece without a talktype counts as a speech of its own.
+    def last_turns(members)
+      starts = members.each_index.select { |i| members[i][:talktype].nil? || members[i][:talktype] == "speech" }
+      return members if starts.size < UNNAMED_MOVE_WINDOW
+
+      members[starts[-UNNAMED_MOVE_WINDOW]..]
     end
 
     def chair_statement?(speech)
